@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+
+  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Data Listing</h3>
+                  </div>
+                  <div class="card-body border-bottom py-3">
+                    <div class="col-12 mb-3">
+                      <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-add">Add</button><br />
+                    </div>
+                    <form action="/pkp" id="frmSearch" type="GET">
+                      <div class="d-flex">
+                        <div class="text-muted">
+                        Show
+                        <div class="mx-2 d-inline-block">
+                            <input type="text" class="form-control form-control-sm" value="<%= listOfPkp.meta.limit %>" size="3" aria-label="data count">
+                        </div>
+                        entries
+                        </div>
+                        <div class="ms-auto text-muted">
+                          <div class="input-group mb-2">
+                            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search data" value="<% if(locals.search) { %><%= search  %><% } %>">
+                            <button class="btn" type="submit">Go</button>
+                          </div>
+                        </div>
+                    </form>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                        <th>Code</th>
+                        <th>Description</th>
+                        <th>Start Salary</th>
+                        <th>End Salary</th>
+                        <th>Rates (%)</th>
+                        <th></th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% listOfPkp.data.forEach(function(data) { %>
+                          <tr>
+                              <td><%= data.code %></td>
+                              <td><%= data.description.slice(0, 70) %></td>
+                              <td style="text-align: right;"><%= generalHelper.formatNumberWithCommas(data.startSalary) %></td>
+                              <td style="text-align: right;"><%= generalHelper.formatNumberWithCommas(data.endSalary) %></td>
+                              <td><%= data.ratesPercentage %></td>
+                              <td class="text-end">
+                                <button class="btn btn-outline-primary ms-auto edit" data-bs-toggle="modal" data-bs-target="#modal-edit" data-id="<%= data.id %>" data-code="<%= data.code %>" data-description="<%= data.description %>" data-start-salary="<%= data.startSalary %>" data-end-salary="<%= data.endSalary %>" data-rates-percentage="<%= data.ratesPercentage %>">Edit</button>
+                              </td>
+                          </tr>
+                          <% }); %>                       
+                      </tbody>
+                    </table>
+                  </div>
+                                    
+                  <div class="card-footer d-flex align-items-center">
+                    <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfPkp.meta.totalRecordCurrentPage %></span> of <span><%= listOfPkp.meta.totalRecords %></span> entries</p>
+                    <% if (listOfPkp.meta.totalPage > 1) { %>
+                    <ul class="pagination m-0 ms-auto">
+                      <% if (listOfPkp.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/Pkp?page=0&limit=<%= listOfPkp.meta.limit %>"><< First</a></li>&nbsp;
+                      <% } %>
+                      
+                      <% if (listOfPkp.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/pkp?page=<%= listOfPkp.meta.currentPage-1 %>&limit=<%= listOfPkp.meta.limit %>">< Previous</a></li>&nbsp;
+                      <% } %>
+
+                      <% if ((listOfPkp.meta.currentPage + 1) == listOfPkp.meta.totalPage) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/pkp?page=<%= listOfPkp.meta.currentPage+1 %>&limit=<%= listOfPkp.meta.limit %>"> Next ></a></li>&nbsp;
+                      <% } %>
+
+                      <% if (listOfPkp.meta.currentPage == (listOfPkp.meta.totalPage-1)) { %>
+                        <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                      <% } else { %>
+                          <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/pkp?page=<%= listOfPkp.meta.totalPage - 1 %>&limit=<%= listOfPkp.meta.limit %>">Last >></a></li>
+                      <% } %>
+                    </ul>
+                    <% } %>
+                  </div> 
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+  
+  <div class="modal modal-blur fade" id="modal-add" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New PKP</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/pkp" autocomplete="off">
+          <div class="modal-body">
+            <div class="row">
+              <div class="mb-3">
+                <label class="form-label">Code</label>
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="text" class="form-control" name="code" id="code" placeholder="Code" required>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label">Description</label>
+                  <input type="text" class="form-control" name="description" id="description" placeholder="Description">
+              </div>  
+              <div class="mb-3">
+                <label class="form-label">Start Salary</label>
+                <input type="text" class="form-control" name="start_salary" id="start_salary" placeholder="Start Salary" onKeyPress="return isNumber(event)" required>
+              </div>          
+              <div class="mb-3">
+                <label class="form-label">End Salary</label>
+                <input type="text" class="form-control" name="end_salary" id="end_salary" placeholder="End Salary" onKeyPress="return isNumber(event)" required>
+              </div>          
+              <div class="mb-3">
+                <label class="form-label">Rates Percentage</label>
+                <input type="text" class="form-control" name="rates_percentage" id="rates_percentage" placeholder="Rates Percentages" onKeyPress="return isNumber(event)" required>
+              </div>          
+            </div>
+          </div>
+      
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">
+              Insert Data
+            </button>
+          </div>
+        </form>
+    </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit PKP</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="frmEdit" class="card card-md" method="POST" action="/pkp/update" autocomplete="off">
+          <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label">Code</label>
+                <input type="hidden" name="pkp_id" id="pkp_id" class="pkp-id">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="text" class="form-control code" name="code" id="code" placeholder="Code" required>
+                <input type="hidden" class="code2" name="code2" id="code2">
+            </div>              
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <textarea class="form-control description" name="description" id="description" placeholder="Description"></textarea>
+              <input type="hidden" class="description2" name="description2" id="description2">
+            </div>          
+            <div class="mb-3">
+              <label class="form-label">Start Salary</label>
+              <input type="text" class="form-control start-salary1" name="start_salary1" id="start_salary1" placeholder="Start Salary" onKeyPress="return isNumber(event)" required>
+            </div>          
+            <div class="mb-3">
+              <label class="form-label">End Salary</label>
+              <input type="text" class="form-control end-salary1" name="end_salary1" id="end_salary1" placeholder="End Salary" onKeyPress="return isNumber(event)" required>
+            </div>        
+            <div class="mb-3">
+              <label class="form-label">Rates Percentage</label>
+              <input type="text" class="form-control rates-percentage1" name="rates_percentage1" id="rates_percentage1" placeholder="Rates Percentages" onKeyPress="return isNumber(event)" required>
+            </div>         
+          </div>          
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button id="updateBtn" class="btn btn-primary ms-auto" type="submit">
+              Update Data
+            </button>
+          </div>
+        </form>
+    </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-danger" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <form class="card card-md" method="POST" action="/pkp/delete" autocomplete="off">
+          <div class="modal-body text-center py-4">
+            <!-- Download SVG icon from http://tabler-icons.io/i/alert-triangle -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+            <h3>Are you sure?</h3>
+            <div class="text-muted">Do you really want to remove the data? What you've done cannot be undone.</div>
+            <input type="hidden" name="pkp_id" id="pkp_id" class="pkp-id">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">
+                    Cancel
+                  </a>
+                </div>
+                <button id="deleteBtn" class="col btn btn-danger ms-auto" type="submit" data-bs-dismiss="modal">
+                  Delete Data
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="modal modal-blur fade" id="modal-error" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+          <h3><%= message.errorDelete %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-danger w-100" data-bs-dismiss="modal">
+                  Close
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  <script src="/js/validateNumber.js"></script>
+
+  <% var messageErrorDelete = message.errorDelete; %>
+  <script type = "text/JavaScript">
+    var editModal = document.getElementById('modal-edit');
+    editModal.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var pkpId = button.getAttribute('data-id');
+      var code = button.getAttribute('data-code');
+      var description = button.getAttribute('data-description');
+      var startSalary = button.getAttribute('data-start-salary');
+      var endSalary = button.getAttribute('data-end-salary');
+      var ratesPercentage = button.getAttribute('data-rates-percentage');
+      // If necessary, you could initiate an AJAX request here
+      // and then do the updating in a callback.
+      //
+      // Update the modal's content.
+      var modalTitle = editModal.querySelector('.modal-title');
+
+      var modalPkpId = editModal.querySelector(".pkp-id");
+      var modalCode = editModal.querySelector(".code");
+      var modalDescription = editModal.querySelector(".description");
+      var modalDescription2 = editModal.querySelector(".description");
+      var modalStartSalary = editModal.querySelector(".start-salary1");
+      var modalEndSalary = editModal.querySelector(".end-salary1");
+      var modalRatesPercentage = editModal.querySelector(".rates-percentage1");
+      modalPkpId.value = pkpId;
+      modalCode.value = code;
+      modalDescription.value = description;
+      modalDescription2.value = description;
+      modalStartSalary.value = String(startSalary).replace(/(.)(?=(\d{3})+$)/g,'$1,');
+      modalEndSalary.value = String(endSalary).replace(/(.)(?=(\d{3})+$)/g,'$1,');
+      modalRatesPercentage.value = String(ratesPercentage).replace(/(.)(?=(\d{3})+$)/g,'$1,');
+      
+    })
+
+    var startSalary = document.getElementById("start_salary");
+    startSalary.addEventListener('blur', function (event) {
+      startSalary.value = String(startSalary.value).replace(/(.)(?=(\d{3})+$)/g,'$1,');
+    })
+    startSalary.addEventListener('click', function (event) {
+      if (startSalary.value!='')
+        startSalary.value = Number(startSalary.value.toString().replace(/\,/g,''));
+    })
+    var startSalary1 = document.getElementById("start_salary1");
+    startSalary1.addEventListener('blur', function (event) {
+      startSalary1.value = String(startSalary1.value).replace(/(.)(?=(\d{3})+$)/g,'$1,');
+    })
+    startSalary1.addEventListener('click', function (event) {
+      if (startSalary1.value!='')
+        startSalary1.value = Number(startSalary1.value.toString().replace(/\,/g,''));
+    })
+
+    var endSalary = document.getElementById("end_salary");
+    endSalary.addEventListener('blur', function (event) {
+      endSalary.value = String(endSalary.value).replace(/(.)(?=(\d{3})+$)/g,'$1,');
+    })
+    endSalary.addEventListener('click', function (event) {
+      if (endSalary.value!='')
+      endSalary.value = Number(endSalary.value.toString().replace(/\,/g,''));
+    })
+    var endSalary1 = document.getElementById("end_salary1");
+    endSalary1.addEventListener('blur', function (event) {
+      endSalary1.value = String(endSalary1.value).replace(/(.)(?=(\d{3})+$)/g,'$1,');
+    })
+    endSalary1.addEventListener('click', function (event) {
+      if (endSalary1.value!='')
+      endSalary1.value = Number(endSalary1.value.toString().replace(/\,/g,''));
+    })  
+
+    var deleteModal = document.getElementById('modal-danger');
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var pkpId = button.getAttribute('data-id');
+
+      var modalPkpId = deleteModal.querySelector(".pkp-id");
+      modalPkpId.value = pkpId;
+    })
+
+    let getMessageErrorDelete = "<%= messageErrorDelete %>";
+    if(getMessageErrorDelete) {
+      var errorDelereModal = new bootstrap.Modal(document.getElementById('modal-error'), {})
+      errorDelereModal.toggle();
+    }
+  </script>
+</body>
+</html>

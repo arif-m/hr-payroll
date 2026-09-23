@@ -1,0 +1,11 @@
+-- AlterTable
+ALTER TABLE `requestLeave` ADD COLUMN `approvedDateByHR` DATETIME(0) NULL,
+    ADD COLUMN `approvedHRBy` VARCHAR(150) NULL,
+    ADD COLUMN `commentsByHR` VARCHAR(300) NULL,
+    ADD COLUMN `isApprovedByHR` TINYINT NOT NULL DEFAULT 0;
+
+-- AlterTable
+ALTER TABLE `requestOtherLeave` ADD COLUMN `approvedDateByHR` DATETIME(0) NULL,
+    ADD COLUMN `approvedHRBy` VARCHAR(150) NULL,
+    ADD COLUMN `commentsByHR` VARCHAR(300) NULL,
+    ADD COLUMN `isApprovedByHR` TINYINT NOT NULL DEFAULT 0;

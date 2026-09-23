@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="my-2">
+
+      </div>
+      <!-- Page title actions -->
+      <div class="col-2" style="margin-left:25px">
+        <button class="btn btn-primary" onclick="printDiv('printableArea')">Print &nbsp;<i class="ti ti-printer"></i></button>
+      </div>
+
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="card card-lg">
+            <div class="card-body" id="printableArea">
+              <div class="row">                
+                <div class="col-6 text-end my-2">
+                  <h2>Time Attendance</h2>
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-2">
+                    <b>Work date</b>
+                </div>
+                <div class="col-5 text-left">
+                    : <b><%= dateFrom %> to <%= dateTo %></b>
+                </div>                
+              </div><br/><br/>
+  
+              <div class="row">                
+                <% getTimeAttendance.forEach(function(division) { %>
+                <div class="col-2">
+                  <b>Division</b>
+                </div>
+                <div class="col-5 text-left">
+                    : <b><%= division.divisionName %></b>
+                </div><br/><br/>
+                <table class="table table-transparent table-responsive">                                   
+                  <thead>
+                    <tr>
+                      <th>Employee</th>
+                      <th>Work Date</th>
+                      <th>Status</th>
+                      <th>Reason</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                      <% division.hasEmployees.forEach(function(data) { %>
+                        <tr>
+                          <td><%= data.fullName %></td>
+                          <td><%= moment.utc(data.workDate).format('DD-MM-yyyy') %></td>
+                          <% if (data.status == 'A') { %>
+                            <td>ABSENT</td>
+                          <% } else if (data.status == 'S') { %>
+                            <td>SICK LEAVE</td>
+                          <% } else if (data.status == 'N') { %>
+                            <td>ANNUAL LEAVE</td>
+                          <% } else if (data.status == 'U') { %>
+                            <td>UNPAID LEAVE</td>
+                          <% } else if (data.status == 'P') { %>
+                          <td>PRESENT</td>
+                          <% } %>
+                          <td><%= data.reason %></td>
+                        </tr>
+                        <% }); %>                       
+                    </tbody>
+                </table>
+                <% }) %>                
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      </div>   
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+  
+  <script>
+    function printDiv(divName) {
+      var printContents = document.getElementById(divName).innerHTML;
+      var originalContents = document.body.innerHTML;
+
+      document.body.innerHTML = printContents;
+      window.print();
+      document.body.innerHTML = originalContents;
+    }
+  </script>
+</body>
+</html>

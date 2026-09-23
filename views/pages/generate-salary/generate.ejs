@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Data Details</h3>
+                </div>                  
+                <form action="/generate-salary/process/all-employee" method="POST" autocomplete="off">
+                  <div class="card-body">
+                    <div class="row">                
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Month of Period</label>
+                          <div class="col-9">
+                            <% if (getDataCutoffPeriod.monthPeriod == '01') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="January" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '02') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="February" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '03') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="March" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '04') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="April" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '05') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="May" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '06') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="June" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '07') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="July" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '08') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="August" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '09') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="September" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '10') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="October" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '11') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="November" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '12') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="December" disabled>
+                            <% } %>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Start Period</label>
+                          <div class="col-9">
+                            <input type="text" class="form-control" name="start_period" id="start_period" value="<%= moment.utc(getDataCutoffPeriod.startPeriod).format('DD-MM-YYYY') %>" disabled>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Year of Period</label>
+                          <div class="col-9">
+                            <input type="text" class="form-control" name="year_period" id="year_period" value="<%= getDataCutoffPeriod.yearPeriod %>" disabled>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">End Period</label>
+                          <div class="col-9">
+                            <input type="text" class="form-control" name="end_period" id="end_period" value="<%= moment.utc(getDataCutoffPeriod.endPeriod).format('DD-MM-YYYY') %>" disabled>
+                          </div>
+                        </div>
+                      </div>                      
+                    </div>   
+                  </div>
+                  
+                  <div class="card-footer">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button class="btn btn-outline-primary ms-auto generate" data-bs-toggle="modal" data-bs-target="#modal-generate-all-employee" data-id="<%= getDataCutoffPeriod.id %>" data-month_period="<%= getDataCutoffPeriod.monthPeriod %>" data-year_period="<%= getDataCutoffPeriod.yearPeriod %>" data-start_period="<%= moment.utc(getDataCutoffPeriod.startPeriod).format('DD-MM-YY') %>" data-end_period="<%= moment.utc(getDataCutoffPeriod.endPeriod).format('DD-MM-YYYY') %>">Process All Employee</button>
+                    <a href="/generate-salary" class="btn btn-secondary">Back</a>
+                  </div>
+                </form>
+
+                <div class="card-body border-bottom py-3">
+                    <form action="/generate-salary/generate/<%= getDataCutoffPeriod.uuid %>" id="frmSearch" type="GET">
+                      <div class="d-flex">
+                        <div class="text-muted">
+                        Show
+                        <div class="mx-2 d-inline-block">
+                            <input type="text" class="form-control form-control-sm" value="<%= listOfPayslipHeader.meta.limit %>" size="3" aria-label="data count">
+                        </div>
+                        entries
+                        </div>
+                        <div class="ms-auto text-muted">
+                          <div class="input-group mb-2">
+                            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search data" value="<% if(locals.search) { %><%= search  %><% } %>">
+                            <button class="btn" type="submit">Go</button>
+                          </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                        <th>Employee Id</th>
+                        <th>Full Name</th>
+                        <th>Organization</th>
+                        <th>Job Position</th>
+                        <th></th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% listOfPayslipHeader.data.forEach(function(data) { %>
+                            <tr>
+                                <td><%= data.employeeId %></td>
+                                <td><%= data.fullName %></td>
+                                <td><%= data.divisionName %></td>
+                                <td><%= data.jobTitleName %></td>
+                                <td class="text-end">
+                                  <button class="btn btn-outline-primary ms-auto generate" data-bs-toggle="modal" data-bs-target="#modal-generate" data-id="<%= getDataCutoffPeriod.id %>" data-uuid="<%= data.uuid %>" data-month_period="<%= getDataCutoffPeriod.monthPeriod %>" data-year_period="<%= getDataCutoffPeriod.yearPeriod %>" data-start_period="<%= moment.utc(getDataCutoffPeriod.startPeriod).format('DD-MM-YY') %>" data-end_period="<%= moment.utc(getDataCutoffPeriod.endPeriod).format('DD-MM-YYYY') %>">Process</button>
+                                </td>
+                            </tr>                 
+                        <% }); %>                       
+                      </tbody>
+                    </table>
+                  </div>
+                                    
+                  <div class="card-footer d-flex align-items-center">
+                    <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfPayslipHeader.meta.totalRecordCurrentPage %></span> of <span><%= listOfPayslipHeader.meta.totalRecords %></span> entries</p>
+                    <% if (listOfPayslipHeader.meta.totalPage > 1) { %>
+                    <ul class="pagination m-0 ms-auto">
+                      <% if (listOfPayslipHeader.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/generate-salary/generate/<%= getDataCutoffPeriod.uuid  %>?page=0&limit=<%= listOfPayslipHeader.meta.limit %>"><< First</a></li>&nbsp;
+                      <% } %>
+                      
+                      <% if (listOfPayslipHeader.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/generate-salary/generate/<%= getDataCutoffPeriod.uuid  %>?page=<%= listOfPayslipHeader.meta.currentPage-1 %>&limit=<%= listOfPayslipHeader.meta.limit %>">< Previous</a></li>&nbsp;
+                      <% } %>
+
+                      <% if ((listOfPayslipHeader.meta.currentPage + 1) == listOfPayslipHeader.meta.totalPage) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/generate-salary/generate/<%= getDataCutoffPeriod.uuid  %>?page=<%= listOfPayslipHeader.meta.currentPage+1 %>&limit=<%= listOfPayslipHeader.meta.limit %>"> Next ></a></li>&nbsp;
+                      <% } %>
+
+                      <% if (listOfPayslipHeader.meta.currentPage == (listOfPayslipHeader.meta.totalPage-1)) { %>
+                        <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                      <% } else { %>
+                          <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/generate-salary/generate/<%= getDataCutoffPeriod.uuid  %>?page=<%= listOfPayslipHeader.meta.totalPage - 1 %>&limit=<%= listOfPayslipHeader.meta.limit %>">Last >></a></li>
+                      <% } %>
+                    </ul>
+                    <% } %>
+                  </div> 
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-generate-all-employee" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <form class="card card-md" method="POST" action="/generate-salary/process/all-employee" autocomplete="off">
+          <div class="modal-body text-center py-4">
+            <!-- Download SVG icon from http://tabler-icons.io/i/alert-triangle -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+            <h3>Are you sure ?</h3>
+            <div class="text-muted">Do you really want to generate salary all employee ? What you've done cannot be undone.</div>
+            <input type="hidden" name="cutoff_period_id_all" id="cutoff_period_id_all" class="cuttof-period-id-all" >
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">
+                    Cancel
+                  </a>
+                </div>
+                <button id="deleteBtn" class="col btn btn-danger ms-auto" type="submit" data-bs-dismiss="modal">
+                  Generate
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-generate" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <form class="card card-md" method="POST" action="/generate-salary/process" autocomplete="off">
+          <div class="modal-body text-center py-4">
+            <!-- Download SVG icon from http://tabler-icons.io/i/alert-triangle -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+            <h3>Are you sure ?</h3>
+            <div class="text-muted">Do you really want to generate salary this employee ? What you've done cannot be undone.</div>
+            <input type="hidden" name="cutoff_period_id" id="cutoff_period_id" class="cuttof-period-id">
+            <input type="hidden" name="employee_uuid" id="employee_uuid" class="employee-uuid" >
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">
+                    Cancel
+                  </a>
+                </div>
+                <button id="deleteBtn" class="col btn btn-danger ms-auto" type="submit" data-bs-dismiss="modal">
+                  Generate
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-success" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-success"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-green icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" /><path d="M9 12l2 2l4 -4" /></svg>
+          <h3><%= message.success %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-success w-100" data-bs-dismiss="modal">
+                  OK
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-error" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+          <h3><%= message.error %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-danger w-100" data-bs-dismiss="modal">
+                  Close
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  
+  <% var messageSuccess = message.success; %>
+  <% var messageError = message.error; %>
+  <script>
+    var generateAllEmployeeModal = document.getElementById('modal-generate-all-employee');
+    generateAllEmployeeModal.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var cutoffPeriodId = button.getAttribute('data-id');
+
+      var modalPeriodId = generateAllEmployeeModal.querySelector(".cuttof-period-id-all");
+      modalPeriodId.value = cutoffPeriodId;
+    })
+
+    var generateModal = document.getElementById('modal-generate');
+    generateModal.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var cutoffPeriodId = button.getAttribute('data-id')
+      var employeeUuid = button.getAttribute('data-uuid')
+
+      var modalPeriodId = generateModal.querySelector(".cuttof-period-id");
+      var modalEmployeeUuid = generateModal.querySelector(".employee-uuid");
+
+      modalPeriodId.value = cutoffPeriodId;
+      modalEmployeeUuid.value = employeeUuid;
+    })
+
+    let getMessageSuccess = "<%= messageSuccess %>";
+    if(getMessageSuccess) {
+      var successModal = new bootstrap.Modal(document.getElementById('modal-success'), {})
+      successModal.toggle();
+    }
+
+    let getMessageError = "<%= messageError %>";
+    if(getMessageError) {
+      var errorModal = new bootstrap.Modal(document.getElementById('modal-error'), {})
+      errorModal.toggle();
+    }
+  </script>
+</body>
+</html>

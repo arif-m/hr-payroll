@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Data Listing</h3>
+                  </div>
+                  <div class="card-body border-bottom py-3">
+                    <!--<div class="col-12 mb-3">
+                      <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-add">Add</button>
+                    </div>-->
+                    <form action="/employee" id="frmSearch" type="GET">
+                      <div class="d-flex">
+                        <div class="text-muted">
+                        Show
+                        <div class="mx-2 d-inline-block">
+                            <input type="text" class="form-control form-control-sm" value="<%= listOfEmployee.meta.limit %>" size="3" aria-label="Invoices count">
+                        </div>
+                        entries
+                        </div>
+                        <div class="ms-auto text-muted">
+                          <div class="input-group mb-2">
+                            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search data" value="<% if(locals.search) { %><%= search  %><% } %>">
+                            <button class="btn" type="submit">Go</button>
+                          </div>
+                        </div>
+                    </form>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                          <th>Action</th>
+                          <th>Emp Id</th>
+                          <th>Name</th>
+                          <th>Template Name</th>
+                          <th>Role</th>
+                          <th>Email</th>
+                          <th>Business Unit</th>
+                          <th>Job Titles</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <% listOfEmployee.data.forEach(function(data) { %>
+                      <tr>
+                          <td class="text-left">
+                            <% if (data.salaryTemplate == null) { %>
+                              <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-edit" data-id="<%= data.id %>" data-uuid="<%= data.uuid %>" data-full_name="<%= data.fullName %>" data-template_name="" >Edit</button>                              
+                            <% } else { %>
+                              <!-- <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-edit" data-uuid="<%= data.uuid %>" data-full_name="<%= data.fullName %>" data-template_id="<%= data.salaryTemplate.id %>" data-template_name="<%= data.salaryTemplate.templateName %>" >Edit</button> -->
+                              <button class="btn btn-outline-primary ms-auto edit"><a href="/setup-employee-salary/edit/<%= data.uuid %>">show component</a></button>
+                            <% } %>
+                          </td>  
+                          <td><%= data.employeeId %></td>
+                          <td><%= data.fullName %></td>
+                          <td>
+                            <% if (data.salaryTemplate == null) { %>
+                              
+                            <% } else { %>
+                            <%= data.salaryTemplate.templateName %>
+                            <% } %>
+                          </td>
+                          <td><%= data.role.roleName %></td>
+                          <td><%= data.email %></td>
+                          <td><%= data.businessUnit.businessUnitName %></td>
+                          <td><%= data.jobTitle.jobTitleName %></td>
+                      </tr>
+                      <% }); %>                      
+                      </tbody>
+                    </table>
+                  </div>
+                                    
+                  <div class="card-footer d-flex align-items-center">
+                    <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfEmployee.meta.totalRecordCurrentPage %></span> of <span><%= listOfEmployee.meta.totalRecords %></span> entries</p>
+                    <% if (listOfEmployee.meta.totalPage > 1) { %>
+                    <ul class="pagination m-0 ms-auto">
+                      <% if (listOfEmployee.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/setup-employee-salary?page=0&limit=<%= listOfEmployee.meta.limit %>"><< First</a></li>&nbsp;
+                      <% } %>
+                      <% if (listOfEmployee.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/setup-employee-salary?page=<%= listOfEmployee.meta.currentPage-1 %>&limit=<%= listOfEmployee.meta.limit %>">< Previous</a></li>&nbsp;
+                      <% } %>
+
+                      <% if ((listOfEmployee.meta.currentPage + 1) == listOfEmployee.meta.totalPage) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/setup-employee-salary?page=<%= listOfEmployee.meta.currentPage+1 %>&limit=<%= listOfEmployee.meta.limit %>"> Next ></a></li>&nbsp;
+                      <% } %>
+
+                      <% if (listOfEmployee.meta.currentPage == (listOfEmployee.meta.totalPage-1)) { %>
+                        <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                      <% } else { %>
+                          <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/setup-employee-salary?page=<%= listOfEmployee.meta.totalPage - 1 %>&limit=<%= listOfEmployee.meta.limit %>">Last >></a></li>
+                      <% } %>
+                      
+                    </ul>
+                    <% } %>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Setup Employee Salary</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/setup-employee-salary/update" autocomplete="off">
+          <div class="modal-body">
+            <div class="mb-3">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" name="employee_id" id="employee_id" class="employee-id">
+              <input type="hidden" name="employee_uuid" id="employee_uuid" class="employee-uuid">
+              <label class="form-label">Template Name</label>
+              <select name="template_name" id="template_name" class="form-control template-name" required>
+                <% listOfDataTemplate.forEach(function(data) { %>
+                <option value="<%= data.id %>"><%= data.templateName %></option>
+                <% }); %>
+              </select>
+            </div>  
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">
+              Update Data
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal modal-blur fade" id="modal-success" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-success"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-green icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" /><path d="M9 12l2 2l4 -4" /></svg>
+          <h3><%= message.success %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-success w-100" data-bs-dismiss="modal">
+                  OK
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+
+  <% var messageSuccess = message.success; %>
+  <script type = "text/JavaScript">
+    var editModal = document.getElementById('modal-edit');
+    editModal.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var id = button.getAttribute('data-id');
+      var uuid = button.getAttribute('data-uuid');
+      var templateName = button.getAttribute('data-template_id');
+      // If necessary, you could initiate an AJAX request here
+      // and then do the updating in a callback.
+      //
+      // Update the modal's content.
+      var modalTitle = editModal.querySelector('.modal-title')
+
+      var modalId = editModal.querySelector(".employee-id");
+      var modalUuid = editModal.querySelector(".employee-uuid");
+      var modalTemplateName = editModal.querySelector(".template-name");
+      modalId.value = id;
+      modalUuid.value = uuid;
+      modalTemplateName.value = templateName;
+    })
+
+    let getMessageSuccess = "<%= messageSuccess %>";
+    if(getMessageSuccess) {
+      var successModal = new bootstrap.Modal(document.getElementById('modal-success'), {})
+      successModal.toggle();
+    }
+  </script>
+</body>
+</html>

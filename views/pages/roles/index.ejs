@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Data Listing</h3>
+                  </div>
+                  <div class="card-body border-bottom py-3">
+                    <div class="col-12 mb-3">
+                      <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-add">Add</button><br />
+                    </div>
+                    <form action="/roles" id="frmSearch" type="GET">
+                      <div class="d-flex">
+                        <div class="text-muted">
+                        Show
+                        <div class="mx-2 d-inline-block">
+                            <input type="text" class="form-control form-control-sm" value="<%= listOfRoles.meta.limit %>" size="3" aria-label="data count">
+                        </div>
+                        entries
+                        </div>
+                        <div class="ms-auto text-muted">
+                          <div class="input-group mb-2">
+                            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search data" value="<% if(locals.search) { %><%= search  %><% } %>">
+                            <button class="btn" type="submit">Go</button>
+                          </div>
+                        </div>
+                    </form>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                        <th class="w-1">Id. <!-- Download SVG icon from http://tabler-icons.io/i/chevron-up -->
+                          <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm text-dark icon-thick" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="6 15 12 9 18 15" /></svg>
+                        </th>
+                        <th>Name</th>
+                        <th></th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% listOfRoles.data.forEach(function(roles) { %>
+                          <tr>
+                              <td><span class="text-muted"><%= roles.id %></span></td>
+                              <td><%= roles.roleName %></td>
+                              <td class="text-end">
+                                <% if (roles.roleName != 'Super Admin') { %>
+                                <button class="btn btn-outline-primary ms-auto edit" data-bs-toggle="modal" data-bs-target="#modal-edit" data-id="<%= roles.id %>" data-uuid="<%= roles.uuid %>" data-roles_name="<%= roles.roleName %>" >Edit</button>
+                                <button class="btn btn-outline-danger ms-auto delete" data-bs-toggle="modal" data-bs-target="#modal-danger" data-id="<%= roles.id %>" data-uuid="<%= roles.uuid %>" >Delete</button>
+                              <% }; %>
+                              </td>
+                          </tr>
+                          <% }); %>                       
+                      </tbody>
+                    </table>
+                  </div>
+                                    
+                  <div class="card-footer d-flex align-items-center">
+                    <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfRoles.meta.totalRecordCurrentPage %></span> of <span><%= listOfRoles.meta.totalRecords %></span> entries</p>
+                    <% if (listOfRoles.meta.totalPage > 1) { %>
+                    <ul class="pagination m-0 ms-auto">
+                      <% if (listOfRoles.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/roles?page=0&limit=<%= listOfRoles.meta.limit %>"><< First</a></li>&nbsp;
+                      <% } %>
+                      
+                      <% if (listOfRoles.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/roles?page=<%= listOfRoles.meta.currentPage-1 %>&limit=<%= listOfRoles.meta.limit %>">< Previous</a></li>&nbsp;
+                      <% } %>
+
+                      <% if ((listOfRoles.meta.currentPage + 1) == listOfRoles.meta.totalPage) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/roles?page=<%= listOfRoles.meta.currentPage+1 %>&limit=<%= listOfRoles.meta.limit %>"> Next ></a></li>&nbsp;
+                      <% } %>
+
+                      <% if (listOfRoles.meta.currentPage == (listOfRoles.meta.totalPage-1)) { %>
+                        <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                      <% } else { %>
+                          <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/roles?page=<%= listOfRoles.meta.totalPage - 1 %>&limit=<%= listOfRoles.meta.limit %>">Last >></a></li>
+                      <% } %>
+                    </ul>
+                    <% } %>
+                  </div> 
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+  
+  <div class="modal modal-blur fade" id="modal-add" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New Roles</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/roles" autocomplete="off">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="text" class="form-control" name="role_name" id="role_name" placeholder="Name of Role" required>
+            </div>          
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">
+              Insert Data
+            </button>
+          </div>
+        </form>
+    </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Role</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="frmEdit" class="card card-md" method="POST" action="/roles/update"  autocomplete="off">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              <input type="hidden" name="role_id" id="role_id" class="role-id">
+              <input type="hidden" name="role_uuid" id="role_uuid" class="role-uuid">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="text" class="form-control role-name" name="role_name" id="role_name" placeholder="Name of role" required>
+              <input type="hidden" class="role-name2" name="role_name2" id="role_name2">
+            </div>          
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button id="updateBtn" class="btn btn-primary ms-auto" type="submit">
+              Update Data
+            </button>
+          </div>
+        </form>
+    </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-danger" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <form class="card card-md" method="POST" action="/roles/delete" autocomplete="off">
+          <div class="modal-body text-center py-4">
+            <!-- Download SVG icon from http://tabler-icons.io/i/alert-triangle -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+            <h3>Are you sure?</h3>
+            <div class="text-muted">Do you really want to remove the data? What you've done cannot be undone.</div>
+            <input type="hidden" name="role_id" id="role_id" class="role-id">
+            <input type="hidden" name="role_uuid" id="role_uuid" class="role-uuid">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">
+                    Cancel
+                  </a>
+                </div>
+                <button id="deleteBtn" class="col btn btn-danger ms-auto" type="submit" data-bs-dismiss="modal">
+                  Delete Data
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="modal modal-blur fade" id="modal-error" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+          <h3><%= message.errorDelete %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-danger w-100" data-bs-dismiss="modal">
+                  Close
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+
+  <% var messageErrorDelete = message.errorDelete; %>
+  <script type = "text/JavaScript">
+    var editModal = document.getElementById('modal-edit');
+      editModal.addEventListener('show.bs.modal', function (event) {
+        // Button that triggered the modal
+        var button = event.relatedTarget
+        // Extract info from data-bs-* attributes
+        var roleId = button.getAttribute('data-id');
+        var roleUuid = button.getAttribute('data-uuid');
+        var roleName = button.getAttribute('data-roles_name');
+        // If necessary, you could initiate an AJAX request here
+        // and then do the updating in a callback.
+        //
+        // Update the modal's content.
+        var modalTitle = editModal.querySelector('.modal-title');
+
+        var modalRoleId = editModal.querySelector(".role-id");
+        var modalRoleUuid = editModal.querySelector(".role-uuid");
+        var modalRoleName = editModal.querySelector(".role-name");
+        var modalRoleName2 = editModal.querySelector(".role-name2");
+        modalRoleId.value = roleId;
+        modalRoleUuid.value = roleUuid;
+        modalRoleName.value = roleName;
+        modalRoleName2.value = roleName;
+      })
+
+      var deleteModal = document.getElementById('modal-danger');
+      deleteModal.addEventListener('show.bs.modal', function (event) {
+        // Button that triggered the modal
+        var button = event.relatedTarget
+        // Extract info from data-bs-* attributes
+        var roleId = button.getAttribute('data-id');
+        var roleUuid = button.getAttribute('data-uuid');
+
+        var modalRoleId = deleteModal.querySelector(".role-id");
+        var modalRoleUuid = deleteModal.querySelector(".role-uuid");
+        modalRoleId.value = roleId;
+        modalRoleUuid.value = roleUuid;
+      })
+
+      let getMessageErrorDelete = "<%= messageErrorDelete %>";
+      if(getMessageErrorDelete) {
+        var errorDelereModal = new bootstrap.Modal(document.getElementById('modal-error'), {})
+        errorDelereModal.toggle();
+      }
+  </script>
+</body>
+</html>

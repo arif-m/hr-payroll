@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Data Details</h3>
+                </div>                  
+                <form action="/generate-salary/process/all-employee" method="POST" autocomplete="off">
+                  <div class="card-body">
+                    <div class="row">                
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Month of Period</label>
+                          <div class="col-9">
+                            <% if (getDataCutoffPeriod.monthPeriod == '01') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="January" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '02') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="February" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '03') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="March" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '04') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="April" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '05') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="May" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '06') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="June" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '07') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="July" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '08') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="August" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '09') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="September" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '10') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="October" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '11') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="November" disabled>
+                            <% } else if (getDataCutoffPeriod.monthPeriod == '12') { %>
+                                <input type="text" class="form-control" name="month_period" id="month_period" value="December" disabled>
+                            <% } %>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Start Period</label>
+                          <div class="col-9">
+                            <input type="text" class="form-control" name="start_period" id="start_period" value="<%= moment.utc(getDataCutoffPeriod.startPeriod).format('DD-MM-YYYY') %>" disabled>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Year of Period</label>
+                          <div class="col-9">
+                            <input type="text" class="form-control" name="year_period" id="year_period" value="<%= getDataCutoffPeriod.yearPeriod %>" disabled>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">End Period</label>
+                          <div class="col-9">
+                            <input type="text" class="form-control" name="end_period" id="end_period" value="<%= moment.utc(getDataCutoffPeriod.endPeriod).format('DD-MM-YYYY') %>" disabled>
+                          </div>
+                        </div>
+                      </div>                      
+                    </div>   
+                  </div>                  
+                </form>
+
+                <div class="card-body border-bottom py-3">
+                    <form action="/edit-salary/<%= getDataCutoffPeriod.uuid %>" id="frmSearch" type="GET">
+                      <div class="d-flex">
+                        <div class="text-muted">
+                        Show
+                        <div class="mx-2 d-inline-block">
+                            <input type="text" class="form-control form-control-sm" value="<%= listOfPayslipHeader.meta.limit %>" size="3" aria-label="data count">
+                        </div>
+                        entries
+                        </div>
+                        <div class="ms-auto text-muted">
+                          <div class="input-group mb-2">
+                            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search data" value="<% if(locals.search) { %><%= search  %><% } %>">
+                            <button class="btn" type="submit">Go</button>
+                          </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                        <th>Employee Id</th>
+                        <th>Full Name</th>
+                        <th>Organization</th>
+                        <th>Job Titles</th>
+                        <th></th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% listOfPayslipHeader.data.forEach(function(data) { %>
+                            <tr>
+                                <td><%= data.employeeId %></td>
+                                <td><%= data.fullName %></td>
+                                <td><%= data.organization %></td>
+                                <td><%= data.jobTitle %></td>
+                                <td class="text-end">
+                                  <button class="btn btn-outline-primary ms-auto edit"><a href="/edit-salary-details/<%= data.uuid %>">Edit</a></button>
+                                </td>
+                            </tr>
+                        <% }); %>                       
+                      </tbody>
+                    </table>
+                  </div>
+                                    
+                  <div class="card-footer d-flex align-items-center">
+                    <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfPayslipHeader.meta.limit %></span> of <span><%= listOfPayslipHeader.meta.totalRecords %></span> entries</p>
+                    <% if (listOfPayslipHeader.meta.totalPage > 1) { %>
+                    <ul class="pagination m-0 ms-auto">
+                      <% if (listOfPayslipHeader.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/edit-salary/<%= getDataCutoffPeriod.uuid  %>?page=0&limit=<%= listOfPayslipHeader.meta.limit %>"><< First</a></li>&nbsp;
+                      <% } %>
+                      
+                      <% if (listOfPayslipHeader.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/edit-salary/<%= getDataCutoffPeriod.uuid  %>?page=<%= listOfPayslipHeader.meta.currentPage-1 %>&limit=<%= listOfPayslipHeader.meta.limit %>">< Previous</a></li>&nbsp;
+                      <% } %>
+
+                      <% if ((listOfPayslipHeader.meta.currentPage + 1) == listOfPayslipHeader.meta.totalPage) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/edit-salary/<%= getDataCutoffPeriod.uuid  %>?page=<%= listOfPayslipHeader.meta.currentPage+1 %>&limit=<%= listOfPayslipHeader.meta.limit %>"> Next ></a></li>&nbsp;
+                      <% } %>
+
+                      <% if (listOfPayslipHeader.meta.currentPage == (listOfPayslipHeader.meta.totalPage-1)) { %>
+                        <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                      <% } else { %>
+                          <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/edit-salary/<%= getDataCutoffPeriod.uuid  %>?page=<%= listOfPayslipHeader.meta.totalPage - 1 %>&limit=<%= listOfPayslipHeader.meta.limit %>">Last >></a></li>
+                      <% } %>
+                    </ul>
+                    <% } %>
+                  </div> 
+
+                  <div class="card-footer">
+                    <a href="/list-cutoff-period" class="btn btn-secondary">Back</a>
+                  </div> 
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  
+  <script>
+
+  </script>
+</body>
+</html>

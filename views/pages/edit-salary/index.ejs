@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Data Listing</h3>
+                  </div>
+                  <div class="card-body border-bottom py-3">
+                    <form action="/list-cutoff-period" id="frmSearch" type="GET">
+                      <div class="d-flex">
+                        <div class="text-muted">
+                        Show
+                        <div class="mx-2 d-inline-block">
+                            <input type="text" class="form-control form-control-sm" value="<%= listOfGenerateSalary.meta.limit %>" size="3" aria-label="data count">
+                        </div>
+                        entries
+                        </div>
+                        <div class="ms-auto text-muted">
+                          <div class="input-group mb-2">
+                            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search data" value="<% if(locals.search) { %><%= search  %><% } %>">
+                            <button class="btn" type="submit">Go</button>
+                          </div>
+                        </div>
+                    </form>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                        <th>Month of Period</th>
+                        <th>Year of Period</th>
+                        <th>Start Period</th>
+                        <th>End Period</th>
+                        <th>Is Active</th>
+                        <th></th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% listOfGenerateSalary.data.forEach(function(data) { %>
+                          <tr>
+                              <td>
+                                <% if (data.monthPeriod == '01') { %>
+                                  January
+                                <% } else if (data.monthPeriod == '02') { %>
+                                  February
+                                <% } else if (data.monthPeriod == '03') { %>
+                                  March
+                                <% } else if (data.monthPeriod == '04') { %>
+                                  April
+                                <% } else if (data.monthPeriod == '05') { %>
+                                  May
+                                <% } else if (data.monthPeriod == '06') { %>
+                                  June
+                                <% } else if (data.monthPeriod == '07') { %>
+                                  July
+                                <% } else if (data.monthPeriod == '08') { %>
+                                  August
+                                <% } else if (data.monthPeriod == '09') { %>
+                                  September
+                                <% } else if (data.monthPeriod == '10') { %>
+                                  October
+                                <% } else if (data.monthPeriod == '11') { %>
+                                  November   
+                                <% } else { %>
+                                  December
+                                <% } %>
+                              </td>
+                              <td><%= data.yearPeriod %></td>
+                              <td><%= moment.utc(data.startPeriod).format('DD-MM-YYYY') %></td>
+                              <td><%= moment.utc(data.endPeriod).format('DD-MM-YYYY') %></td>
+                              <td>
+                                <% if(data.isActive == 0) { %>
+                                  No
+                                <% } else { %>
+                                  Yes
+                                <% } %>
+                              </td>
+                              <td class="text-end">
+                                <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-edit" data-uuid="<%= data.uuid %>" data-month_period="<%= data.monthPeriod %>" data-year_period="<%= data.yearPeriod %>" data-start_period="<%= data.startPeriod %>" data-end_period="<%= data.endPeriod %>" data-is_active="<%= data.isActive %>">Edit</button>
+                                <button class="btn btn-outline-primary ms-auto edit"><a href="/edit-salary/<%= data.uuid %>">Edit Salary</a></button>
+                              </td>
+                          </tr>
+                        <% }); %>                       
+                      </tbody>
+                    </table>
+                  </div>
+                                    
+                  <div class="card-footer d-flex align-items-center">
+                    <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfGenerateSalary.meta.totalRecordCurrentPage %></span> of <span><%= listOfGenerateSalary.meta.totalRecords %></span> entries</p>
+                    <% if (listOfGenerateSalary.meta.totalPage > 1) { %>
+                    <ul class="pagination m-0 ms-auto">
+                      <% if (listOfGenerateSalary.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/list-cutoff-period?page=0&limit=<%= listOfGenerateSalary.meta.limit %>"><< First</a></li>&nbsp;
+                      <% } %>
+                      
+                      <% if (listOfGenerateSalary.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/list-cutoff-period?page=<%= listOfGenerateSalary.meta.currentPage-1 %>&limit=<%= listOfGenerateSalary.meta.limit %>">< Previous</a></li>&nbsp;
+                      <% } %>
+
+                      <% if ((listOfGenerateSalary.meta.currentPage + 1) == listOfGenerateSalary.meta.totalPage) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/list-cutoff-period?page=<%= listOfGenerateSalary.meta.currentPage+1 %>&limit=<%= listOfGenerateSalary.meta.limit %>"> Next ></a></li>&nbsp;
+                      <% } %>
+
+                      <% if (listOfGenerateSalary.meta.currentPage == (listOfGenerateSalary.meta.totalPage-1)) { %>
+                        <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                      <% } else { %>
+                          <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/list-cutoff-period?page=<%= listOfGenerateSalary.meta.totalPage - 1 %>&limit=<%= listOfGenerateSalary.meta.limit %>">Last >></a></li>
+                      <% } %>
+                    </ul>
+                    <% } %>
+                  </div> 
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-add" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New Cutoff Period</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/list-cutoff-period" autocomplete="off">
+          <div class="modal-body">
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Month Period</label>
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div class="col-9">
+                  <select class="form-control" name="month_period" id="month_period">
+                    <option value="01">January</option>
+                    <option value="02">February</option>
+                    <option value="03">March</option>
+                    <option value="04">April</option>
+                    <option value="05">May</option>
+                    <option value="06">June</option>
+                    <option value="07">July</option>
+                    <option value="08">August</option>
+                    <option value="09">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                  </select>
+                </div>
+              </div>          
+            </div>          
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Year Period</label>
+                <div class="col-9">
+                  <input type="number" class="form-control" name="year_period" id="year_period" placeholder="Year Period" required>
+                </div>
+              </div>              
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Cutoff Period From</label>
+                <div class="col-9">
+                  <input type="text" class="form-control" name="start_period" id="start_period" placeholder="Start Period">
+                </div>
+              </div>  
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Cutoff Period To</label>
+                <div class="col-9">
+                  <input type="text" class="form-control" name="end_period" id="end_period" placeholder="End Period">
+                </div>
+              </div>  
+            </div>  
+            
+          </div>        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">
+              Insert Data
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Cutoff Period</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="frmEdit" class="card card-md" method="POST" action="/list-cutoff-period/update"  autocomplete="off">
+          <div class="modal-body">
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Month Period</label>
+                <div class="col-9">
+                  <input type="hidden" name="cutoff_period_id" id="cutoff_period_id" class="cutoff_period-id">
+                  <input type="hidden" name="cutoff_period_uuid" id="cutoff_period_uuid" class="uuid">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <select class="form-control month-period" name="month_period" id="month_period">
+                    <option value="01">January</option>
+                    <option value="02">February</option>
+                    <option value="03">March</option>
+                    <option value="04">April</option>
+                    <option value="05">May</option>
+                    <option value="06">June</option>
+                    <option value="07">July</option>
+                    <option value="08">August</option>
+                    <option value="09">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                  </select>
+                </div>
+              </div>          
+            </div>          
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Year Period</label>
+                <div class="col-9">
+                  <input type="number" class="form-control year-period" name="year_period" id="year_period" placeholder="Year Period" required>
+                </div>
+              </div>              
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Cutoff Period From</label>
+                <div class="col-9">
+                  <input type="text" class="form-control start-period" name="start_period" id="start_period_edit" placeholder="Start Period">
+                </div>
+              </div>  
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Cutoff Period To</label>
+                <div class="col-9">
+                  <input type="text" class="form-control end-period" name="end_period" id="end_period_edit" placeholder="End Period">
+                </div>
+              </div>  
+            </div>  
+            
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label" for="is_taxable">Is Active ?</label>
+                <div class="col-9">
+                  <input type="hidden" class="form-control is-active" name="is_active" id="is_active">
+                  <input type="checkbox" class="chk-is-active" id="chk_is_active" name="chk_is_active" >
+                </div>
+              </div>   
+            </div>
+          </div>      
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button id="updateBtn" class="btn btn-primary ms-auto" type="submit">
+              Update Data
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-danger" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <form class="card card-md" method="POST" action="/list-cutoff-period/delete" autocomplete="off">
+          <div class="modal-body text-center py-4">
+            <!-- Download SVG icon from http://tabler-icons.io/i/alert-triangle -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+            <h3>Are you sure?</h3>
+            <div class="text-muted">Do you really want to remove the data? What you've done cannot be undone.</div>
+            <input type="hidden" name="component_id" id="component_id" class="component-id">
+            <input type="hidden" name="component_uuid" id="component_uuid" class="component-uuid">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">
+                    Cancel
+                  </a>
+                </div>
+                <button id="deleteBtn" class="col btn btn-danger ms-auto" type="submit" data-bs-dismiss="modal">
+                  Delete Data
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  <script src="/assets/tabler/libs/litepicker/dist/litepicker.js" ></script>
+
+  <script type = "text/JavaScript">
+    document.addEventListener("DOMContentLoaded", function () {
+    	window.Litepicker && (new Litepicker({
+    		element: document.getElementById('start_period'),
+        format: 'DD-MM-YYYY',
+    		buttonText: {
+    			previousMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-left -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>`,
+    			nextMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-right -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>`,
+    		},
+    	}));
+
+        window.Litepicker && (new Litepicker({
+    		element: document.getElementById('start_period_edit'),
+        format: 'DD-MM-YYYY',
+    		buttonText: {
+    			previousMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-left -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>`,
+    			nextMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-right -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>`,
+    		},
+    	}));
+
+        window.Litepicker && (new Litepicker({
+    		element: document.getElementById('end_period'),
+        format: 'DD-MM-YYYY',
+    		buttonText: {
+    			previousMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-left -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>`,
+    			nextMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-right -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>`,
+    		},
+    	}));
+
+        window.Litepicker && (new Litepicker({
+    		element: document.getElementById('end_period_edit'),
+        format: 'DD-MM-YYYY',
+    		buttonText: {
+    			previousMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-left -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>`,
+    			nextMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-right -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>`,
+    		},
+    	}));
+
+    });
+
+    var editModal = document.getElementById('modal-edit');
+      editModal.addEventListener('show.bs.modal', function (event) {
+        // Button that triggered the modal
+        var button = event.relatedTarget
+        // Extract info from data-bs-* attributes
+        var Uuid = button.getAttribute('data-uuid');
+        var monthPeriod = button.getAttribute('data-month_period');
+        var yearPeriod = button.getAttribute('data-year_period');
+
+        var startPeriod = button.getAttribute('data-start_period');
+        startPeriod = new Date(startPeriod);
+        var dd = String(startPeriod.getDate()).padStart(2, '0');
+        var mm = String(startPeriod.getMonth() + 1).padStart(2, '0'); //January is 0!
+        var yyyy = startPeriod.getFullYear();
+        startPeriod = dd + '-' + mm + '-' + yyyy;
+
+        var endPeriod = button.getAttribute('data-end_period');
+        endPeriod = new Date(endPeriod);
+        var dd = String(endPeriod.getDate()).padStart(2, '0');
+        var mm = String(endPeriod.getMonth() + 1).padStart(2, '0'); //January is 0!
+        var yyyy = endPeriod.getFullYear();
+        endPeriod = dd + '-' + mm + '-' + yyyy;
+
+        var isActive = button.getAttribute('data-is_active');
+
+        // If necessary, you could initiate an AJAX request here
+        // and then do the updating in a callback.
+        //
+        // Update the modal's content.
+        var modalTitle = editModal.querySelector('.modal-title')
+
+        var modalUuid = editModal.querySelector(".uuid");
+        var modalMonthPeriod = editModal.querySelector(".month-period");
+        var modalYearPeriod = editModal.querySelector(".year-period");
+        var modalStartPeriod = editModal.querySelector(".start-period");
+        var modalEndPeriod = editModal.querySelector(".end-period");
+
+        modalUuid.value = Uuid;
+        modalMonthPeriod.value = monthPeriod;
+        modalYearPeriod.value = yearPeriod;
+        modalStartPeriod.value = startPeriod;
+        modalEndPeriod.value = endPeriod;
+
+        var modalIsActive = editModal.querySelector(".is-active");
+        var modalChkIsActive = editModal.querySelector(".chk-is-active");
+        if (isActive == 1) {
+          modalChkIsActive.removeAttribute('checked');
+          modalChkIsActive.toggleAttribute('checked');
+        } else {
+          modalChkIsActive.removeAttribute('checked');
+        }
+      })
+
+      let chkIsActive = document.querySelectorAll('.chk-is-active')
+      chkIsActive.forEach((checkbox) => { 
+        checkbox.addEventListener('change', (event) => {
+          let txtChkEdit = editModal.querySelector(".is-active");
+          if (event.target.checked) {
+            txtChkEdit.value = 1;
+            event.target.value = 1;
+          } else {
+            txtChkEdit.value = 0;
+            event.target.value = 0;
+          }
+        })
+      })
+  </script>
+</body>
+</html>

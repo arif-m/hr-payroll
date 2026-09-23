@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Payroll Run — Alur DRAFT → SUBMITTED → APPROVED → LOCKED</h3>
+                  <div class="ms-auto">
+                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-create">Buat Run</button>
+                  </div>
+                </div>
+                <div class="card-body border-bottom py-3">
+                  <form action="/payroll-run" method="GET" class="d-flex">
+                    <select name="status" class="form-select form-select-sm me-2" style="width: 160px;">
+                      <option value="">Semua Status</option>
+                      <% ['DRAFT','SUBMITTED','APPROVED','LOCKED'].forEach(function(s) { %>
+                        <option value="<%= s %>" <% if (statusFilter === s) { %>selected<% } %>><%= s %></option>
+                      <% }); %>
+                    </select>
+                    <button class="btn btn-sm" type="submit">Filter</button>
+                  </form>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table card-table table-vcenter text-nowrap">
+                    <thead>
+                    <tr>
+                      <th>Run</th>
+                      <th>Periode</th>
+                      <th>Status</th>
+                      <th>Karyawan</th>
+                      <th>Dibuat</th>
+                      <th class="text-end"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                      <% listOfRuns.data.forEach(function(run) { %>
+                        <tr>
+                          <td>#<%= run.id %></td>
+                          <td><%= run.cutOffPeriod.monthPeriod %>/<%= run.cutOffPeriod.yearPeriod %></td>
+                          <td>
+                            <% var badge = { DRAFT: 'bg-secondary', SUBMITTED: 'bg-warning', APPROVED: 'bg-info', LOCKED: 'bg-success' }[run.status]; %>
+                            <span class="badge <%= badge %>"><%= run.status %></span>
+                          </td>
+                          <td><%= run._count ? run._count.runDetail : 0 %></td>
+                          <td><%= moment(run.createdAt).format('DD MMM YYYY') %> — <%= run.createdBy %></td>
+                          <td class="text-end">
+                            <a class="btn btn-outline-primary btn-sm" href="/payroll-run/<%= run.id %>">Detail</a>
+                          </td>
+                        </tr>
+                      <% }); %>
+                      <% if (listOfRuns.data.length === 0) { %>
+                        <tr><td colspan="6" class="text-center text-muted py-4">Belum ada payroll run.</td></tr>
+                      <% } %>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="card-footer d-flex align-items-center">
+                  <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfRuns.meta.totalRecordCurrentPage %></span> of <span><%= listOfRuns.meta.totalRecords %></span> entries</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-create" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Buat Payroll Run</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="POST" action="/payroll-run/create">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Periode Cut-off (belum closing)</label>
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <select class="form-select" name="cutoff_period_id" required>
+                <% listOfPeriods.forEach(function(p) { %>
+                  <option value="<%= p.id %>"><%= p.monthPeriod %>/<%= p.yearPeriod %> (<%= moment(p.startPeriod).format('DD MMM') %> – <%= moment(p.endPeriod).format('DD MMM') %>)</option>
+                <% }); %>
+              </select>
+              <small class="form-hint text-muted">Bila run untuk periode ini sudah ada, sistem akan membukanya (tidak membuat dobel).</small>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">Buat / Buka Run</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+</body>
+</html>

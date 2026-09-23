@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./layouts/head'); %>
+</head>
+<body>
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./layouts/side'); %>
+    </aside>
+    <%- include('./layouts/header1'); %>
+    
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">          
+          <div class="row row-deck row-cards">
+            <div class="col-6">
+              <div class="card">
+                <div class="card-body p-4 text-center">
+                  <% if (employeeData.image == '') { %>
+                    <span class="avatar avatar-xl mb-3 avatar-rounded"><%= acronymFullName %></span>
+                    <% } else { %>
+                    <img class="avatar avatar-xl mb-3 avatar-rounded" src="<%= employeeData.image %>">
+                  <% }%>
+                  <h3 class="m-0 mb-1"><a href="#"><%= employeeData.fullName %></a></h3>
+                  <div class="text-muted">ID : <%= employeeData.id %></div>
+                  <div class="text-muted">Employment Status : <%= employeeData.employmentStatus %></div>
+                  <div class="text-muted">Business Unit : <%= employeeData.businessUnit.businessUnitName %></div>
+                  <div class="text-muted">Division : <%= employeeData.division.divisionName %></div>
+                  <div class="mt-3">
+                    <span class="badge bg-green-lt"><%= employeeData.jobTitle.jobTitleName %></span>
+                  </div>
+                </div>
+
+                <div class="d-flex">
+                  <a href="#" class="card-btn"><!-- Download SVG icon from http://tabler-icons.io/i/mail -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2 text-muted" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="3" y="5" width="18" height="14" rx="2" /><polyline points="3 7 12 13 21 7" /></svg>
+                    <%= employeeData.email %> </a>
+                  <a href="#" class="card-btn"><!-- Download SVG icon from http://tabler-icons.io/i/phone -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2 text-muted" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2" /></svg>
+                    <%= employeeData.mobilePhone %> </a>
+                </div>
+              </div>                
+            </div>
+            <div class="col-6">
+              <div class="card">
+                <div class="card-body">
+                  <% if (employeeData.role.id == 1) { %>
+                  <div class="form-group mb-3 row">
+                    <label class="form-label col-4 col-form-label">Annual Leave Balance</label>
+                    <div class="col-2">
+                      <input type="text" class="form-control" value="<%= employeeData.annualLeaveBalance %>" disabled>
+                    </div>
+                  </div>  
+                  <div class="form-group mb-3 row">
+                    <label class="form-label col-4 col-form-label">Annual Leave Taken</label>
+                    <div class="col-2">
+                      <input type="text" class="form-control" value="<%= employeeData.annualLeave %>" disabled>
+                    </div>
+                  </div> 
+                  <div class="form-group mb-3 row">
+                    <label class="form-label col-4 col-form-label">Sick Leave Balance</label>
+                    <div class="col-2">
+                      <input type="text" class="form-control" value="<%= employeeData.sickLeaveBalance %>" disabled>
+                    </div>
+                  </div>   
+                  <div class="form-group mb-3 row">
+                    <label class="form-label col-4 col-form-label">Sick Leave Taken</label>
+                    <div class="col-2">
+                      <input type="text" class="form-control" value="<%= employeeData.sickLeave %>" disabled>
+                    </div>
+                  </div>
+                  <% } else { %>
+                  <div id="chart-demo-pie"></div>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+
+            <% if (listOfRequestLeave.data.length > 0) { %>
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">General Leave</h3>
+                </div>  
+                <div class="table-responsive">
+                  <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                    <thead>
+                    <tr>
+                        <th>Leave Type</th>
+                        <th>Description</th>
+                        <th>Request Date</th>
+                        <th>Start Duration</th>
+                        <th>End Duration</th>
+                        <th>Duration</th>
+                        <th>Request Status</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <% listOfRequestLeave.data.forEach(function(data) { %>
+                    <tr>
+                        <td><%= data.leaveTypeDescription %></td>
+                        <td><%= data.leaveDescription %></td>
+                        <td><%= moment(data.createdAt).format('DD-MM-yyyy') %></td>
+                        <td><%= moment(data.startDuration).format('DD-MM-yyyy') %></td>
+                        <td><%= moment(data.endDuration).format('DD-MM-yyyy') %></td>
+                        <td><%= data.days %> 
+                          <% if (data.days == 1) { %> 
+                            Day 
+                          <% } else { %> 
+                            Days
+                          <% } %> 
+                        </td>
+                        <td>
+                          <% if (data.isApproved == 0) { %>
+                            <span class="badge bg-secondary me-1">Open</span>
+                          <% } else if (data.isApproved == 1 && data.isApprovedByHR == 1) { %>
+                            <span class="badge bg-success me-1">Approved by HR</span>
+                          <% } else if (data.isApproved == 1 && data.isApprovedByHR == 0) { %>
+                            <span class="badge bg-success me-1">Approved by Supervisor</span>
+                          <% } else if (data.isApproved == 2) { %>
+                            <span class="badge bg-warning me-1">Rejected by Supervisor</span> 
+                          <% } else if (data.isApprovedByHR == 2) { %>
+                            <span class="badge bg-warning me-1">Rejected by HR </span> 
+                          <% } %>
+                        </td>
+                        <td class="text-end">
+                          <button class="btn btn-outline-primary ms-auto edit" data-bs-toggle="modal" data-bs-target="#modal-edit" data-uuid="<%= data.uuid %>" data-employee-id="<%= data.employeeId %>" data-days="<%= data.days %>" data-full_name="<%= data.fullName %>" data-start-duration="<%= moment(data.startDuration).format('DD-MM-YYYY') %>" data-end-duration="<%= moment(data.endDuration).format('DD-MM-YYYY') %>" data-leave-description="<%= data.leaveDescription %>">Details</button>
+                        </td>
+                    </tr>
+                    <% }); %>                      
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-footer d-flex align-items-center">
+              <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfRequestLeave.meta.limit %></span> of <span><%= listOfRequestLeave.meta.totalRecords %></span> entries</p>
+              <% if (listOfRequestLeave.meta.totalPage > 1) { %>
+              <ul class="pagination m-0 ms-auto">
+                <% if (listOfRequestLeave.meta.currentPage == 0) { %>
+                  <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                <% } else { %>
+                    <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="dashboard?page=0&limit=<%= listOfRequestLeave.meta.limit %>"><< First</a></li>&nbsp;
+                <% } %>
+                <% if (listOfRequestLeave.meta.currentPage == 0) { %>
+                  <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                <% } else { %>
+                    <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="dashboard?page=<%= listOfRequestLeave.meta.currentPage-1 %>&limit=<%= listOfRequestLeave.meta.limit %>">< Previous</a></li>&nbsp;
+                <% } %>
+
+                <% if ((listOfRequestLeave.meta.currentPage + 1) == listOfRequestLeave.meta.totalPage) { %>
+                  <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                <% } else { %>
+                    <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="dashboard?page=<%= listOfRequestLeave.meta.currentPage+1 %>&limit=<%= listOfRequestLeave.meta.limit %>"> Next ></a></li>&nbsp;
+                <% } %>
+
+                <% if (listOfRequestLeave.meta.currentPage == (listOfRequestLeave.meta.totalPage-1)) { %>
+                  <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                <% } else { %>
+                    <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="dashboard?page=<%= listOfRequestLeave.meta.totalPage - 1 %>&limit=<%= listOfRequestLeave.meta.limit %>">Last >></a></li>
+                <% } %>
+                
+              </ul>
+              <% } %>
+            </div>
+            <% } %>            
+
+            <% if (listOfRequestOtherLeave.data.length > 0) { %>
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Other Leave</h3>
+                </div>  
+                <div class="table-responsive">
+                  <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                    <thead>
+                      <tr>
+                          <th>Leave Type</th>
+                          <th>Request Date</th>
+                          <th>Start Duration</th>
+                          <th>End Duration</th>
+                          <th>Duration</th>
+                          <th>Request Status</th>
+                          <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    <% listOfRequestOtherLeave.data.forEach(function(data) { %>
+                    <tr>
+                        <td><%= data.otherleaveTypeDescription %></td>
+                        <td><%= moment(data.createdAt).format('DD-MM-yyyy') %></td>
+                        <td><%= moment(data.startDuration).format('DD-MM-yyyy') %></td>
+                        <td><%= moment(data.endDuration).format('DD-MM-yyyy') %></td>
+                        <td><%= data.days %> 
+                          <% if (data.days == 1) { %> 
+                            Day 
+                          <% } else { %> 
+                            Days
+                          <% } %> 
+                        </td>
+                        <td>
+                          <% if (data.isApproved == 0) { %>
+                            <span class="badge bg-secondary me-1">Open</span>
+                          <% } else if (data.isApproved == 1 && data.isApprovedByHR == 1) { %>
+                            <span class="badge bg-success me-1">Approved by HR</span>
+                          <% } else if (data.isApproved == 1 && data.isApprovedByHR == 0) { %>
+                            <span class="badge bg-success me-1">Approved by Supervisor</span>
+                          <% } else if (data.isApproved == 2) { %>
+                            <span class="badge bg-warning me-1">Rejected by Supervisor</span> 
+                          <% } else if (data.isApprovedByHR == 2) { %>
+                            <span class="badge bg-warning me-1">Rejected by HR </span> 
+                          <% } %>
+                        </td>
+                        <td class="text-end">
+                          <button class="btn btn-outline-primary ms-auto edit" data-bs-toggle="modal" data-bs-target="#modal-edit2" data-uuid="<%= data.uuid %>" data-employee-id="<%= data.employeeId %>" data-days="<%= data.days %>" data-full_name="<%= data.fullName %>" data-start-duration="<%= moment(data.startDuration).format('DD-MM-YYYY') %>" data-end-duration="<%= moment(data.endDuration).format('DD-MM-YYYY') %>" data-leave-description="<%= data.leaveDescription %>">Details</button>
+                        </td>
+                    </tr>
+                    <% }); %>                      
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-footer d-flex align-items-center">
+              <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfRequestOtherLeave.meta.limit %></span> of <span><%= listOfRequestOtherLeave.meta.totalRecords %></span> entries</p>
+              <% if (listOfRequestOtherLeave.meta.totalPage > 1) { %>
+              <ul class="pagination m-0 ms-auto">
+                <% if (listOfRequestOtherLeave.meta.currentPage == 0) { %>
+                  <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                <% } else { %>
+                    <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="dashboard?page=0&limit=<%= listOfRequestOtherLeave.meta.limit %>"><< First</a></li>&nbsp;
+                <% } %>
+                <% if (listOfRequestOtherLeave.meta.currentPage == 0) { %>
+                  <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                <% } else { %>
+                    <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="dashboard?page=<%= listOfRequestOtherLeave.meta.currentPage-1 %>&limit=<%= listOfRequestOtherLeave.meta.limit %>">< Previous</a></li>&nbsp;
+                <% } %>
+
+                <% if ((listOfRequestOtherLeave.meta.currentPage + 1) == listOfRequestOtherLeave.meta.totalPage) { %>
+                  <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                <% } else { %>
+                    <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="dashboard?page=<%= listOfRequestOtherLeave.meta.currentPage+1 %>&limit=<%= listOfRequestOtherLeave.meta.limit %>"> Next ></a></li>&nbsp;
+                <% } %>
+
+                <% if (listOfRequestOtherLeave.meta.currentPage == (listOfRequestOtherLeave.meta.totalPage-1)) { %>
+                  <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                <% } else { %>
+                    <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="dashboard?page=<%= listOfRequestOtherLeave.meta.totalPage - 1 %>&limit=<%= listOfRequestOtherLeave.meta.limit %>">Last >></a></li>
+                <% } %>
+                
+              </ul>
+              <% } %>
+            </div>
+            <% } %>    
+
+          </div>
+        </div>
+
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">General Leave</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="frmEdit" class="card card-md" method="POST" action="" autocomplete="off">
+          <div class="modal-body">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="hidden" name="uuid" id="uuid" class="uuid" >
+                        <input type="hidden" name="employee_id" id="employee_id" class="employee-id" >
+                        <input type="hidden" name="days" id="days" class="days" >
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="text" class="form-control full-name" name="full_name" id="full_name" placeholder="Name of Employee" disabled>
+                    </div>   
+                </div> 
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Description</label>
+                      <textarea class="form-control leave-description" name="leave_description" id="leave_description" maxlength="300" disabled></textarea>
+                  </div>
+                </div>                
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Start Duration</label>
+                      <input type="text" class="form-control start-duration" name="start_duration" id="start_duration" disabled>
+                  </div>
+                </div>            
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">End Duration</label>
+                      <input type="text" class="form-control end-duration" name="end_duration" id="end_duration" disabled>
+                  </div>
+                </div>            
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Days</label>
+                      <input type="text" class="form-control days2" name="days2" id="days2" disabled>
+                  </div>
+                </div>    
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Leave Type</label>
+                      <input type="text" class="form-control leave-type-description" name="leave_type_description" id="leave_type_description" disabled>
+                  </div>
+                </div>                    
+                <div class="col-lg-6">
+                    <div class="mb-3">
+                        <label class="form-label">Supervisor's Approval Status ?</label>
+                        <select name="is_approved" id="is_approved" class="form-control is-approved" disabled>
+                            <option value="0">Open</option>
+                            <option value="1">Approved</option>
+                            <option value="2">Not Approved</option>                            
+                        </select>
+                    </div>
+                </div>   
+                <div class="col-lg-6">
+                    <div class="mb-3">
+                        <label class="form-label">HR's Approval Status?</label>
+                        <select name="is_approved_by_hr" id="is_approved_by_hr" class="form-control is-approved-by-hr" disabled>
+                            <option value="0">Open</option>
+                            <option value="1">Approved</option>
+                            <option value="2">Not Approved</option>                            
+                        </select>
+                    </div>
+                </div>   
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Approved Date by Supervisor</label>
+                      <input type="text" class="form-control approved-date" name="approved_date" id="approved_date" disabled>
+                  </div>
+                </div>            
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Approved Date by HR</label>
+                      <input type="text" class="form-control approved-date-by-hr" name="approved_date_by_hr" id="approved_date_by_hr" disabled>
+                  </div>
+                </div>            
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Supervisor's Comments</label>
+                      <textarea class="form-control comments" name="comments" id="comments" rows="4" maxlength="300" disabled></textarea>
+                  </div>
+                </div>   
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">HR's Comments</label>
+                      <textarea class="form-control hr-comments" name="comments_by_hr" id="comments_by_hr" rows="4" maxlength="300" disabled></textarea>
+                  </div>
+                </div>                 
+                <div class="col-lg-6" style="display: none" id="divImage"> 
+                  <div class="mb-3">
+                      <label class="form-label">Image</label>
+                      <a href="" id="href_image" clas="href_image" target="_blank"><img src="" alt="Image request leave" id="image" class="image" style="width:250px; height: 250px;"></a>
+                  </div>
+                </div>                  
+            </div>
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-edit2" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Request Other Leave</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="frmEdit" class="card card-md" method="POST" action="" autocomplete="off">
+          <div class="modal-body">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="hidden" name="uuid" id="uuid" class="uuid" >
+                        <input type="hidden" name="employee_id" id="employee_id" class="employee-id" >
+                        <input type="hidden" name="days" id="days" class="days" >
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="text" class="form-control full-name" name="full_name" id="full_name" placeholder="Name of Employee" disabled>
+                    </div>   
+                </div> 
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Description</label>
+                      <textarea class="form-control leave-description" name="leave_description" id="leave_description" maxlength="300" disabled></textarea>
+                  </div>
+                </div>                
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Start Duration</label>
+                      <input type="text" class="form-control start-duration" name="start_duration" id="start_duration" disabled>
+                  </div>
+                </div>            
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">End Duration</label>
+                      <input type="text" class="form-control end-duration" name="end_duration" id="end_duration" disabled>
+                  </div>
+                </div>            
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Days</label>
+                      <input type="text" class="form-control days2" name="days2" id="days2" disabled>
+                  </div>
+                </div>            
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Leave Type</label>
+                      <input type="text" class="form-control leave-type-description" name="leave_type_description" id="leave_type_description" disabled>
+                  </div>
+                </div>            
+                <div class="col-lg-6">
+                    <div class="mb-3">
+                        <label class="form-label">Supervisor's Approval Status ?</label>
+                        <select name="is_approved" id="is_approved" class="form-control is-approved" disabled>
+                            <option value="0">Open</option>
+                            <option value="1">Approved</option>
+                            <option value="2">Not Approved</option>                            
+                        </select>
+                    </div>
+                </div>   
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">HR's Approval Status?</label>
+                      <select name="is_approved_by_hr" id="is_approved_by_hr" class="form-control is-approved-by-hr" disabled>
+                          <option value="0">Open</option>
+                          <option value="1">Approved</option>
+                          <option value="2">Not Approved</option>                            
+                      </select>
+                  </div>
+                </div>   
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Approved Date by Supervisor</label>
+                      <input type="text" class="form-control approved-date" name="approved_date" id="approved_date" disabled>
+                  </div>
+                </div>      
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Approved Date by HR</label>
+                      <input type="text" class="form-control approved-date-by-hr" name="approved_date_by_hr" id="approved_date_by_hr" disabled>
+                  </div>
+                </div>        
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Supervisor Comments</label>
+                      <textarea class="form-control comments" name="comments" id="comments" rows="4" maxlength="300" disabled></textarea>
+                  </div>
+                </div>  
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">HR's Comments</label>
+                      <textarea class="form-control hr-comments" name="comments_by_hr" id="comments_by_hr" rows="4" maxlength="300" disabled></textarea>
+                  </div>
+                </div>                  
+            </div>
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Libs JS -->
+  <script src="assets/tabler/libs/apexcharts/dist/apexcharts.min.js"></script>
+
+  <!-- Tabler Core -->
+  <script src="assets/tabler/js/tabler.min.js"></script>
+  <script src="assets/tabler/js/demo.min.js"></script>
+
+  <script>
+    roleId = "<%= employeeData.role.id %>";
+    if (roleId != 1)
+      getData();
+  
+    async function getData() {
+      const response = await fetch('/employee-by-employement-status-json');
+      const data = await response.json();
+      length = data.data.length;
+
+      labels = [];
+      values = [];
+      for (i = 0; i < length; i++) {
+          labels.push(data.data[i].employmentStatus);
+          values.push(data.data[i]._count.employmentStatus);
+      }
+      new ApexCharts(document.getElementById("chart-demo-pie"), {
+        chart: {
+            type: "pie",
+            fontFamily: 'inherit',
+            height: 240,
+            sparkline: {
+              enabled: true
+            },
+            animations: {
+              enabled: false
+            },
+          },
+          fill: {
+            opacity: 1,
+          },
+          series: values,
+          labels: labels,
+          grid: {
+            strokeDashArray: 4,
+          },
+          colors: ["#206bc4", "#79a6dc", "#d2e1f3"],
+          legend: {
+            show: true,
+            position: 'bottom',
+            offsetY: 12,
+            markers: {
+              width: 10,
+              height: 10,
+              radius: 100,
+            },
+            itemMargin: {
+              horizontal: 8,
+              vertical: 8
+            },
+          },
+          tooltip: {
+            fillSeriesColor: false
+          },
+        }).render(); 
+    }
+  </script>
+
+  <script>
+    var editModal = document.getElementById('modal-edit');
+    editModal.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var uuid = button.getAttribute('data-uuid')
+
+      let url = '/annual-leave-by-uuid/' + uuid;
+      fetch(url)
+        .then(res => res.json())
+        .then(json => {
+          let modalEmployeeUuid = editModal.querySelector(".uuid");      
+          let modalEmployeeId = editModal.querySelector(".employee-id");
+          let modalEmployeeName = editModal.querySelector(".full-name");
+          let modalJointDate = editModal.querySelector(".approved-date");
+          let modalStartDuration = editModal.querySelector(".start-duration");
+          let modalEndDuration = editModal.querySelector(".end-duration");
+          let modalDays = editModal.querySelector(".days");
+          let modalDays2 = editModal.querySelector(".days2");
+          let modalLeaveDescription = editModal.querySelector(".leave-description");
+          let modalLeaveTypeDescription = editModal.querySelector(".leave-type-description");
+          let modalIsApproved = editModal.querySelector(".is-approved");
+          let modalApprovedDate = editModal.querySelector(".approved-date");
+          let modalComments = editModal.querySelector(".comments");
+          let modalIsApprovedByHR = editModal.querySelector(".is-approved-by-hr");
+          let modalApprovedDateByHR = editModal.querySelector(".approved-date-by-hr");
+          let modalHRComments = editModal.querySelector(".hr-comments");
+          let modalImage = editModal.querySelector(".image");
+
+          modalEmployeeUuid.value = json.data[0].uuid;
+          modalEmployeeId.value = json.data[0].employeeId;
+          modalEmployeeName.value = json.data[0].fullName;
+          const [yearStartDuration, monthStartDuration, dayStartDuration] = json.data[0].startDuration.split('-');
+          const startDurationDDMMYY = `${dayStartDuration.slice(0, 2)}-${monthStartDuration}-${yearStartDuration}`;
+          modalStartDuration.value = startDurationDDMMYY;
+
+          const [yearEndDuration, monthEndDuration, dayEndDuration] = json.data[0].endDuration.split('-');
+          const endDurationDDMMYY = `${dayEndDuration.slice(0, 2)}-${monthEndDuration}-${yearEndDuration}`;
+          modalEndDuration.value = endDurationDDMMYY;
+          modalDays.value = json.data[0].days;
+          modalDays2.value = json.data[0].days;
+          modalLeaveDescription.value = json.data[0].leaveDescription;
+          modalLeaveTypeDescription.value = json.data[0].leaveTypeDescription;
+          modalIsApproved.value = json.data[0].isApproved;
+          if (json.data[0].approvedDate){
+            const [YearApprovedDate, monthApprovedDate, dayApprovedDate] = json.data[0].approvedDate.split('-');
+            const approvedDate = `${dayApprovedDate.slice(0, 2)}-${monthApprovedDate}-${YearApprovedDate}`;
+            modalApprovedDate.value = approvedDate;
+          }
+          modalComments.value = json.data[0].commentsBySupervisor;
+          modalIsApprovedByHR.value = json.data[0].isApprovedByHR;
+          if (json.data[0].approvedDateByHR){
+            const [YearApprovedDate, monthApprovedDate, dayApprovedDate] = json.data[0].approvedDateByHR.split('-');
+            const approvedDateByHR = `${dayApprovedDate.slice(0, 2)}-${monthApprovedDate}-${YearApprovedDate}`;
+            modalApprovedDateByHR.value = approvedDateByHR;
+          }
+          modalHRComments.value = json.data[0].commentsByHR;
+
+          var image = document.getElementById("divImage");
+          if (json.data[0].leaveType == 3) {
+            image.style.display = "";
+          } else {
+            image.style.display = "none";
+          }
+          modalImage.src = json.data[0].image;
+          if (json.data[0].image)
+            document.getElementById("href_image").href = json.data[0].image; 
+        })
+    })
+
+    var editModal2 = document.getElementById('modal-edit2');
+    editModal2.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var uuid = button.getAttribute('data-uuid')
+
+      let url = '/other-leave-by-uuid/' + uuid;
+      fetch(url)
+        .then(res => res.json())
+        .then(json => {
+          let modalEmployeeUuid = editModal2.querySelector(".uuid");      
+          let modalEmployeeId = editModal2.querySelector(".employee-id");
+          let modalEmployeeName = editModal2.querySelector(".full-name");
+          let modalJointDate = editModal2.querySelector(".approved-date");
+          let modalStartDuration = editModal2.querySelector(".start-duration");
+          let modalEndDuration = editModal2.querySelector(".end-duration");
+          let modalDays = editModal2.querySelector(".days");
+          let modalDays2 = editModal2.querySelector(".days2");
+          let modalIsApproved = editModal2.querySelector(".is-approved");
+          let modalLeaveDescription = editModal2.querySelector(".leave-description");
+          let modalLeaveTypeDescription = editModal2.querySelector(".leave-type-description");
+          let modalApprovedDate = editModal2.querySelector(".approved-date");
+          let modalComments = editModal2.querySelector(".comments");
+          let modalIsApprovedByHR = editModal2.querySelector(".is-approved-by-hr");
+          let modalApprovedDateByHR = editModal2.querySelector(".approved-date-by-hr");
+          let modalHRComments = editModal2.querySelector(".hr-comments");
+
+          modalEmployeeUuid.value = json.data[0].uuid;
+          modalEmployeeId.value = json.data[0].employeeId;
+          modalEmployeeName.value = json.data[0].fullName;
+          const [yearStartDuration, monthStartDuration, dayStartDuration] = json.data[0].startDuration.split('-');
+          const startDurationDDMMYY = `${dayStartDuration.slice(0, 2)}-${monthStartDuration}-${yearStartDuration}`;
+          modalStartDuration.value = startDurationDDMMYY;
+
+          const [yearEndDuration, monthEndDuration, dayEndDuration] = json.data[0].endDuration.split('-');
+          const endDurationDDMMYY = `${dayEndDuration.slice(0, 2)}-${monthEndDuration}-${yearEndDuration}`;
+          modalEndDuration.value = endDurationDDMMYY;
+          modalDays.value = json.data[0].days;
+          modalDays2.value = json.data[0].days;
+          modalIsApproved.value = json.data[0].isApproved;
+          modalLeaveDescription.value = json.data[0].leaveDescription;
+          modalLeaveTypeDescription.value = json.data[0].otherleaveTypeDescription;
+          if (json.data[0].approvedDate){
+            const [YearApprovedDate, monthApprovedDate, dayApprovedDate] = json.data[0].approvedDate.split('-');
+            const approvedDate = `${dayApprovedDate.slice(0, 2)}-${monthApprovedDate}-${YearApprovedDate}`;
+            modalApprovedDate.value = approvedDate;
+          }
+          modalComments.value = json.data[0].commentsBySupervisor;
+          modalIsApprovedByHR.value = json.data[0].isApprovedByHR;
+          if (json.data[0].approvedDateByHR){
+            const [YearApprovedDate, monthApprovedDate, dayApprovedDate] = json.data[0].approvedDateByHR.split('-');
+            const approvedDateByHR = `${dayApprovedDate.slice(0, 2)}-${monthApprovedDate}-${YearApprovedDate}`;
+            modalApprovedDateByHR.value = approvedDateByHR;
+          }
+          modalHRComments.value = json.data[0].commentsByHR;
+        })
+    })
+  </script>
+</body>
+</html>

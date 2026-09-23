@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Edit Data </h3>
+                </div> 
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-lg-6">
+                      <div class="form-group mb-3 row">
+                        <label class="form-label col-3 col-form-label">Full Name</label>
+                        <div class="col-6">
+                          <input type="text" class="form-control" name="full-name" value="<%= getUsers.fullName %>" disabled>
+                        </div>
+                      </div>  
+                    </div>
+                    <div class="col-lg-6">
+                      <div class="form-group mb-3 row">
+                        <label class="form-label col-3 col-form-label">Business Unit</label>
+                        <div class="col-6">
+                          <input type="text" class="form-control" name="business_unit_id" value="<%= getUsers.businessUnit.businessUnitName %>" disabled>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <div class="form-group mb-3 row">
+                        <label class="form-label col-3 col-form-label">Email</label>
+                        <div class="col-6">
+                          <input type="text" class="form-control" name="email" value="<%= getUsers.email %>" disabled>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <div class="form-group mb-3 row">
+                        <label class="form-label col-3 col-form-label">Division</label>
+                        <div class="col-6">
+                          <input type="text" class="form-control" name="division" value="<%= getUsers.division.divisionName %>" disabled>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <div class="form-group mb-3 row">
+                        <label class="form-label col-3 col-form-label">Template Name</label>
+                        <div class="col-6">
+                          <input type="text" class="form-control" name="template-name" value="<%= getUsers.salaryTemplate.templateName %>" disabled>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <div class="form-group mb-3 row">
+                        <label class="form-label col-3 col-form-label">Job Titles</label>
+                        <div class="col-6">
+                          <input type="text" class="form-control" name="job_titles" value="<%= getUsers.jobTitle.jobTitleName %>" disabled>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12 mb-3">
+                    <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-add">Add component</button>
+                  </div>
+                  <form action="/setup-employee-salary/update-component" method="POST">      
+                    <input type="hidden" class="form-control"  name="uuid" id="uuid" value="<%= getUsers.uuid %>" >
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                        <th>Component Code</th>
+                        <th>Component Name</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Formula</th>
+                        <th>Amount</th>
+                        <th></th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% listOfEmployeeSalaryDetails.forEach(function(data) { %>
+                        <tr>
+                          <td>
+                            <%= data.componentCode %>
+                          </td>
+                          <td>
+                            <%= data.componentName %>
+                          </td>
+                          <td>
+                            <%= data.componentCategory %>
+                          </td>
+                          <td>
+                            <%= data.componentType %>
+                          </td>
+                          <td>
+                            <% if (data.componentType == 'Formula') { %>
+                            <input name="formula" class="form-control">
+                            <% } else { %>
+                            <input name="formula" class="form-control" disabled>
+                            <% } %>
+                          </td>
+                          <td>                            <input type="hidden" class="form-control" name="id" value="<%= data.id %>">
+                            <% if (data.componentType == 'Formula') { %>
+                              <input type="number" class="form-control" name="amt_<%= data.id %>" value="<%= data.amount %>" data-id="<%= data.id %>" style="text-align: right;" disabled>
+
+                            <% } else { %>
+                              <input type="number" class="form-control" name="amt_<%= data.id %>" value="<%= data.amount %>" data-id="<%= data.id %>" style="text-align: right;" min="0">
+                            <% } %>
+                          </td>
+                          <td>
+                            <!-- <button class="btn btn-outline-danger ms-auto delete" data-bs-toggle="modal" data-bs-target="#modal-danger" data-uuid="<%= data.uuid %>">Delete</button>-->
+                          </td>
+                        </tr>            
+                        <% }); %>
+                      </tbody>
+                    </table>
+                </div>
+                <div class="card-footer">
+                  <input type="hidden" name="_csrf" id="_csrf" value="<%= csrfToken %>">
+                  <button type="submit" class="btn btn-primary">Save</button>
+                  <a href="/setup-employee-salary" class="btn btn-secondary">Back</a>
+                </div>  
+                </form>              
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-add" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New Salary Component</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/setup-employee-salary/add-component/" autocomplete="off">
+          <div class="modal-body">
+            <div class="mb-3">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" class="form-control"  name="user_id" id="user_id" value="<%= getUsers.id %>" >
+              <label class="form-label">Component Code</label>
+              <select name="component_id" id="component_id" class="form-control component-id" required>
+                <% listOfSalaryComponent.forEach(function(data) { %>
+                <option value="<%= data.id %>"><%= data.componentCode %> - <%= data.componentName %></option>
+                <% }); %>
+              </select>
+            </div>
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">
+              Insert Data
+            </button>
+          </div>
+        </form>
+    </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.0.2/dist/css/tom-select.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.0.2/dist/js/tom-select.complete.min.js"></script>
+
+  <script>
+    new TomSelect("#component_id",{
+      create: true,
+      sortField: {
+        field: "text",
+        direction: "asc"
+      },
+      maxItems: 1
+    });
+    
+  </script>
+</body>
+</html>

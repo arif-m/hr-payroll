@@ -1,0 +1,17 @@
+.env
+var
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+logs/
+# Mac OS X
+.DS_Store
+
+public/images/medical/
+public/images/sickleave/
+public/images/profiles/
+
+.freebuff/
+.idea

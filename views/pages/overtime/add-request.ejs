@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body onload="createTable()">  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Data</h3>
+                </div>                  
+                <form action="/request-overtime/store" method="POST" autocomplete="off" enctype="multipart/form-data">
+                  <div class="card-body">
+                    <div class="row">                
+                      <input type="hidden" class="form-control" name="id" id="id" value="<%= employeeData.id %>">
+                      <input type="hidden" class="form-control" name="uuid" id="uuid" value="<%= employeeData.uuid %>">
+                      <input type="hidden" class="form-control" name="business_unit_id" id="business_unit_id" value="<%= employeeData.businessUnit.id %>">
+                      <input type="hidden" class="form-control" name="business_unit_name" id="business_unit_id" value="<%= employeeData.businessUnit.businessUnitName %>">
+                      <input type="hidden" class="form-control" name="division_id" id="division_id" value="<%= employeeData.division.id %>">
+                      <input type="hidden" class="form-control" name="division_name" id="division_name" value="<%= employeeData.division.divisionName %>">
+                      <input type="hidden" class="form-control" name="jobtitle_id" id="jobtitle_id" value="<%= employeeData.jobTitle.id %>">
+                      <input type="hidden" class="form-control" name="jobtitle_name" id="jobtitle_name" value="<%= employeeData.jobTitle.jobTitleName %>">
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Description</label>
+                          <div class="col-9">
+                            <textarea class="form-control" name="description_header" id="description_header" required></textarea>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">Division</label>
+                            <div class="col-9">
+                              <select name="division" id="division" class="form-control division" disabled>
+                                <option value="">Select Division</option>
+                                <% listOfDivision.forEach(function(data) { %>
+                                <option value="<%= data.id %>" 
+                                  <% if (data.id === employeeData.division.id ) { %>
+                                    selected
+                                  <% } %>
+                                >
+                                  <%= data.divisionName %>
+                                </option>
+                                <% }); %>
+                              </select>   
+                          </div>
+                        </div>
+                      </div> 
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Type of Day</label>
+                          <div class="col-9">
+                            <select name="type_of_day" id="type_of_day" class="form-control type_of_day" required>
+                              <option value="">Select Type of Day</option>
+                              <option value="Workday">Workday</option>
+                              <option value="Holiday">Holiday</option>
+                            </select>                            
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Date</label>
+                          <div class="col-9">
+                            <input type="text" class="form-control" name="overtime_date" id="overtime_date" placeholder="DD-MM-YYYY" required>
+                          </div>
+                        </div>
+                      </div>
+                    </div>   
+                  </div>
+                  <div class="col-12">
+                    <div class="card">
+                      <div class="card-header">
+                        <!--<h3 class="card-title">Details</h3>-->
+                        <div class="col-lg-6">
+                          <button type="button" class="btn btn-primary" onclick="addRow()">New Row</button>
+                        </div>  
+                      </div> 
+                      <div class="table-responsive">
+                        <div id="cont"></div>  
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-footer">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <a href="/request-overtime" class="btn btn-secondary">Close</a>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-success" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-success"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-green icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" /><path d="M9 12l2 2l4 -4" /></svg>
+          <h3><%= message.success %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-success w-100" data-bs-dismiss="modal">
+                  OK
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-error" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+          <h3><%= message.error %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-danger w-100" data-bs-dismiss="modal">
+                  Close
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  <script src="/assets/tabler/libs/litepicker/dist/litepicker.js" ></script>
+  <script src="/assets/tom-select/tom-select.complete.min.js"></script>
+  <link href="/assets/tom-select/tom-select.css" rel="stylesheet">
+
+  <!--<link href="https://cdn.jsdelivr.net/npm/tom-select@2.0.2/dist/css/tom-select.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.0.2/dist/js/tom-select.complete.min.js"></script>
+  -->
+  
+  <% var messageError = message.error; %>
+  <% var messageSuccess = message.success; %>
+
+  <script>
+    let messageError = '<% message.error; %>';
+    let descriptionHeader = '<%= message.description_header %>';
+    let typeOfDay = '<%= message.type_of_day %>';
+    let overtimeDate = '<%= message.overtime_date %>';
+
+    document.addEventListener("DOMContentLoaded", function () {
+    	window.Litepicker && (new Litepicker({
+    		element: document.getElementById('overtime_date'),
+        format: 'DD-MM-YYYY',
+        dropdowns: {
+          minYear: new Date().getFullYear() - 150,
+          maxYear: new Date().getFullYear() + 100,
+          months: true,
+          years: true
+        },
+    		buttonText: {
+    			previousMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-left -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>`,
+    			nextMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-right -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>`,
+    		},
+    	}));
+    });
+
+    if (descriptionHeader) {
+      const txtDescriptionHeader = document.getElementById('description_header');
+      const txtTypeOfDay = document.getElementById('type_of_day');
+      const txtOvertime = document.getElementById('overtime_date');
+
+      txtDescriptionHeader.value = descriptionHeader;
+      txtTypeOfDay.value = typeOfDay;
+      txtOvertime.value = overtimeDate;
+    }
+
+    let arrHead = new Array();	// array for header.
+    arrHead = ['Action', 'Employee', 'Start Time', 'End Time'];
+
+    // first create TABLE structure with the headers. 
+    let createTable = () => {
+      let empTable = document.createElement('table');
+      empTable.setAttribute('id', 'empTable'); // table id.
+      empTable.setAttribute('class', 'table card-table table-vcenter text-nowrap datatable');
+
+      let tr = empTable.insertRow(-1);
+      for (let headIndex = 0; headIndex < arrHead.length; headIndex++) {
+        let th = document.createElement('th'); // create table headers
+        th.innerHTML = arrHead[headIndex];
+        tr.appendChild(th);
+      }
+
+      let div = document.getElementById('cont');
+      div.appendChild(empTable);  // add the TABLE to the container.
+    }
+
+    divisionId =  document.getElementById('division_id');;
+    let url = '/employee-json?search=' + divisionId.value;
+    /*
+    fetch(url)
+      .then(res => res.json())
+      .then(json => {
+        console.log(json)
+    }) */
+
+    /*
+    const getEmployee = fetchEmployee();
+    console.log(getEmployee);
+    console.log(getEmployee.Promise);
+
+    async function fetchEmployee() {
+      const response = await fetch(url);
+      const json = await response.json();
+      console.log(json);
+      return json;
+    }
+*/
+
+    const jsonEmployee = fetchExployee();
+    //console.log(jsonEmployee);
+    function fetchExployee() {
+      var xhttp = new XMLHttpRequest();
+      xhttp.open("GET", url, false);
+      xhttp.send();
+      return xhttp.responseText;
+    }
+    const arrEmployee = JSON.parse(jsonEmployee);
+    console.log(arrEmployee);
+    console.log(JSON.parse(jsonEmployee));
+    jsonStringify = JSON.stringify(jsonEmployee);
+    console.log(arrEmployee.data); 
+
+    /*
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.responseType = 'json';
+    xhr.onload = function(e) {
+      if (this.status == 200) {
+        console.log('response', this.response); // JSON response  
+      }
+    };
+    xhr.send(); */
+
+    //let json = new Object;
+    /*
+    const request = async () => {
+      const response = await fetch(url);
+          const json = await response.json();
+          console.log(json);
+          return json;
+    }
+
+    const fungsi = request();
+    console.log(fungsi); */
+
+
+    // now, add a new row to the TABLE.
+    let rowIndex = 1;
+    let addRow = () => {
+      let empTab = document.getElementById('empTable');
+
+      let rowCnt = empTab.rows.length;   // table row count.
+      let tr = empTab.insertRow(rowCnt); // the table row.
+      tr = empTab.insertRow(rowCnt);
+
+      for (let columnIndex = 0; columnIndex < arrHead.length; columnIndex++) {
+        let td = document.createElement('td'); // table definition.
+        td = tr.insertCell(columnIndex);
+
+        if (columnIndex === 0) {      // the first column.
+          // add a button in every new row in the first column.
+          let button = document.createElement('input');
+
+          // set input attributes.
+          button.setAttribute('type', 'button');
+          button.setAttribute('class', 'btn btn-outline-danger ms-auto btn-sm');
+          button.setAttribute('value', 'Remove');
+
+          // add button's 'onclick' event.
+          button.setAttribute('onclick', 'removeRow(this)');
+
+          td.appendChild(button);
+        }
+        else {
+          // 2nd and 3th column, will have textbox.
+          if (columnIndex == 1) {
+            //Create array of options to be added
+            var array = ["Adi","Dina","Doni"];
+
+            //Create and append select list
+            let element = document.createElement("select");
+            //element.id = 'employee_id' + rowIndex;
+            //element.setAttribute('type', 'text');
+            element.setAttribute('class', 'form-control employee');
+            element.setAttribute('name', 'employee');            
+            element.setAttribute('id', 'employee' + rowIndex);
+            td.appendChild(element);
+
+            //Create and append the options
+            /*
+            for (var i = 0; i < array.length; i++) {
+                var option = document.createElement("option");
+                option.value = i + 1;
+                option.text = array[i];
+                element.appendChild(option);
+            } */
+
+            for (let i = 0; i < arrEmployee.data.length; i++) {
+              var option = document.createElement("option");
+              option.value = arrEmployee.data[i].id;
+              option.text = arrEmployee.data[i].fullName;
+              element.appendChild(option);
+            }
+
+            new TomSelect("#employee" + rowIndex,{
+            //create: true,
+            sortField: {
+              field: "text",
+              direction: "asc"
+            },
+            maxItems: 1
+          });
+          } else {
+            let element = document.createElement('input');
+            element.setAttribute('value', '');
+            element.setAttribute('required', 'TRUE');
+            if (columnIndex == 2) {
+              element.setAttribute('type', 'text');
+              element.setAttribute('class', 'form-control start');
+              element.setAttribute('name', 'start');           
+              element.setAttribute('id', 'start' + rowIndex);
+              element.setAttribute('data-mask', '00:00');           
+              element.setAttribute('data-mask-visible', 'true');  
+              element.setAttribute('placeholder', '00:00');                              
+              //element.setAttribute('style', 'text-align: right');            
+            } else if (columnIndex == 3) {
+              element.setAttribute('type', 'text');
+              element.setAttribute('class', 'form-control end');
+              element.setAttribute('name', 'end');           
+              element.setAttribute('id', 'end' + rowIndex);
+              element.setAttribute('placeholder', '00:00');                              
+            } 
+            td.appendChild(element);
+          }
+        }
+      }
+      
+      
+      rowIndex++;
+    }
+
+    // delete TABLE row function.
+    let removeRow = (oButton) => {
+      let empTab = document.getElementById('empTable');
+      empTab.deleteRow(oButton.parentNode.parentNode.rowIndex); 
+      // button -> td -> tr.
+    }
+
+    let getMessageError = "<%= messageError %>";
+    if(getMessageError) {
+      var errorModal = new bootstrap.Modal(document.getElementById('modal-error'), {})
+      errorModal.toggle();
+    }
+  </script>
+</body>
+</html>

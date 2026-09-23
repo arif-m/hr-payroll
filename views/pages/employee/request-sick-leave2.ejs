@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Data Details</h3>
+                </div>                  
+                <form action="/employee/request-sick-leave2" method="POST" autocomplete="off" enctype="multipart/form-data">
+                  <div class="card-body">
+                    <div class="row">                
+                      <input type="hidden" class="form-control" name="employee_id" id="employee_id" value="<%= employeeData.id %>">
+                      <input type="hidden" class="form-control" name="business_unit_id" id="business_unit_id" value="<%= employeeData.businessUnit.id %>">
+                      <input type="hidden" class="form-control" name="business_unit_name" id="business_unit_id" value="<%= employeeData.businessUnit.businessUnitName %>">
+                      <input type="hidden" class="form-control" name="division_id" id="division_id" value="<%= employeeData.division.id %>">
+                      <input type="hidden" class="form-control" name="division_name" id="division_name" value="<%= employeeData.division.divisionName %>">
+                      <input type="hidden" class="form-control" name="jobtitle_id" id="jobtitle_id" value="<%= employeeData.jobTitle.id %>">
+                      <input type="hidden" class="form-control" name="jobtitle_name" id="jobtitle_name" value="<%= employeeData.jobTitle.jobTitleName %>">
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Description</label>
+                          <div class="col-9">
+                            <input type="text" class="form-control" name="leave_description" id="leave_description" value="<%= leaveDescription %>" required>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">Leave Type</label>
+                            <div class="col-9">
+                              <select name="leave_type_2" id="leave_type_2" class="form-control leave_type_2" disabled>
+                                <% listOfleaveType.forEach(function(leaveType) { %>
+                                <option value="<%= leaveType.id %>">
+                                  <%= leaveType.description %>
+                                </option>
+                                <input type="hidden" class="form-control" name="leave_type" value="<%=leaveType.id%>">
+                                <input type="hidden" class="form-control" name="leave_type_description" value="<%=leaveType.description%>">
+                                <% }); %>
+                              </select>                            
+                            </div>
+                        </div>
+                      </div> 
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Start Duration</label>
+                          <div class="col-9">
+                            <input type="text" class="form-control" name="start_duration" id="start_duration" placeholder="DD-MM-YYYY" required>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">End Duration</label>
+                          <div class="col-9">
+                            <input type="text" class="form-control" name="end_duration" id="end_duration" placeholder="DD-MM-YYYY" required>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Days</label>
+                          <div class="col-9">
+                            <input type="hidden" class="form-control" name="days" id="days">
+                            <input type="text" class="form-control" name="days_2" id="days_2" disabled>
+                          </div>
+                        </div>
+                      </div>    
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">File Attachment</label>
+                          <div class="col-9">
+                            <input type="file" class="form-control" name="image" id="image" required >
+                          </div>
+                        </div>
+                      </div>                      
+                    </div>   
+                  </div>
+                  <div class="card-footer">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <a href="/" class="btn btn-secondary">Close</a>
+                  </div>
+              </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-success" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-success"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-green icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" /><path d="M9 12l2 2l4 -4" /></svg>
+          <h3><%= message.success %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-success w-100" data-bs-dismiss="modal">
+                  OK
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-error" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+          <h3><%= message.error %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-danger w-100" data-bs-dismiss="modal">
+                  Close
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  
+  <script src="/assets/tabler/libs/litepicker/dist/litepicker.js" ></script>
+
+  <% var messageSuccess = message.success; %>
+  <% var messageError = message.error; %>
+  <% var leaveDescription = message.leave_description; %>
+  <% var sDuration = message.start_duration; %>
+  <% var eDuration = message.end_duration; %>
+  <% var days = message.days; %>
+  <% var days_2 = message.days_2; %>
+  <script>
+    let leaveDescription = '<%= leaveDescription %>';
+    let sDuration = '<%= sDuration %>';
+    let eDuration = '<%= eDuration %>';
+    let days = '<%= days %>';
+    let days_2 = '<%= days_2 %>';
+
+    if (leaveDescription) {
+      const txtLeaveDescription = document.getElementById('leave_description');
+      const txtStartDuration = document.getElementById('start_duration');
+      const txtEndDuration = document.getElementById('end_duration');
+      const txtDays = document.getElementById('days');
+
+      txtLeaveDescription.value = leaveDescription;
+      txtStartDuration.value = sDuration;
+      txtEndDuration.value = eDuration;
+      txtDays.value =  days;
+      document.getElementById('days_2').disabled = false;
+      document.getElementById('days_2').value = days;
+      document.getElementById('days_2').disabled = true;
+    }
+
+    const workDays = "<%= getWorkDays.workDays %>";
+    let listOfDataCalendar = [];
+    let eventDate = '';
+    let url = 'holiday-calendar-json/';
+    fetch(url)
+      .then(res => res.json())
+      .then(json => {
+        for (let index = 0; index < json.data.length; index++) {
+            eventDate = json.data[index].eventDate;
+            eventDate = eventDate.replace('T00:00:00.000Z', '');
+            listOfDataCalendar.push(eventDate);
+        }
+            
+        const startDuration = document.getElementById('start_duration');
+        const endDuration = document.getElementById('end_duration');
+        
+        const picker = new Litepicker({
+          element: document.getElementById('start_duration'),
+          elementEnd: document.getElementById('end_duration'),
+          singleMode: false,
+          allowRepick: true,
+          format: 'DD-MM-YYYY',
+          //autoApply: false,
+          disableWeekends: true,
+          lockDays: listOfDataCalendar,
+          lockDaysFilter: (day) => {
+            const d = day.getDay();
+
+            if (workDays == 5)
+              return [6, 0].includes(d);
+            else if (workDays == 6)
+              return [0].includes(d);
+          },
+          buttonText: {
+              previousMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-left -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>`,
+              nextMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-right -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>`,
+          },
+          setup(picker) {
+            picker.on('selected', (date1, date2) => {
+              // some action
+              const [dayStartDuration, monthStartDuration, yearStartDuration] = startDuration.value.split('-');
+              const isoFormattedStartDuration = `${yearStartDuration}-${monthStartDuration}-${dayStartDuration}`;
+              const startDate = new Date(isoFormattedStartDuration)
+
+              const [dayEndDuration, monthEndDuration, yearEndDuration] = endDuration.value.split('-');
+              const isoFormattedEndDuration = `${yearEndDuration}-${monthEndDuration}-${dayEndDuration}`;
+              const endDate = new Date(isoFormattedEndDuration)
+
+              const diffInMs   = new Date(endDate) - new Date(startDate)
+              const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+              const totalDays = diffInDays + 1;
+
+              let url = 'get-data-calendar-workdays/' + isoFormattedStartDuration + "/" + totalDays;
+              fetch(url)
+                .then(res => res.json())
+                .then(json => {
+                  const days = document.getElementById('days');
+                  days.value = totalDays - json.data;
+                  const days2 = document.getElementById('days_2');
+                  days2.value = totalDays - json.data;
+              })          
+            });
+            picker.on('button:apply', (element) => {
+              // some action
+              const [dayStartDuration, monthStartDuration, yearStartDuration] = startDuration.value.split('-');
+              const isoFormattedStartDuration = `${yearStartDuration}-${monthStartDuration}-${dayStartDuration}`;
+              const startDate = new Date(isoFormattedStartDuration)
+
+              const [dayEndDuration, monthEndDuration, yearEndDuration] = endDuration.value.split('-');
+              const isoFormattedEndDuration = `${yearEndDuration}-${monthEndDuration}-${dayEndDuration}`;
+              const endDate = new Date(isoFormattedEndDuration)
+
+              const diffInMs   = new Date(endDate) - new Date(startDate)
+              const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+              const totalDays = diffInDays + 1;
+
+              let url = 'check-calendar-workdays/' + isoFormattedStartDuration + "/" + totalDays;
+              fetch(url)
+                .then(res => res.json())
+                .then(json => {
+                  const days = document.getElementById('days');
+                  days.value = totalDays - json.data;
+                  const days2 = document.getElementById('days_2');
+                  days2.value = totalDays - json.data;
+              })  
+            });
+          }
+        })
+      })   
+      
+    let getMessageSuccess = "<%= messageSuccess %>";
+    if(getMessageSuccess) {
+      var successModal = new bootstrap.Modal(document.getElementById('modal-success'), {})
+      successModal.toggle();
+    }
+
+    let getMessageError = "<%= messageError %>";
+    if(getMessageError) {
+      var errorModal = new bootstrap.Modal(document.getElementById('modal-error'), {})
+      errorModal.toggle();
+    }
+  </script>
+</body>
+</html>

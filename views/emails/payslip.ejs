@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slip Gaji</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f6fb;font-family:Arial,Helvetica,sans-serif;color:#1e293b;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6fb;padding:24px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;background:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;">
+          <!-- Header -->
+          <tr>
+            <td style="background:#4f46e5;padding:20px 28px;color:#ffffff;">
+              <div style="font-size:18px;font-weight:bold;">Slip Gaji Karyawan</div>
+              <div style="font-size:12px;opacity:.9;margin-top:4px;">
+                <%= data.header.employee && data.header.employee.businessUnit ? (data.header.employee.businessUnit.companyName || data.header.employee.businessUnit.businessUnitName) : '' %>
+              </div>
+            </td>
+          </tr>
+          <!-- Info periode -->
+          <tr>
+            <td style="padding:24px 28px 8px 28px;">
+              <div style="font-size:16px;font-weight:bold;margin-bottom:2px;"><%= data.header.fullName %></div>
+              <div style="font-size:12px;color:#64748b;">
+                NIK <%= data.header.employeeId %> · <%= data.header.jobTitle %><% if (data.header.organization) { %> · <%= data.header.organization %><% } %>
+              </div>
+              <div style="margin-top:12px;font-size:13px;">
+                Periode <strong><%= data.monthName %> <%= data.header.yearPeriod %></strong>
+                · Kehadiran <%= data.header.attendance %>/<%= data.header.workDays || '-' %> hari
+                · PTKP <%= data.header.ptkp %>
+              </div>
+            </td>
+          </tr>
+          <!-- Pendapatan -->
+          <tr>
+            <td style="padding:8px 28px;">
+              <div style="font-size:13px;font-weight:bold;color:#4f46e5;text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px 0;">Pendapatan</div>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:13px;">
+                <% data.earnings.forEach(function (d) { %>
+                <tr>
+                  <td style="padding:5px 0;border-bottom:1px solid #f1f5f9;"><%= d.name %></td>
+                  <td style="padding:5px 0;border-bottom:1px solid #f1f5f9;text-align:right;white-space:nowrap;">Rp <%= data.formatNumber(Number(d.amount)) %></td>
+                </tr>
+                <% }); %>
+                <tr>
+                  <td style="padding:8px 0;font-weight:bold;">Total Pendapatan</td>
+                  <td style="padding:8px 0;font-weight:bold;text-align:right;white-space:nowrap;">Rp <%= data.formatNumber(data.totalEarnings) %></td>
+                </tr>
+              </table>
+
+              <% if (data.deductions.length > 0) { %>
+              <div style="font-size:13px;font-weight:bold;color:#dc2626;text-transform:uppercase;letter-spacing:.5px;margin:18px 0 6px 0;">Potongan</div>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:13px;">
+                <% data.deductions.forEach(function (d) { %>
+                <tr>
+                  <td style="padding:5px 0;border-bottom:1px solid #f1f5f9;"><%= d.name %></td>
+                  <td style="padding:5px 0;border-bottom:1px solid #f1f5f9;text-align:right;white-space:nowrap;">Rp <%= data.formatNumber(Number(d.amount)) %></td>
+                </tr>
+                <% }); %>
+                <tr>
+                  <td style="padding:8px 0;font-weight:bold;">Total Potongan</td>
+                  <td style="padding:8px 0;font-weight:bold;text-align:right;white-space:nowrap;">Rp <%= data.formatNumber(data.totalDeductions) %></td>
+                </tr>
+              </table>
+              <% } %>
+
+              <!-- THP -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;background:#eef2ff;border-radius:8px;">
+                <tr>
+                  <td style="padding:14px 16px;font-size:14px;font-weight:bold;color:#3730a3;">Take Home Pay</td>
+                  <td style="padding:14px 16px;font-size:18px;font-weight:bold;color:#3730a3;text-align:right;white-space:nowrap;">Rp <%= data.formatNumber(data.thp) %></td>
+                </tr>
+              </table>
+
+              <div style="font-size:11px;color:#94a3b8;margin-top:18px;line-height:1.5;">
+                Slip ini dihasilkan otomatis oleh sistem payroll dan tidak memerlukan tanda tangan.
+                Bila ada pertanyaan mengenai rincian slip gaji ini, silakan hubungi bagian HRD.
+              </div>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f8fafc;padding:14px 28px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;">
+              Email otomatis — dikirim pada <%= moment().format('DD MMM YYYY HH:mm') %>.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

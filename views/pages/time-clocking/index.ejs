@@ -1,0 +1,227 @@
+<!doctype html>
+<!--
+* Tabler - Premium and Open Source dashboard template with responsive and high quality UI.
+* @version 1.0.0-beta9
+* @link https://tabler.io
+* Copyright 2018-2022 The Tabler Authors
+* Copyright 2018-2022 codecalm.net Paweł Kuna
+* Licensed under MIT (https://github.com/tabler/tabler/blob/master/LICENSE)
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>Time Clocking- HR MEME</title>
+    <!-- CSS files -->
+    <link href="./assets/tabler/css/tabler.min.css" rel="stylesheet"/>
+<!--    <link href="./assets/tabler/css/tabler-flags.min.css" rel="stylesheet"/>
+    <link href="./assets/tabler/css/tabler-payments.min.css" rel="stylesheet"/>
+    <link href="./assets/tabler/css/tabler-vendors.min.css" rel="stylesheet"/>-->
+    <link href="./assets/tabler/css/demo.min.css" rel="stylesheet"/>
+  </head>
+  <body  class=" border-top-wide border-primary d-flex flex-column">
+    <div class="page page-center">
+      <div class="container-tight py-4">
+        <div class="text-center mb-4">
+          <a href="." class="navbar-brand navbar-brand-autodark"><img src="./static/logo.svg" height="36" alt=""></a>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title text-center">Time Clocking</h3>
+          </div>
+          <div class="card-body">
+            <div id="MyClockDisplay" class="clock text-center" onload="showTime()"></div>
+            <h2 class="card-title text-center mb-4"><%= today %></h2><br />
+            <h2 class="card-title text-center mb-2">Normal Working Hours</h2>
+            <h2 class="card-title text-center mb-4" style="font-size: 20px"><b>08:00 AM - 05:00 PM</b></h2>
+          </div>
+          <div class="card-footer">
+            <div class="d-flex">
+              <button class="btn btn-outline-primary ms-auto w-50" data-bs-toggle="modal" data-bs-target="#modal-in">Clock In</button>&nbsp;
+              <button class="btn btn-outline-primary ms-auto w-50" data-bs-toggle="modal" data-bs-target="#modal-out">Clock Out</button>    
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal modal-blur fade" id="modal-in" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Check In</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form class="card card-md" method="POST" action="/time-clocking/checkin" autocomplete="off">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="modal-body">
+              <div class="row">
+                <div class="mb-3">
+                  <label class="form-label">ID</label>
+                  <input type="number" name="employee_id" id="employee_id" class="form-control" placeholder="Enter id" required>
+                </div>    
+              </div>
+            </div>        
+            <div class="modal-footer">
+              <button type="button" class="btn me-auto" data-bs-dismiss="modal">Cancel</button>
+              <button class="btn btn-primary ms-auto" type="submit">
+                Submit
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal modal-blur fade" id="modal-out" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Check In</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form class="card card-md" method="POST" action="/time-clocking/checkout" autocomplete="off">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="modal-body">
+              <div class="row">
+                <div class="mb-3">
+                  <label class="form-label">ID</label>
+                  <input type="number" name="employee_id" id="employee_id" class="form-control" placeholder="Enter id" required>
+                </div>    
+              </div>
+            </div>        
+            <div class="modal-footer">
+              <button type="button" class="btn me-auto" data-bs-dismiss="modal">Cancel</button>
+              <button class="btn btn-primary ms-auto" type="submit">
+                Submit
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal modal-blur fade" id="modal-success" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <div class="modal-status bg-success"></div>
+          <div class="modal-body text-center py-4">
+            <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-green icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" /><path d="M9 12l2 2l4 -4" /></svg>
+            <h3><%= message.success %></h3>
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col">
+                  <a href="#" class="btn btn-success w-100" data-bs-dismiss="modal">
+                    OK
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal modal-blur fade" id="modal-error" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <div class="modal-status bg-danger"></div>
+          <div class="modal-body text-center py-4">
+            <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+            <h3><%= message.error %></h3>
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col">
+                  <a href="#" class="btn btn-danger w-100" data-bs-dismiss="modal">
+                    Close
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabler Core -->
+    <script src="./assets/tabler/js/tabler.min.js"></script>
+    <script src="./assets/tabler/js/demo.min.js"></script>
+
+    <style>
+      /*body {
+          background: black;
+      }*/
+      
+      /*
+      .clock {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translateX(-50%) translateY(-50%);
+          color: #17D4FE;
+          font-size: 20px;
+          font-family: Orbitron;
+          letter-spacing: 7px;
+      }*/
+
+      .clock {
+        color: #17D4FE;
+        font-size: 35px;
+        font-family: Orbitron;
+      }
+    </style>
+
+    <% var messageSuccess = message.success; %>
+    <% var messageError = message.error; %>
+    <script>
+      let getMessageSuccess = "<%= messageSuccess %>";
+      if(getMessageSuccess) {
+        var successModal = new bootstrap.Modal(document.getElementById('modal-success'), {})
+        successModal.toggle();
+      }
+
+      let getMessageError = "<%= messageError %>";
+      if(getMessageError) {
+        var errorModal = new bootstrap.Modal(document.getElementById('modal-error'), {})
+        errorModal.toggle();
+      }
+
+      function showTime(){
+        var date = new Date();
+        var h = date.getHours(); // 0 - 23
+        var m = date.getMinutes(); // 0 - 59
+        var s = date.getSeconds(); // 0 - 59
+        var session = "AM";
+        
+        if(h == 0){
+            h = 12;
+        }
+        
+        if(h > 12){
+            h = h - 12;
+            session = "PM";
+        }
+        
+        h = (h < 10) ? "0" + h : h;
+        m = (m < 10) ? "0" + m : m;
+        s = (s < 10) ? "0" + s : s;
+        
+        var time = h + ":" + m + ":" + s + " " + session;
+        document.getElementById("MyClockDisplay").innerText = time;
+        document.getElementById("MyClockDisplay").textContent = time;
+        
+        setTimeout(showTime, 1000);        
+      }
+      showTime();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Data Listing</h3>
+                  </div>
+                  <div class="card-body border-bottom py-3">
+                    <!--<div class="col-12 mb-3">
+                      <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-add">Add</button>
+                    </div>-->
+
+                    <form action="/bpjs-tenaga-kerja-template" id="frmSearch" type="GET">
+                      <div class="d-flex">
+                        <div class="text-muted">
+                        Show
+                        <div class="mx-2 d-inline-block">
+                            <input type="text" class="form-control form-control-sm" value="<%= listOfBpjsTenagaKerjaTemplate.meta.limit %>" size="3" aria-label="data count">
+                        </div>
+                        entries
+                        </div>
+                        <div class="ms-auto text-muted">
+                          <div class="input-group mb-2">
+                            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search data" value="<% if(locals.search) { %><%= search  %><% } %>">
+                            <button class="btn" type="submit">Go</button>
+                          </div>
+                        </div>
+                    </form>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                        <th class="w-1">Id. <!-- Download SVG icon from http://tabler-icons.io/i/chevron-up -->
+                          <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm text-dark icon-thick" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="6 15 12 9 18 15" /></svg>
+                        </th>
+                        <th>Name</th>
+                        <th>Is Active</th>
+                        <th></th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% listOfBpjsTenagaKerjaTemplate.data.forEach(function(data) { %>
+                          <tr>
+                              <td><span class="text-muted"><%= data.id %></span></td>
+                              <td><%= data.templateName %></td>
+                              <td>
+                                <% if(data.isActive == 0) { %>
+                                  No
+                                <% } else { %>
+                                  Yes
+                                <% } %>
+                              </td>
+                              <td class="text-end">
+                                <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-edit" data-uuid="<%= data.uuid %>" data-template_name="<%= data.templateName %>" data-is_active="<%= data.isActive %>">Edit</button>
+                                <button class="btn btn-outline-primary ms-auto edit"><a href="/bpjs-tenaga-kerja-template/add-component/<%= data.uuid %>">Add component</a></button>
+                              </td>
+                          </tr>
+                        <% }); %>                       
+                      </tbody>
+                    </table>
+                  </div>
+                                    
+                  <div class="card-footer d-flex align-items-center">
+                    <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfBpjsTenagaKerjaTemplate.meta.totalRecordCurrentPage %></span> of <span><%= listOfBpjsTenagaKerjaTemplate.meta.totalRecords %></span> entries</p>
+                    <% if (listOfBpjsTenagaKerjaTemplate.meta.totalPage > 1) { %>
+                    <ul class="pagination m-0 ms-auto">
+                      <% if (listOfBpjsTenagaKerjaTemplate.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/bpjs-tenaga-kerja-template?page=0&limit=<%= listOfBpjsTenagaKerjaTemplate.meta.limit %>"><< First</a></li>&nbsp;
+                      <% } %>
+                      
+                      <% if (listOfBpjsTenagaKerjaTemplate.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/bpjs-tenaga-kerja-template?page=<%= listOfBpjsTenagaKerjaTemplate.meta.currentPage-1 %>&limit=<%= listOfBpjsTenagaKerjaTemplate.meta.limit %>">< Previous</a></li>&nbsp;
+                      <% } %>
+
+                      <% if ((listOfBpjsTenagaKerjaTemplate.meta.currentPage + 1) == listOfBpjsTenagaKerjaTemplate.meta.totalPage) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/bpjs-tenaga-kerja-template?page=<%= listOfBpjsTenagaKerjaTemplate.meta.currentPage+1 %>&limit=<%= listOfBpjsTenagaKerjaTemplate.meta.limit %>"> Next ></a></li>&nbsp;
+                      <% } %>
+
+                      <% if (listOfBpjsTenagaKerjaTemplate.meta.currentPage == (listOfBpjsTenagaKerjaTemplate.meta.totalPage-1)) { %>
+                        <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                      <% } else { %>
+                          <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/bpjs-tenaga-kerja-template?page=<%= listOfBpjsTenagaKerjaTemplate.meta.totalPage - 1 %>&limit=<%= listOfBpjsTenagaKerjaTemplate.meta.limit %>">Last >></a></li>
+                      <% } %>
+                    </ul>
+                    <% } %>
+                  </div> 
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-add" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New BPJS Tenaga Kerja Template</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/bpjs-tenaga-kerja-template" autocomplete="off">
+          <div class="modal-body">
+            <div class="mb-3">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <label class="form-label">Template Name</label>
+              <input type="text" class="form-control" name="template_name" id="template_name" placeholder="Name of Template">
+            </div>          
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">
+              Insert Data
+            </button>
+          </div>
+        </form>
+    </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit BPJS Tenaga Kerja Template</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/bpjs-tenaga-kerja-template/update" autocomplete="off">
+          <div class="modal-body">
+            <div class="mb-3">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <label class="form-label">Template Name</label>
+              <input type="hidden" name="template_uuid" id="template_uuid" class="template-uuid">
+              <input type="text" class="form-control template-name" name="template_name" id="template_name" placeholder="Name of Template">
+            </div>    
+            <div class="mb-3">
+              <label class="form-label" for="is_taxable">Is Active ?</label>
+              <input type="hidden" class="form-control is-active" name="is_active" id="is_active">
+              <input type="checkbox" class="chk-is-active" id="chk_is_active" name="chk_is_active" >
+            </div>         
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">
+              Update Data
+            </button>
+          </div>
+        </form>
+    </div>
+    </div>
+  </div>
+
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+
+  <% var messageErrorDelete = message.errorDelete; %>
+  <script type = "text/JavaScript">
+    var editModal = document.getElementById('modal-edit');
+      editModal.addEventListener('show.bs.modal', function (event) {
+        // Button that triggered the modal
+        var button = event.relatedTarget
+        // Extract info from data-bs-* attributes
+        var templateUuid = button.getAttribute('data-uuid');
+        var templateName = button.getAttribute('data-template_name');
+        var isActive = button.getAttribute('data-is_active');
+        // If necessary, you could initiate an AJAX request here
+        // and then do the updating in a callback.
+        //
+        // Update the modal's content.
+        var modalTitle = editModal.querySelector('.modal-title')
+
+        var modalTemplateUuid = editModal.querySelector(".template-uuid");
+        var modalTemplateName = editModal.querySelector(".template-name");
+        modalTemplateUuid.value = templateUuid;
+        modalTemplateName.value = templateName;
+
+        var modalIsActive = editModal.querySelector(".is-active");
+        var modalChkIsActive = editModal.querySelector(".chk-is-active");
+        if (isActive == 1) {
+          modalChkIsActive.toggleAttribute('checked');
+        } else {
+          modalChkIsActive.removeAttribute('checked');
+        }
+      })
+
+      let chkIsActive = document.querySelectorAll('.chk-is-active')
+      chkIsActive.forEach((checkbox) => { 
+        checkbox.addEventListener('change', (event) => {
+          let txtChkEdit = editModal.querySelector(".is-active");
+          if (event.target.checked) {
+            txtChkEdit.value = 1;
+            event.target.value = 1;
+          } else {
+            txtChkEdit.value = 0;
+            event.target.value = 0;
+          }
+        })
+      })
+  </script>
+</body>
+</html>

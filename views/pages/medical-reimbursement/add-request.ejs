@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body onload="createTable()">  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Data</h3>
+                </div>                  
+                <form action="/medical-reimbursement-request/add" method="POST" autocomplete="off" enctype="multipart/form-data">
+                  <div class="card-body">
+                    <div class="row">                
+                      <input type="hidden" class="form-control" name="id" id="id" value="<%= employeeData.id %>">
+                      <input type="hidden" class="form-control" name="uuid" id="uuid" value="<%= employeeData.uuid %>">
+                      <input type="hidden" class="form-control" name="business_unit_id" id="business_unit_id" value="<%= employeeData.businessUnit.id %>">
+                      <input type="hidden" class="form-control" name="business_unit_name" id="business_unit_id" value="<%= employeeData.businessUnit.businessUnitName %>">
+                      <input type="hidden" class="form-control" name="division_id" id="division_id" value="<%= employeeData.division.id %>">
+                      <input type="hidden" class="form-control" name="division_name" id="division_name" value="<%= employeeData.division.divisionName %>">
+                      <input type="hidden" class="form-control" name="jobtitle_id" id="jobtitle_id" value="<%= employeeData.jobTitle.id %>">
+                      <input type="hidden" class="form-control" name="jobtitle_name" id="jobtitle_name" value="<%= employeeData.jobTitle.jobTitleName %>">
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Description</label>
+                          <div class="col-9">
+                            <textarea class="form-control" name="description_header" id="description_header" required></textarea>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">Category</label>
+                            <div class="col-9">
+                              <select name="category" id="category" class="form-control category" required>
+                                <option value="">Select Category</option>
+                                <% listOfMedicalReimbursementCategory.forEach(function(data) { %>
+                                <option value="<%= data.id %>">
+                                  <%= data.description %>
+                                </option>
+                                <% }); %>
+                              </select>                            
+                              <input type="hidden" class="form-control" name="category_description" id="category_description">
+                          </div>
+                        </div>
+                      </div> 
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Total</label>
+                          <div class="col-9">
+                            <input type="hidden" class="form-control" name="total" id="total" value="0">
+                            <input type="text" class="form-control" name="total_2" id="total_2" value="0" disabled>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Balance</label>
+                          <div class="col-9">
+                            <input type="hidden" class="form-control" name="balance" id="balance" value="0>">
+                            <input type="text" class="form-control" name="balance2" id="balance2" value="0" disabled>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">File Attachment</label>
+                          <div class="col-9">
+                            <input type="file" class="form-control" name="image" id="image" required >
+                          </div>
+                        </div>
+                      </div>   
+                    </div>   
+                  </div>
+                  <div class="col-12">
+                    <div class="card">
+                      <div class="card-header">
+                        <!--<h3 class="card-title">Details</h3>-->
+                        <div class="col-lg-6">
+                          <button type="button" class="btn btn-primary" onclick="addRow()">New Row</button>
+                        </div>  
+                      </div> 
+                      <div class="table-responsive">
+                        <div id="cont"></div>  
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-footer">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <a href="/medical-reimbursement-request" class="btn btn-secondary">Close</a>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-success" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-success"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-green icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" /><path d="M9 12l2 2l4 -4" /></svg>
+          <h3><%= message.success %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-success w-100" data-bs-dismiss="modal">
+                  OK
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-error" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+          <h3><%= message.error %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-danger w-100" data-bs-dismiss="modal">
+                  Close
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  
+  <% var messageError = message.error; %>
+  <% var descriptionHeader = message.description_header; %>
+  <% var category = message.category; %>
+  <% var categoryDescription = message.category_description; %>
+  <script>
+    let descriptionHeader = '<%= descriptionHeader %>';
+    let category = '<%= category %>';
+    let categoryDescription = '<%= categoryDescription %>';
+
+    if (descriptionHeader) {
+      const txtDescriptionHeader = document.getElementById('description_header');
+      const txtCategory = document.getElementById('category');
+      const txtCategoryDescription = document.getElementById('category_description');
+
+      txtDescriptionHeader.value = descriptionHeader;
+      txtCategory.value = category;
+      txtCategoryDescription.value = categoryDescription;
+    }
+
+    let arrHead = new Array();	// array for header.
+    arrHead = ['Action', 'Description', 'Amount'];
+
+    // first create TABLE structure with the headers. 
+    let createTable = () => {
+      let empTable = document.createElement('table');
+      empTable.setAttribute('id', 'empTable'); // table id.
+      empTable.setAttribute('class', 'table card-table table-vcenter text-nowrap datatable');
+
+      let tr = empTable.insertRow(-1);
+      for (let headIndex = 0; headIndex < arrHead.length; headIndex++) {
+        let th = document.createElement('th'); // create table headers
+        th.innerHTML = arrHead[headIndex];
+        tr.appendChild(th);
+      }
+
+      let div = document.getElementById('cont');
+      div.appendChild(empTable);  // add the TABLE to the container.
+    }
+
+    // now, add a new row to the TABLE.
+    let addRow = () => {
+      let empTab = document.getElementById('empTable');
+
+      let rowCnt = empTab.rows.length;   // table row count.
+      let tr = empTab.insertRow(rowCnt); // the table row.
+      tr = empTab.insertRow(rowCnt);
+
+      for (let columnIndex = 0; columnIndex < arrHead.length; columnIndex++) {
+        let td = document.createElement('td'); // table definition.
+        td = tr.insertCell(columnIndex);
+
+        if (columnIndex === 0) {      // the first column.
+          // add a button in every new row in the first column.
+          let button = document.createElement('input');
+
+          // set input attributes.
+          button.setAttribute('type', 'button');
+          button.setAttribute('class', 'btn btn-outline-danger ms-auto btn-sm');
+          button.setAttribute('value', 'Remove');
+
+          // add button's 'onclick' event.
+          button.setAttribute('onclick', 'removeRow(this)');
+
+          td.appendChild(button);
+        }
+        else {
+          // 2nd and 3th column, will have textbox.
+          let element = document.createElement('input');
+          element.setAttribute('value', '');
+          element.setAttribute('required', 'TRUE');
+          if (columnIndex == 1) {
+            element.setAttribute('type', 'text');
+            element.setAttribute('class', 'form-control description');
+            element.setAttribute('name', 'description');            
+            element.setAttribute('id', 'description' + columnIndex);
+          } else if (columnIndex == 2) {
+            element.setAttribute('type', 'number');
+            element.setAttribute('class', 'form-control amount');
+            element.setAttribute('name', 'amount');           
+            //element.setAttribute('value', '0');            
+            element.setAttribute('min', '0');            
+            element.setAttribute('id', 'amount' + columnIndex);
+            element.setAttribute('style', 'text-align: right');            
+          }
+
+          td.appendChild(element);
+        }
+      }
+
+      document.querySelectorAll('.amount').forEach(item => {
+        item.addEventListener('change', event => {
+          //handle update
+          if (item.value == '')
+            item.value = 0;
+
+          var items = document.getElementsByClassName('amount');
+          var sum = 0;
+          for(var i = 0; i < items.length; i++){
+            sum += parseInt(items[i].value);
+          }
+
+          var total = document.getElementById("total");
+          total.value = sum;
+          var total2 = document.getElementById("total_2");
+          total2.value = String(sum).replace(/(.)(?=(\d{3})+$)/g,'$1,');
+        })
+      })
+
+    }
+
+    // delete TABLE row function.
+    let removeRow = (oButton) => {
+      let empTab = document.getElementById('empTable');
+      empTab.deleteRow(oButton.parentNode.parentNode.rowIndex); 
+      // button -> td -> tr.
+    }
+    
+    document.getElementById('category').addEventListener('change', function() {
+      if (this.value){
+        const categoryDescription = document.getElementById('category_description');
+        categoryDescription.value = this.options[this.selectedIndex].text;
+        const uuid = document.getElementById('uuid');
+        let url = '/medical-reimbursement-balance-by-category?category_id=' + this.value + "&uuid=" + uuid.value;
+        fetch(url)
+          .then(res => res.json())
+          .then(json => {
+            const balance = document.getElementById('balance');
+            balance.value = json.data;
+            const balance2 = document.getElementById('balance2');
+            balance2.value = String(json.data).replace(/(.)(?=(\d{3})+$)/g,'$1,');
+        })    
+      } else {
+        const categoryDescription = document.getElementById('category_description');
+        categoryDescription.value = '';
+      }
+    });
+
+    let getMessageError = "<%= messageError %>";
+    if(getMessageError) {
+      var errorModal = new bootstrap.Modal(document.getElementById('modal-error'), {})
+      errorModal.toggle();
+    }
+  </script>
+</body>
+</html>

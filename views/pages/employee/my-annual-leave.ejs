@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                <h3 class="card-title">Data Summary</h3>
+                </div>                  
+                <div class="card-body">
+                  <form>
+                    <div class="form-group mb-3 row">
+                      <label class="form-label col-2 col-form-label">Balance</label>
+                      <div class="col-1">
+                        <input type="text" class="form-control" value="<%= employeeData.annualLeaveBalance %>" disabled>
+                      </div>
+                    </div>  
+                    <div class="form-group mb-3 row">
+                      <label class="form-label col-2 col-form-label">Taken</label>
+                      <div class="col-1">
+                        <input type="text" class="form-control" value="<%= employeeData.annualLeave %>" disabled>
+                      </div>
+                    </div>              
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Data History</h3>
+                  </div>
+                  <div class="card-body border-bottom py-3">
+                    <form action="/my-annual-leave" id="frmSearch" type="GET">
+                      <div class="d-flex">
+                        <div class="text-muted">
+                        Show
+                        <div class="mx-2 d-inline-block">
+                            <input type="text" class="form-control form-control-sm" value="<%= listOfMyRequestAnnualLeave.meta.limit %>" size="3" aria-label="Invoices count">
+                        </div>
+                        entries
+                        </div>
+                        <div class="ms-auto text-muted">
+                          <div class="input-group mb-2">
+                            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search data" value="<% if(locals.search) { %><%= search  %><% } %>">
+                            <button class="btn" type="submit">Go</button>
+                          </div>
+                        </div>
+                    </form>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                          <th>Description</th>
+                          <th>Start Duration</th>
+                          <th>End Duration</th>
+                          <th>Days</th>
+                          <th>Is Approved</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <% listOfMyRequestAnnualLeave.data.forEach(function(data) { %>
+                      <tr>
+                          <td><%= data.leaveDescription %></td>
+                          <td><%= moment(data.startDuration).format('DD-MM-yyyy') %></td>
+                          <td><%= moment(data.endDuration).format('DD-MM-yyyy') %></td>
+                          <td><%= data.days %></td>
+                          <td>
+                            <% if (data.isApproved == 0) { %>
+                              <span class="badge bg-secondary me-1">Open</span>
+                            <% } else if (data.isApproved == 1) { %>
+                              <span class="badge bg-success me-1">Approved</span>
+                            <% } else if (data.isApproved == 2) { %>
+                              <span class="badge bg-warning me-1">Not Approved</span>  
+                            <% } %>
+                          </td>
+                          <!--<td class="text-end">
+                            <button class="btn btn-outline-primary ms-auto edit" data-bs-toggle="modal" data-bs-target="#modal-edit" data-id="<%= data.id %>" data-uuid="<%= data.uuid %>" >Details</button>
+                          </td>-->
+                      </tr>
+                      <% }); %>                      
+                      </tbody>
+                    </table>
+                  </div>
+                                    
+                  <div class="card-footer d-flex align-items-center">
+                    <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfMyRequestAnnualLeave.meta.limit %></span> of <span><%= listOfMyRequestAnnualLeave.meta.totalRecords %></span> entries</p>
+                    <% if (listOfMyRequestAnnualLeave.meta.totalPage > 1) { %>
+                    <ul class="pagination m-0 ms-auto">
+                      <% if (listOfMyRequestAnnualLeave.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/my-annual-leave?page=0&limit=<%= listOfMyRequestAnnualLeave.meta.limit %>"><< First</a></li>&nbsp;
+                      <% } %>
+                      <% if (listOfMyRequestAnnualLeave.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/my-annual-leave?page=<%= listOfMyRequestAnnualLeave.meta.currentPage-1 %>&limit=<%= listOfMyRequestAnnualLeave.meta.limit %>">< Previous</a></li>&nbsp;
+                      <% } %>
+
+                      <% if ((listOfMyRequestAnnualLeave.meta.currentPage + 1) == listOfMyRequestAnnualLeave.meta.totalPage) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/my-annual-leave?page=<%= listOfMyRequestAnnualLeave.meta.currentPage+1 %>&limit=<%= listOfMyRequestAnnualLeave.meta.limit %>"> Next ></a></li>&nbsp;
+                      <% } %>
+
+                      <% if (listOfMyRequestAnnualLeave.meta.currentPage == (listOfMyRequestAnnualLeave.meta.totalPage-1)) { %>
+                        <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                      <% } else { %>
+                          <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/my-annual-leave?page=<%= listOfMyRequestAnnualLeave.meta.totalPage - 1 %>&limit=<%= listOfMyRequestAnnualLeave.meta.limit %>">Last >></a></li>
+                      <% } %>
+                      
+                    </ul>
+                    <% } %>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+  
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+
+  <script>
+      var editModal = document.getElementById('modal-edit');
+      editModal.addEventListener('show.bs.modal', function (event) {
+        // Button that triggered the modal
+        var button = event.relatedTarget
+        // Extract info from data-bs-* attributes
+        var divisionId = button.getAttribute('data-id')
+        var divisionName = button.getAttribute('data-division_name')
+        // If necessary, you could initiate an AJAX request here
+        // and then do the updating in a callback.
+        //
+        // Update the modal's content.
+        var modalTitle = editModal.querySelector('.modal-title')
+
+        var modalDivisionId = editModal.querySelector(".division-id");
+        var modalDivisionName = editModal.querySelector(".division-name");
+        modalDivisionId.value = divisionId;
+        modalDivisionName.value = divisionName;
+      })
+
+      var deleteModal = document.getElementById('modal-danger');
+      deleteModal.addEventListener('show.bs.modal', function (event) {
+        // Button that triggered the modal
+        var button = event.relatedTarget
+        // Extract info from data-bs-* attributes
+        var divisionId = button.getAttribute('data-id')
+
+        var modalDivisionId = deleteModal.querySelector(".division-id");
+        modalDivisionId.value = divisionId;
+      })
+  </script>
+</body>
+</html>

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Data Listing</h3>
+                </div>
+                <div class="card-body border-bottom py-3">
+                  <div class="col-12 mb-3">
+                    <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-add">Add</button><br />
+                  </div>
+                  <form action="/bpjs-tenaga-kerja-component" id="frmSearch" type="GET">
+                    <div class="d-flex">
+                      <div class="text-muted">
+                      Show
+                      <div class="mx-2 d-inline-block">
+                          <input type="text" class="form-control form-control-sm" value="<%= listOfBpjsTenagaKerjaComponent.meta.limit %>" size="3" aria-label="data count">
+                      </div>
+                      entries
+                      </div>
+                      <div class="ms-auto text-muted">
+                        <div class="input-group mb-2">
+                          <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search data" value="<% if(locals.search) { %><%= search  %><% } %>">
+                          <button class="btn" type="submit">Go</button>
+                        </div>
+                      </div>
+                  </form>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                    <thead>
+                    <tr>
+                      <th class="w-1">Id. <!-- Download SVG icon from http://tabler-icons.io/i/chevron-up -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm text-dark icon-thick" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="6 15 12 9 18 15" /></svg>
+                      </th>
+                      <th>Code</th>
+                      <th>Component Name</th>
+                      <th>Percentage</th>
+                      <th>Minimum Wages</th>
+                      <th>Maximum Wages</th>
+                      <th>Is Active ?</th>
+                      <th>Is THP ?</th>
+                      <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                      <% listOfBpjsTenagaKerjaComponent.data.forEach(function(data) { %>
+                        <tr>
+                            <td><span class="text-muted"><%= data.id %></span></td>
+                            <td><%=  data.componentCode %></td>
+                            <td><%=  data.componentName %></td>
+                            <td style = "text-align:right"><%= data.percentage %></td>
+                            <td style = "text-align:right"><%=  generalHelper.formatNumberWithCommas(data.minimumWages) %></td>
+                            <td style = "text-align:right"><%=  generalHelper.formatNumberWithCommas(data.maximumWages) %></td>
+                            <td style = "text-align:center">
+                              <% if(data.isActive == 0) { %>
+                              No
+                              <% } else { %>
+                              Yes
+                              <% } %>
+                            </td>
+                            <td style = "text-align:center">
+                              <% if(data.isTakeHomePay == 0) { %>
+                              No
+                              <% } else { %>
+                              Yes
+                              <% } %>
+                            </td>
+                            <td class="text-end">
+                              <button class="btn btn-outline-primary ms-auto edit" data-bs-toggle="modal" data-bs-target="#modal-edit" data-id="<%= data.id %>" data-uuid="<%= data.uuid %>"  data-component_code="<%= data.componentCode %>" data-component_name="<%= data.componentName %>" data-percentage="<%= data.percentage %>" data-minimum_wages="<%= data.minimumWages %>"  data-maximum_wages="<%= data.maximumWages %>" data-formula="<%= data.formula %>" data-sequence="<%= data.sequence %>" data-is_take_home_pay="<%= data.isTakeHomePay %>" data-is_active="<%= data.isActive %>" >Edit</button>
+                            </td>
+                        </tr>
+                      <% }); %>                     
+                    </tbody>
+                  </table>
+                </div>                  
+                                  
+                <div class="card-footer d-flex align-items-center">
+                  <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfBpjsTenagaKerjaComponent.meta.totalRecordCurrentPage %></span> of <span><%= listOfBpjsTenagaKerjaComponent.meta.totalRecords %></span> entries</p>
+                  <% if (listOfBpjsTenagaKerjaComponent.meta.totalPage > 1) { %>
+                  <ul class="pagination m-0 ms-auto">
+                    <% if (listOfBpjsTenagaKerjaComponent.meta.currentPage == 0) { %>
+                      <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                    <% } else { %>
+                        <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/bpjs-tenaga-kerja-component?page=0&limit=<%= listOfBpjsTenagaKerjaComponent.meta.limit %>"><< First</a></li>&nbsp;
+                    <% } %>
+                    
+                    <% if (listOfBpjsTenagaKerjaComponent.meta.currentPage == 0) { %>
+                      <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                    <% } else { %>
+                        <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/bpjs-tenaga-kerja-component?page=<%= listOfBpjsTenagaKerjaComponent.meta.currentPage-1 %>&limit=<%= listOfBpjsTenagaKerjaComponent.meta.limit %>">< Previous</a></li>&nbsp;
+                    <% } %>
+
+                    <% if ((listOfBpjsTenagaKerjaComponent.meta.currentPage + 1) == listOfBpjsTenagaKerjaComponent.meta.totalPage) { %>
+                      <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                    <% } else { %>
+                        <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/bpjs-tenaga-kerja-component?page=<%= listOfBpjsTenagaKerjaComponent.meta.currentPage+1 %>&limit=<%= listOfBpjsTenagaKerjaComponent.meta.limit %>"> Next ></a></li>&nbsp;
+                    <% } %>
+
+                    <% if (listOfBpjsTenagaKerjaComponent.meta.currentPage == (listOfBpjsTenagaKerjaComponent.meta.totalPage-1)) { %>
+                      <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                    <% } else { %>
+                        <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/bpjs-tenaga-kerja-component?page=<%= listOfBpjsTenagaKerjaComponent.meta.totalPage - 1 %>&limit=<%= listOfBpjsTenagaKerjaComponent.meta.limit %>">Last >></a></li>
+                    <% } %>
+                  </ul>
+                  <% } %>
+                </div> 
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+  
+  <div class="modal modal-blur fade" id="modal-add" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New BPJS Tenaga Kerja Component</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/bpjs-tenaga-kerja-component" autocomplete="off">
+          <div class="modal-body">
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Component Code</label>
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div class="col-9">
+                  <input type="text" class="form-control" name="component_code" id="component_code" placeholder="Code of component" required>
+                </div>
+              </div>          
+            </div>          
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Component Name</label>
+                <div class="col-9">
+                  <input type="text" class="form-control" name="component_name" id="component_name" placeholder="Name of component" required>
+                </div>
+              </div>              
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Percentage</label>
+                <div class="col-9">
+                  <input type="number" class="form-control" name="percentage" id="percentage" step="0.01" min="0" placeholder="Percentage">
+                </div>
+              </div>  
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Minimum Wages</label>
+                <div class="col-9">
+                  <input type="number" class="form-control" name="minimum_wages" id="minimum_wages" min="0" placeholder="Minimum Wages">
+                </div>
+              </div>  
+            </div>  
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Maximum Wages</label>
+                <div class="col-9">
+                  <input type="number" class="form-control" name="maximum_wages" id="minimum_wages" min="0" placeholder="Minimum Wages">
+                </div>
+              </div>          
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Formula</label>
+                <div class="col-9">
+                  <input type="text" class="form-control" name="formula" id="formula" placeholder="Formula">
+                </div>
+              </div>    
+            </div>  
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Sequence</label>
+                <div class="col-9">
+                  <input type="number" class="form-control" name="sequence" id="sequence" min="0" placeholder="Sequence">
+                </div>
+              </div>    
+            </div>  
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label" for="is_take_home_pay">Is Take Home Pay ?</label>
+                <div class="col-9">
+                  <input type="hidden" class="form-control is-take-home-pay" name="is_take_home_pay" id="is_take_home_pay">
+                  <input type="checkbox" class="chk-is-take-home-pay" id="chk_is_take_home_pay" name="chk_is_take_home_pay" >
+                </div>
+              </div>         
+            </div>
+          </div>        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">
+              Insert Data
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit BPJS Tenaga Kerja Component</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="frmEdit" class="card card-md" method="POST" action="/bpjs-tenaga-kerja-component/update"  autocomplete="off">
+          <div class="modal-body">
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Component Code</label>
+                <div class="col-9">
+                  <input type="hidden" name="component_id" id="component_id" class="component-id">
+                  <input type="hidden" name="component_uuid" id="component_uuid" class="component-uuid">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="text" class="form-control component-code" name="component_code" id="component_code" placeholder="Code of component" required>
+                </div>
+              </div>          
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Component Name</label>
+                <div class="col-9">
+                  <input type="text" class="form-control component-name" name="component_name" id="component_name" placeholder="Name of component" required>
+                </div>
+              </div>  
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Percentage</label>
+                <div class="col-9">
+                  <input type="number" class="form-control percentage" name="percentage" id="percentage" step="0.01" min="0" placeholder="Percentage">
+                </div>
+              </div>  
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Minimum Wages</label>
+                <div class="col-9">
+                  <input type="number" class="form-control minimum-wages" name="minimum_wages" id="minimum_wages" min="0" placeholder="Minimum Wages">
+                </div>
+              </div>  
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Maximum Wages</label>
+                <div class="col-9">
+                  <input type="number" class="form-control maximum-wages" name="maximum_wages" id="minimum_wages" min="0" placeholder="Minimum Wages">
+                </div>
+              </div>  
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Formula</label>
+                <div class="col-9">
+                  <input type="text" class="form-control formula" name="formula" id="formula" placeholder="Formula">
+                </div>
+              </div>    
+            </div>  
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label">Sequence</label>
+                <div class="col-9">
+                  <input type="number" class="form-control sequence" name="sequence" id="sequence" min="0" placeholder="Sequence">
+                </div>
+              </div>    
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label" for="is_take_home_pay">Is Take Home Pay ?</label>
+                <div class="col-9">
+                  <input type="hidden" class="form-control is-take-home-pay" name="is_take_home_pay" id="is_take_home_pay">
+                  <input type="checkbox" class="chk-is-take-home-pay" id="chk_is_take_home_pay" name="chk_is_take_home_pay" >
+                </div>
+              </div>         
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label" for="is_taxable">Is Active ?</label>
+                <div class="col-9">
+                  <input type="hidden" class="form-control is-active" name="is_active" id="is_active">
+                  <input type="checkbox" class="chk-is-active" id="chk_is_active" name="chk_is_active" >
+                </div>
+              </div>   
+            </div>
+          </div>      
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button id="updateBtn" class="btn btn-primary ms-auto" type="submit">
+              Update Data
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-danger" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <form class="card card-md" method="POST" action="/bpjs-tenaga-kerja-component/delete" autocomplete="off">
+          <div class="modal-body text-center py-4">
+            <!-- Download SVG icon from http://tabler-icons.io/i/alert-triangle -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+            <h3>Are you sure?</h3>
+            <div class="text-muted">Do you really want to remove the data? What you've done cannot be undone.</div>
+            <input type="hidden" name="component_id" id="component_id" class="component-id">
+            <input type="hidden" name="component_uuid" id="component_uuid" class="component-uuid">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">
+                    Cancel
+                  </a>
+                </div>
+                <button id="deleteBtn" class="col btn btn-danger ms-auto" type="submit" data-bs-dismiss="modal">
+                  Delete Data
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-error" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+          <h3><%= message.errorDelete %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-danger w-100" data-bs-dismiss="modal">
+                  Close
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+
+  <% var messageErrorDelete = message.errorDelete; %>
+  <script type = "text/JavaScript">
+    var addModal = document.getElementById('modal-add');
+
+    var editModal = document.getElementById('modal-edit');
+    editModal.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var componentId = button.getAttribute('data-id');
+      var componentUuid = button.getAttribute('data-uuid');
+      var componentCode = button.getAttribute('data-component_code');
+      var componentName = button.getAttribute('data-component_name');
+      var percentage = button.getAttribute('data-percentage');
+      var minimumWages = button.getAttribute('data-minimum_wages');
+      var maximumWages = button.getAttribute('data-maximum_wages');
+      var formula = button.getAttribute('data-formula');
+      var sequence = button.getAttribute('data-sequence');
+      var isTakeHomePay = button.getAttribute('data-is_take_home_pay');
+      var isActive = button.getAttribute('data-is_active');
+      
+      // If necessary, you could initiate an AJAX request here
+      // and then do the updating in a callback.
+      //
+      // Update the modal's content.
+      var modalTitle = editModal.querySelector('.modal-title');
+
+      var modalComponentId = editModal.querySelector(".component-id");
+      var modalComponentUuid = editModal.querySelector(".component-uuid");
+      var modalComponentCode = editModal.querySelector(".component-code");
+      var modalComponentName = editModal.querySelector(".component-name");
+      var modalPercentage = editModal.querySelector(".percentage");      
+      var modalMinimumWages = editModal.querySelector(".minimum-wages");
+      var modalMaximumWages = editModal.querySelector(".maximum-wages");
+      var modalFormula = editModal.querySelector(".formula");
+      var modalSequence = editModal.querySelector(".sequence");
+
+      var modalIsTakeHomePay = editModal.querySelector(".is-take-home-pay");
+      var modalChkIsTakeHomePay = editModal.querySelector(".chk-is-take-home-pay");
+      if (isTakeHomePay == 1) {
+        modalChkIsTakeHomePay.removeAttribute('checked');
+        modalChkIsTakeHomePay.toggleAttribute('checked');
+      } else {
+        modalChkIsTakeHomePay.removeAttribute('checked');
+      }
+
+      var modalIsActive = editModal.querySelector(".is-active");
+      var modalChkIsActive = editModal.querySelector(".chk-is-active");
+      if (isActive == 1) {
+        modalChkIsActive.removeAttribute('checked');
+        modalChkIsActive.toggleAttribute('checked');
+      } else {
+        modalChkIsActive.removeAttribute('checked');
+      }
+
+      modalComponentId.value = componentId;
+      modalComponentUuid.value = componentUuid;
+      modalComponentCode.value = componentCode;
+      modalComponentName.value = componentName;
+      modalPercentage.value = percentage;
+      modalMinimumWages.value = minimumWages;
+      modalMaximumWages.value = maximumWages;
+      modalFormula.value = formula;
+      modalSequence.value = sequence;
+      modalIsActive.value = isActive;
+    })
+
+    var deleteModal = document.getElementById('modal-danger');
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var componentId = button.getAttribute('data-id');
+      var componentUuid = button.getAttribute('data-uuid');
+
+      var modalComponentId = deleteModal.querySelector(".component-id");
+      var modalComponentUuid = deleteModal.querySelector(".component-uuid");
+      modalComponentId.value = componentId;
+      modalComponentUuid.value = componentUuid;
+    })
+
+    let getMessageErrorDelete = "<%= messageErrorDelete %>";
+    if(getMessageErrorDelete) {
+      var errorDelereModal = new bootstrap.Modal(document.getElementById('modal-error'), {})
+      errorDelereModal.toggle();
+    }
+
+    let chkIsTakeHomePay = document.querySelectorAll('.chk-is-take-home-pay')
+    chkIsTakeHomePay.forEach((checkbox) => { 
+      checkbox.addEventListener('change', (event) => {
+        let txtChkIsTakeHomePayAdd = addModal.querySelector(".is-take-home-pay");
+        let txtChkIsTakeHomePayEdit = editModal.querySelector(".is-take-home-pay");
+        if (event.target.checked) {
+          txtChkIsTakeHomePayAdd.value = 1;
+          txtChkIsTakeHomePayEdit.value = 1;
+          event.target.value = 1;
+        } else {
+          txtChkIsTakeHomePayAdd.value = 0;
+          txtChkIsTakeHomePayEdit.value = 0;
+          event.target.value = 0;
+        }
+      })
+    })
+
+    let chkIsActive = document.querySelectorAll('.chk-is-active')
+    chkIsActive.forEach((checkbox) => { 
+      checkbox.addEventListener('change', (event) => {
+        let txtChkEdit = editModal.querySelector(".is-active");
+        if (event.target.checked) {
+          txtChkEdit.value = 1;
+          event.target.value = 1;
+        } else {
+          txtChkEdit.value = 0;
+          event.target.value = 0;
+        }
+      })
+    })
+
+  </script>
+</body>
+</html>

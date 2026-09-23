@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    Run #<%= run.id %> — Periode <%= run.cutOffPeriod.monthPeriod %>/<%= run.cutOffPeriod.yearPeriod %>
+                    <% var badge = { DRAFT: 'bg-secondary', SUBMITTED: 'bg-warning', APPROVED: 'bg-info', LOCKED: 'bg-success' }[run.status]; %>
+                    <span class="badge <%= badge %> ms-2"><%= run.status %></span>
+                  </h3>
+                  <div class="ms-auto d-flex gap-2">
+                    <% if (run.status === 'DRAFT') { %>
+                      <form method="POST" action="/payroll-run/transition" onsubmit="return confirm('Submit run ini untuk review? Payslip tidak bisa diubah setelah submit.')">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="hidden" name="run_id" value="<%= run.id %>">
+                        <input type="hidden" name="action" value="submit">
+                        <button class="btn btn-warning btn-sm" type="submit">Submit untuk Review</button>
+                      </form>
+                    <% } else if (run.status === 'SUBMITTED') { %>
+                      <form method="POST" action="/payroll-run/transition" onsubmit="return confirm('Kembalikan ke DRAFT untuk koreksi?')">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="hidden" name="run_id" value="<%= run.id %>">
+                        <input type="hidden" name="action" value="backToDraft">
+                        <button class="btn btn-outline-secondary btn-sm" type="submit">Kembalikan ke DRAFT</button>
+                      </form>
+                      <form method="POST" action="/payroll-run/transition" onsubmit="return confirm('Setujui run ini? Angka menjadi final, menunggu lock.')">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="hidden" name="run_id" value="<%= run.id %>">
+                        <input type="hidden" name="action" value="approve">
+                        <button class="btn btn-info btn-sm" type="submit">Approve</button>
+                      </form>
+                    <% } else if (run.status === 'APPROVED') { %>
+                      <form method="POST" action="/payroll-run/transition" onsubmit="return confirm('Kunci run ini? Payslip menjadi FINAL dan tidak bisa diubah lagi.')">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="hidden" name="run_id" value="<%= run.id %>">
+                        <input type="hidden" name="action" value="lock">
+                        <button class="btn btn-success btn-sm" type="submit">Lock (Final)</button>
+                      </form>
+                    <% } %>
+                    <% if (run.status === 'APPROVED' || run.status === 'LOCKED') { %>
+                      <a class="btn btn-outline-success btn-sm" href="/payroll-run/<%= run.id %>/payment-file" title="CSV transfer gaji per bank">Download Payment File</a>
+                      <a class="btn btn-outline-success btn-sm" href="/payroll-run/<%= run.id %>/spt-masa?form=A1" title="CSV SPT Masa PPh 21 — Pegawai Tetap">SPT Masa A1</a>
+                      <a class="btn btn-outline-success btn-sm" href="/payroll-run/<%= run.id %>/spt-masa?form=A2" title="CSV SPT Masa PPh 21 — Pegawai Tidak Tetap">SPT Masa A2</a>
+                      <% if (['APPROVED', 'LOCKED'].includes(run.status)) { %>
+                      <form method="POST" action="/payroll-run/<%= run.id %>/send-payslips" class="d-inline" onsubmit="return confirm('Kirim slip gaji via email ke seluruh karyawan pada run ini? Payslip yang sudah pernah terkirim akan dilewati.')">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="btn btn-outline-primary btn-sm" title="Kirim payslip ke email karyawan">Kirim Payslip via Email</button>
+                      </form>
+                      <% } %>
+                    <% } %>
+                    <a class="btn btn-outline-primary btn-sm" href="/generate-salary/generate/<%= run.cutOffPeriod.uuid %>">Ke Generate Salary</a>
+                  </div>
+                </div>
+
+                <div class="card-body">
+                  <% if (run.note) { %>
+                    <div class="alert alert-info mb-3">Catatan: <%= run.note %></div>
+                  <% } %>
+
+                  <div class="row row-cards mb-3">
+                    <div class="col-sm-6 col-lg-3">
+                      <div class="card card-sm"><div class="card-body">
+                        <div class="subheader">Total Bruto</div>
+                        <div class="h2">Rp <%= generalHelper.formatNumberWithCommas(totals.gross) %></div>
+                      </div></div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                      <div class="card card-sm"><div class="card-body">
+                        <div class="subheader">Total Potongan THP</div>
+                        <div class="h2">Rp <%= generalHelper.formatNumberWithCommas(totals.deduction) %></div>
+                      </div></div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                      <div class="card card-sm"><div class="card-body">
+                        <div class="subheader">Total PPh 21</div>
+                        <div class="h2">Rp <%= generalHelper.formatNumberWithCommas(totals.pph21) %></div>
+                      </div></div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                      <div class="card card-sm"><div class="card-body">
+                        <div class="subheader">Total Take Home Pay</div>
+                        <div class="h2">Rp <%= generalHelper.formatNumberWithCommas(totals.thp) %></div>
+                      </div></div>
+                    </div>
+                  </div>
+
+                  <div class="mb-2 text-muted">
+                    Karyawan OK: <strong><%= counts.ok %></strong> · Gagal: <strong><%= counts.failed %></strong> · Total: <strong><%= counts.total %></strong>
+                    <% if (run.submittedAt) { %> · Submit: <%= moment(run.submittedAt).format('DD MMM YYYY HH:mm') %> (<%= run.submittedBy %>)<% } %>
+                    <% if (run.approvedAt) { %> · Approve: <%= moment(run.approvedAt).format('DD MMM YYYY HH:mm') %> (<%= run.approvedBy %>)<% } %>
+                    <% if (run.lockedAt) { %> · Lock: <%= moment(run.lockedAt).format('DD MMM YYYY HH:mm') %> (<%= run.lockedBy %>)<% } %>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table card-table table-vcenter">
+                      <thead>
+                      <tr>
+                        <th>Karyawan</th>
+                        <th style="text-align: right;">Bruto</th>
+                        <th style="text-align: right;">Potongan</th>
+                        <th style="text-align: right;">PPh 21</th>
+                        <th style="text-align: right;">THP</th>
+                        <th>Status</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% run.runDetail.forEach(function(d) { %>
+                          <tr>
+                            <td><%= d.fullName %></td>
+                            <td style="text-align: right;"><%= generalHelper.formatNumberWithCommas(d.grossAmount) %></td>
+                            <td style="text-align: right;"><%= generalHelper.formatNumberWithCommas(d.deductionAmount) %></td>
+                            <td style="text-align: right;"><%= generalHelper.formatNumberWithCommas(d.pph21Amount) %></td>
+                            <td style="text-align: right;"><%= generalHelper.formatNumberWithCommas(d.thpAmount) %></td>
+                            <td>
+                              <% if (d.status === 'OK') { %>
+                                <span class="badge bg-success">OK</span>
+                              <% } else { %>
+                                <span class="badge bg-danger" title="<%= d.errorMessage || '' %>">GAGAL</span>
+                              <% } %>
+                            </td>
+                          </tr>
+                        <% }); %>
+                        <% if (run.runDetail.length === 0) { %>
+                          <tr><td colspan="6" class="text-center text-muted py-4">Belum ada payslip pada run ini. Buka "Generate Salary" untuk generate dalam status DRAFT.</td></tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <% var flashMsg = message.success || message.error; %>
+  <% if (flashMsg) { %>
+  <div class="modal modal-blur fade" id="modal-flash" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-<%= message.error ? 'danger' : 'success' %>"></div>
+        <div class="modal-body text-center py-4">
+          <h3><%= flashMsg %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100"><div class="row"><div class="col">
+            <a href="#" class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">Close</a>
+          </div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  <script>
+    <% if (flashMsg) { %>
+    new bootstrap.Modal(document.getElementById('modal-flash'), {}).toggle();
+    <% } %>
+  </script>
+</body>
+</html>

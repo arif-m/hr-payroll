@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Data Listing</h3>
+                  </div>
+                  <div class="card-body border-bottom py-3">
+                    <div class="col-12 mb-3">
+                      <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-add">Add</button><br />
+                    </div>
+                    <form action="/time-attendance-admin" type="GET" autocomplete="off">
+                      <div class="row">
+                        <div class="col-xl-6">
+                          <div class="row">
+                            <div class="col-md-6 col-xl-12">
+                              <div class="form-group mb-3 row">
+                                <label class="form-label col-3 col-form-label">Employee</label>
+                                <div class="col-9">
+                                  <select name="employee" id="employee" class="form-control employee">
+                                    <option value="">Select Employee</option>
+                                    <% listOfEmployee.forEach(function(data) { %>
+                                      <option value="<%= data.id %>" <% if (locals.employee == data.id) { %> selected <% } %> ><%= data.fullName %> -  <%= data.email %></option>
+                                      <% }); %>
+                                  </select>
+                                </div>
+                              </div>
+                              <div class="form-group mb-3 row">
+                                <label class="form-label col-3 col-form-label">Date From</label>
+                                <div class="col-9">
+                                  <input type="text" class="form-control" name="date_from" id="date_from" placeholder="Date From" value="<% if(locals.dateFrom) { %><%= dateFrom  %><% } %>" >
+                                </div>
+                              </div>
+                              <div class="form-group mb-3 row">
+                                <label class="form-label col-3 col-form-label">Date To</label>
+                                <div class="col-9">
+                                  <input type="text" class="form-control" name="date_to" id="date_to" placeholder="Date To" value="<% if(locals.dateTo) { %><%= dateTo  %><% } %>" >
+                                </div>
+                              </div>                              
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-xl-6">
+                          <button class="btn btn-outline-primary ms-auto" type="submit">Search&nbsp;<i class="ti ti-search"></i></button>
+                          <a href="/time-attendance-admin/report?employee=<%=locals.employee %>&date_from=<%= dateFrom %>&date_to=<%= dateTo %>" class="btn btn-outline-primary ms-auto" target="_new" id="btnPreview">Preview &nbsp;<i class="ti ti-zoom-in"></i></a>
+                        </div>
+                      </div><br />                    
+                    </form>
+
+                    <form action="/time-attendance-admin" id="frmSearch" type="GET">
+                      <div class="d-flex">
+                        <div class="text-muted">
+                          Show
+                          <div class="mx-2 d-inline-block">
+                              <input type="text" class="form-control form-control-sm" value="<%= listOfTimeAttendance.meta.limit %>" size="3" aria-label="data count">
+                          </div>
+                          entries
+                        </div>
+                        <!--<div class="ms-auto text-muted">
+                          <div class="input-group mb-2">
+                            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search data" value="<% if(locals.search) { %><%= search  %><% } %>">
+                            <button class="btn" type="submit">Go</button>
+                          </div>
+                        </div>-->
+                      </div>
+                    </form>
+                    <div class="mb-3"></div>
+
+                    <div class="table-responsive">
+                      <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                        <thead>
+                        <tr>
+                          <th>Employee</th>
+                          <th>Work Date</th>
+                          <th>Division</th>
+                          <th>Job Titles</th>
+                          <th>Status</th>
+                          <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                          <% listOfTimeAttendance.data.forEach(function(data) { %>
+                            <tr>
+                                <td><%= data.fullName %></td>
+                                <td><%= moment.utc(data.workDate).format('DD-MM-yyyy') %></td>
+                                <td><%= data.divisionName %></td>
+                                <td><%= data.jobTitleName %></td>
+                                <% if (data.status == 'A') { %>
+                                  <td><span class="badge bg-red">ABSENT</span></td>
+                                <% } else if (data.status == 'S') { %>
+                                  <td><span class="badge bg-blue">SICK LEAVE</span></td>
+                                <% } else if (data.status == 'N') { %>
+                                  <td><span class="badge bg-yellow">ANNUAL LEAVE</span></td>
+                                <% } else if (data.status == 'U') { %>
+                                  <td><span class="badge bg-green">UNPAID LEAVE</span></td>
+                                <% } else if (data.status == 'P') { %>
+                                <td><span class="badge bg-green">PRESENT</span></td>
+                                <% } %>
+                                <td class="text-end">
+                                  <% if(data.checkOut)  { %>                                 
+                                    <button class="btn btn-outline-prim.ary ms-auto edit" data-bs-toggle="modal" data-bs-target="#modal-edit" data-id="<%= data.id %>" data-employee_id="<%= data.employeeId %>" data-work_date="<%= data.workDate %>" data-status="<%= data.status %>" data-reason="<%= data.reason %>" data-checkin="<%=moment.utc(data.checkIn).format('hh:mm:ss') %>" data-checkout="<%=moment.utc(data.checkOut).format('hh:mm:ss') %>">Show Details</button>
+                                  <% } else { %>
+                                    <button class="btn btn-outline-prim.ary ms-auto edit" data-bs-toggle="modal" data-bs-target="#modal-edit" data-id="<%= data.id %>" data-employee_id="<%= data.employeeId %>" data-work_date="<%= data.workDate %>" data-status="<%= data.status %>" data-reason="<%= data.reason %>" data-checkin="<%=moment.utc(data.checkIn).format('hh:mm:ss') %>" data-checkout="">Show Details</button>
+                                  <% } %>
+                                </td>
+                            </tr>
+                            <% }); %>                       
+                        </tbody>
+                      </table>
+                    </div>
+                                      
+                    <div class="card-footer d-flex align-items-center">
+                      <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfTimeAttendance.meta.totalRecordCurrentPage %></span> of <span><%= listOfTimeAttendance.meta.totalRecords %></span> entries</p>
+                      <% if (listOfTimeAttendance.meta.totalPage > 1) { %>
+                      <ul class="pagination m-0 ms-auto">
+                        <% if (listOfTimeAttendance.meta.currentPage == 0) { %>
+                            <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                        <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/time-attendance-admin?employee=<%=employee%>&date_from=<%= dateFrom%>&date_to=<%= dateTo%>&page=0&limit=<%= listOfTimeAttendance.meta.limit %>"><< First</a></li>&nbsp;
+                        <% } %>
+                        
+                        <% if (listOfTimeAttendance.meta.currentPage == 0) { %>
+                          <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                        <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/time-attendance-admin?employee=<%=employee%>&date_from=<%= dateFrom%>&date_to=<%= dateTo%>&page=<%= listOfTimeAttendance.meta.currentPage-1 %>&limit=<%= listOfTimeAttendance.meta.limit %>">< Previous</a></li>&nbsp;
+                        <% } %>
+
+                        <% if ((listOfTimeAttendance.meta.currentPage + 1) == listOfTimeAttendance.meta.totalPage) { %>
+                          <li class="page-item disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                        <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/time-attendance-admin?employee=<%=employee%>&date_from=<%= dateFrom%>&date_to=<%= dateTo%>&page=<%= listOfTimeAttendance.meta.currentPage+1 %>&limit=<%= listOfTimeAttendance.meta.limit %>"> Next ></a></li>&nbsp;
+                        <% } %>
+
+                        <% if (listOfTimeAttendance.meta.currentPage == (listOfTimeAttendance.meta.totalPage-1)) { %>
+                          <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                        <% } else { %>
+                          <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/time-attendance-admin?employee=<%=employee%>&date_from=<%= dateFrom%>&date_to=<%= dateTo%>&page=<%= listOfTimeAttendance.meta.totalPage - 1 %>&limit=<%= listOfTimeAttendance.meta.limit %>">Last >></a></li>
+                        <% } %>
+                      </ul>
+                      <% } %>
+                    </div> 
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <footer class="footer footer-transparent d-print-none">
+          <%- include('./../layouts/footer'); %>
+        </footer>
+      </div>
+    </div>
+  
+    <div class="modal modal-blur fade" id="modal-add" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">New Time Attendance</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form class="card card-md" method="POST" action="/time-attendance-admin" autocomplete="off">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="modal-body">
+              <div class="row">
+                <div class="mb-3">
+                  <label class="form-label">Employee <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                  <select name="employee_id" id="employee_id" class="form-control employee-id" required>
+                    <option value="">Select Employee</option>
+                    <% listOfEmployee.forEach(function(data) { %>
+                      <option value="<%= data.id %>"><%= data.fullName %> -  <%= data.email %></option>
+                      <% }); %>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Work Date</label>
+                  <input type="text" class="form-control" name="work_date" id="work_date" placeholder="Work Date" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Status</label>
+                  <input type="hidden" class="form-control" name="status" id="status" value="A">
+                  <input type="text" class="form-control" name="status2" id="status2" value="Absent" disabled>
+                </div>          
+                <div class="mb-3">
+                    <label class="form-label">Reason</label>
+                    <textarea class="form-control" name="reason" id="reason" placeholder="Reason" maxlength="30" ></textarea>
+                </div>  
+              </div>
+            </div>
+        
+            <div class="modal-footer">
+              <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+              <button class="btn btn-primary ms-auto" type="submit">
+                Insert Data
+              </button>
+            </div>
+          </form>
+      </div>
+      </div>
+    </div>
+
+    <div class="modal modal-blur fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Show Time Attendance</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form id="frmEdit" class="card card-md" method="POST" action="/time-attendance-admin/update" autocomplete="off">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="modal-body">
+              <div class="mb-3">
+                  <label class="form-label">Employee</label>
+                  <input type="hidden" name="time_attendance_id" id="time_attendance_id" class="time-attendance-id">
+                  <select name="employee_id_edit" id="employee_id_edit" class="form-control employee-id-edit" disabled>
+                    <option value="">Select Employee</option>
+                    <% listOfEmployee.forEach(function(data) { %>
+                      <option value="<%= data.id %>"><%= data.fullName %> -  <%= data.email %></option>
+                      <% }); %>
+                  </select>
+              </div>              
+              <div class="mb-3">
+                <label class="form-label">Work Date</label>
+                <input type="text" class="form-control work-date" name="work_date" id="work_date" placeholder="Work Date" disabled>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Status</label>
+                <input type="hidden" class="form-control status" name="status" id="status">
+                <input type="text" class="form-control status2" name="status2" id="status2" disabled>
+              </div>        
+              <div class="mb-3">
+                <label class="form-label">Check In</label>
+                <input type="text" class="form-control checkin" name="checkin" id="checkin" disabled>
+              </div>          
+              <div class="mb-3">
+                <label class="form-label">Check Out</label>
+                <input type="text" class="form-control checkout" name="checkout" id="checkout" disabled>
+              </div>   
+              <div class="mb-3">
+                  <label class="form-label">Reason</label>
+                  <textarea class="form-control reason" name="reason" id="reason" placeholder="Reason" maxlength="30" disabled></textarea>
+              </div>        
+            </div>          
+            <div class="modal-footer">
+              <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal modal-blur fade" id="modal-success" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <div class="modal-status bg-success"></div>
+          <div class="modal-body text-center py-4">
+            <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-green icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" /><path d="M9 12l2 2l4 -4" /></svg>
+            <h3><%= message.success %></h3>
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col">
+                  <a href="#" class="btn btn-success w-100" data-bs-dismiss="modal">
+                    OK
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal modal-blur fade" id="modal-error" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <div class="modal-status bg-danger"></div>
+          <div class="modal-body text-center py-4">
+            <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+            <h3><%= message.error %></h3>
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col">
+                  <a href="#" class="btn btn-danger w-100" data-bs-dismiss="modal">
+                    Close
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  <script src="/assets/tabler/libs/litepicker/dist/litepicker.js" ></script>
+  <script src="/assets/tom-select/tom-select.complete.min.js"></script>
+  <link href="/assets/tom-select/tom-select.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+
+  <!--
+  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.0.2/dist/css/tom-select.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.0.2/dist/js/tom-select.complete.min.js"></script>-->
+
+  <% var messageSuccess = message.success; %>
+  <% var messageError = message.error; %>
+  <% var messageErrorDelete = message.errorDelete; %>
+  <script type = "text/JavaScript">
+    employee = document.getElementById("employee");
+    dateFrom = document.getElementById("date_from");
+    dateTo = document.getElementById("date_to");
+    document.getElementById("btnPreview").onclick = function() {
+      var url = "/time-attendance-admin/report" + "?employee=" + employee.value + "&date_from=" + dateFrom.value + "&date_to=" + dateTo.value;
+      var link = document.getElementById("btnPreview");
+      link.setAttribute("href", url);
+    }
+    
+    new TomSelect("#employee_id",{
+      create: true,
+      sortField: {
+        field: "text",
+        direction: "asc"
+      },
+      maxItems: 1
+    });
+
+    new TomSelect("#employee",{
+      create: true,
+      sortField: {
+        field: "text",
+        direction: "asc"
+      },
+      maxItems: 1
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+      window.Litepicker && (new Litepicker({
+          element: document.getElementById('work_date'),
+          format: 'DD-MM-YYYY',
+          buttonText: {
+            previousMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-left -->
+      <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>`,
+            nextMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-right -->
+      <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>`,
+          },
+        }));
+
+      window.Litepicker && (new Litepicker({
+          element: document.getElementById('date_from'),
+          format: 'DD-MM-YYYY',
+          buttonText: {
+            previousMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-left -->
+      <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>`,
+            nextMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-right -->
+      <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>`,
+          },
+        }));
+
+      window.Litepicker && (new Litepicker({
+          element: document.getElementById('date_to'),
+          format: 'DD-MM-YYYY',
+          buttonText: {
+            previousMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-left -->
+      <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>`,
+            nextMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-right -->
+      <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>`,
+          },
+        }));
+    });
+
+    var selectEmployee = new TomSelect("#employee_id_edit",{
+      create: true,
+      sortField: {
+        field: "text",
+        direction: "asc"
+      },
+      maxItems: 1
+    });
+
+    var editModal = document.getElementById('modal-edit');
+    editModal.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var employeeId = button.getAttribute('data-employee_id');
+      var timeAttendanceId = button.getAttribute('data-id');
+      var workDate = button.getAttribute('data-work_date');
+      workDate =  new Date(workDate);
+      var dd = String(workDate.getDate()).padStart(2, '0');
+      var mm = String(workDate.getMonth() + 1).padStart(2, '0'); //January is 0!
+      var yyyy = workDate.getFullYear();
+      workDate = dd + '-' + mm + '-' + yyyy;
+
+      var reason = button.getAttribute('data-reason');
+      var status = button.getAttribute('data-status');
+      var checkin = button.getAttribute('data-checkin');
+      var checkout = button.getAttribute('data-checkout');
+
+      // If necessary, you could initiate an AJAX request here
+      // and then do the updating in a callback.
+      //
+      // Update the modal's content.
+      var modalTitle = editModal.querySelector('.modal-title');
+
+      var modalTimeAttendanceId = editModal.querySelector(".time-attendance-id");
+      var modalWorkDate = editModal.querySelector(".work-date");
+      
+      var modalReason = editModal.querySelector(".reason");
+      modalTimeAttendanceId.value = timeAttendanceId;
+      modalWorkDate.value = workDate;
+      modalReason.value = reason;
+      var modalStatus = editModal.querySelector(".status");
+      var modalStatus2 = editModal.querySelector(".status2");
+      var modalCheckin = editModal.querySelector(".checkin");
+      var modalCheckout = editModal.querySelector(".checkout");
+
+      modalStatus.value = status;
+      if (status=='P') 
+        modalStatus2.value = 'PRESENT';
+      else if (status=='U')
+        modalStatus2.value = 'UNPAID LEAVE';
+      else if (status=='S')
+        modalStatus2.value = 'SICK LEAVE';
+      else if (status=='N')
+        modalStatus2.value = 'ANNUAL LEAVE';
+
+      modalReason.value = reason;
+      modalCheckin.value = checkin;
+      modalCheckout.value = checkout;
+      selectEmployee.setValue(employeeId);
+    })
+
+    let getMessageSuccess = "<%= messageSuccess %>";
+    if(getMessageSuccess) {
+      var successModal = new bootstrap.Modal(document.getElementById('modal-success'), {})
+      successModal.toggle();
+    }
+    
+    let getMessageError = "<%= messageError %>";
+    if(getMessageError) {
+      var errorModal = new bootstrap.Modal(document.getElementById('modal-error'), {})
+      errorModal.toggle();
+    }
+  </script>
+</body>
+</html>

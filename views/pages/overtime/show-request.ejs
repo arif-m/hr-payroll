@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body onload="createTable()">  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Data</h3>
+                </div>                  
+                <form action="" method="POST" autocomplete="off">
+                  <div class="card-body">
+                    <div class="row">                
+                      <input type="hidden" class="form-control" name="id" id="id" value="<%= getDataRequestOvertimeHeader.id %>">
+                      <input type="hidden" class="form-control" name="uuid" id="uuid" value="<%= getDataRequestOvertimeHeader.uuid %>">
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Description</label>
+                          <div class="col-9">
+                            <textarea class="form-control" name="description_header" id="description_header" disabled><%= getDataRequestOvertimeHeader.description %></textarea>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">Division</label>
+                            <div class="col-9">
+                              <select name="division" id="division" class="form-control division" disabled>
+                                <option value="">Select Division</option>
+                                <% listOfDivision.forEach(function(data) { %>
+                                <option value="<%= data.id %>" 
+                                  <% if (data.id === getDataRequestOvertimeHeader.divisionId ) { %>
+                                    selected
+                                  <% } %>
+                                >
+                                  <%= data.divisionName %>
+                                </option>
+                                <% }); %>
+                              </select>   
+                          </div>
+                        </div>
+                      </div> 
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Type of Day</label>
+                          <div class="col-9">
+                            <select name="type_of_day" id="type_of_day" class="form-control type_of_day" disabled>
+                              <% if (getDataRequestOvertimeHeader.typeOfDay == 'Work') { %>
+                                <option value="">Select Type of Day</option>
+                                <option value="Work" selected>Work</option>
+                                <option value="Holiday">Holiday</option>  
+                              <% } else if (getDataRequestOvertimeHeader.typeOfDay == 'Holiday') { %> 
+                              <option value="">Select Type of Day</option>
+                              <option value="Work">Work</option>
+                              <option value="Holiday" selected>Holiday</option>
+                              <% } %> 
+                            </select>                            
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Date</label>
+                          <div class="col-9">
+                            <input type="text" class="form-control" name="overtime_date" id="overtime_date" placeholder="DD-MM-YYYY" value="<%= moment.utc(getDataRequestOvertimeHeader.overtimeDate).format('DD-MM-YYYY') %>" disabled>
+                          </div>
+                        </div>
+                      </div>
+
+                      <fieldset class="form-fieldset">
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">Head/SPV Status</label>
+                            <div class="col-9">
+                              <% if (getDataRequestOvertimeHeader.isApprovedByHead == 0) { %>
+                                <input type="text" name="is_approved" class="form-control" value="Open" disabled>
+                              <% } else if (getDataRequestOvertimeHeader.isApprovedByHead == 1) { %>
+                                <input type="text" name="is_approved" class="form-control" value="Approved" disabled>
+                              <% } else if (getDataRequestOvertimeHeader.isApprovedByHead == 2) { %>
+                                <input type="text" name="is_approved" class="form-control" value="Not Approved" disabled>
+                              <% } %>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">Approved Date by SPV</label>
+                            <div class="col-9">
+                              <% if (getDataRequestOvertimeHeader.approvedDateByHead) { %>
+                              <input type="text" class="form-control approved-date" name="approved_date" id="approved_date" value="<%= moment.utc(getDataRequestOvertimeHeader.approvedDateByHead).format('DD-MM-YYYY'); %>" disabled>
+                              <% } else { %>
+                              <input type="text" class="form-control approved-date" name="approved_date" id="approved_date" disabled>
+                              <% } %>
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label class="form-label col-3 col-form-label">Comments by SPV</label>
+                            <div class="col-9">
+                              <textarea class="form-control comments" name="comments" id="comments" placeholder="Comments" maxlength="300" disabled><%= getDataRequestOvertimeHeader.commentsByHead; %></textarea>
+                            </div>
+                        </div>
+                      </fieldset>
+
+                      <fieldset class="form-fieldset">
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">HR Status</label>
+                            <div class="col-9">
+                              <% if (getDataRequestOvertimeHeader.isApprovedByHR == 0) { %>
+                                <input type="text" name="is_approved" class="form-control" value="Open" disabled>
+                              <% } else if (getDataRequestOvertimeHeader.isApprovedByHR == 1) { %>
+                                <input type="text" name="is_approved" class="form-control" value="Approved" disabled>
+                              <% } else if (getDataRequestOvertimeHeader.isApprovedByHR == 2) { %>
+                                <input type="text" name="is_approved" class="form-control" value="Not Approved" disabled>
+                              <% } %>
+                            </div>
+                        </div>                      
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">Approved Date by HR</label>
+                            <div class="col-9">
+                              <% if (getDataRequestOvertimeHeader.approvedByHRDate) { %>
+                              <input type="text" class="form-control approved-date-by-hr" name="approved_date_by_hr" id="approved_date_by_hr" value="<%= moment.utc(getDataRequestOvertimeHeader.approvedByHRDate).format('DD-MM-YYYY') ; %>" disabled>
+                              <% } else { %>
+                              <input type="text" class="form-control approved-date-by-hr" name="approved_date_by_hr" id="approved_date_by_hr" disabled>
+                              <% } %>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">Comments by HR</label>
+                            <div class="col-9">
+                              <textarea class="form-control comments" name="comments" id="comments" placeholder="Comments" maxlength="300" disabled><%= getDataRequestOvertimeHeader.commentsByHR; %></textarea>
+                            </div>
+                        </div>
+                      </fieldset>
+                    </div>   
+                  </div>
+                  <div class="col-12">
+                    <div class="card">
+                      <div class="card-header">
+                        <!--<h3 class="card-title">Details</h3>-->
+                      </div> 
+                      <div class="table-responsive">
+                        <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                          <thead>
+                          <tr>
+                              <th>Employee</th>
+                              <th>Start time</th>
+                              <th>End time</th>
+                          </tr>
+                          </thead>
+                          <tbody>
+                            <% getDataRequestOvertimeDetails.forEach(function(data) { %>
+                              <tr>
+                                  <td><%= data.fullName %></td>
+                                  <td><%= moment.utc(data.startTime).format('HH:mm') %></td>
+                                  <td><%= moment.utc(data.endTime).format('HH:mm') %></td>
+                              </tr>
+                            <% }); %>    
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-footer">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <a href="/request-overtime" class="btn btn-secondary">Back</a>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-success" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-success"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-green icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" /><path d="M9 12l2 2l4 -4" /></svg>
+          <h3><%= message.success %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-success w-100" data-bs-dismiss="modal">
+                  OK
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-error" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+          <h3><%= message.error %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-danger w-100" data-bs-dismiss="modal">
+                  Close
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  <script src="/assets/tabler/libs/litepicker/dist/litepicker.js" ></script>
+  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.0.2/dist/css/tom-select.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.0.2/dist/js/tom-select.complete.min.js"></script>
+
+  <script>
+    
+  </script>
+</body>
+</html>

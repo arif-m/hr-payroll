@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Edit Data </h3>
+                </div>                  
+                  <div class="card-body">
+                    <div class="form-group mb-3 row">
+                      <label class="form-label col-2 col-form-label">Template Name</label>
+                      <div class="col-3">
+                        <input type="text" class="form-control" name="template-name" value="<%= getBpjsTenagaKerjaTemplate.templateName %>" disabled>
+                        <input type="hidden" class="form-control"  name="uuid" id="uuid" value="<%= getBpjsTenagaKerjaTemplate.uuid %>" >
+                      </div>
+                    </div>
+                    <div class="col-12 mb-3">
+                      <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-add">Add component</button>
+                    </div>
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                        <th>Component Code</th>
+                        <th>Component Name</th>
+                        <th>Salary Template</th>
+                        <th>Percentage</th>
+                        <th>Minimum Wages</th>
+                        <th>Maximum Wages</th>
+                        <th>Formula</th>
+                        <th></th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% listOfBpjsTenagaKerjaTemplateDetails.forEach(function(data) { %>
+                          <tr>
+                            <td><%= data.componentCode %></td>
+                            <td><%= data.componentName %></td>
+                            <td><%= data.templateOfSalary.templateName %></td>
+                            <td style = "text-align:right"><%= data.percentage %></td>
+                            <td style = "text-align:right"><%= generalHelper.formatNumberWithCommas(data.minimumWages) %></td>
+                            <td style = "text-align:right"><%= generalHelper.formatNumberWithCommas(data.maximumWages) %></td>
+                            <td><%= data.formula %></td>
+                            <td>
+                              <button class="btn btn-outline-danger ms-auto delete" data-bs-toggle="modal" data-bs-target="#modal-danger" data-uuid="<%= data.uuid %>">Remove</button>
+                            </td>
+                          </tr>            
+                        <% }); %>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="card-footer">
+                    <input type="hidden" name="_csrf" id="_csrf" value="<%= csrfToken %>">
+                    <a href="/bpjs-tenaga-kerja-template" class="btn btn-secondary">Back</a>
+                  </div>                
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+  
+  <div class="modal modal-blur fade" id="modal-add" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New BPJS Tenaga Kerja Component</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/bpjs-tenaga-kerja-template/insert-component" autocomplete="off">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Salary Template</label>
+              <select name="salary_template_id" id="salary_template_id" class="form-control salary-template-id" required>
+                <% listOfSalaryTemplateHeader.forEach(function(data) { %>
+                <option value="<%= data.id %>"><%= data.templateName %></option>
+                <% }); %>
+              </select>
+            </div>  
+            <div class="mb-3">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" name="bpjs_tk_template_id" id="bpjs_tk_template_id" value="<%= getBpjsTenagaKerjaTemplate.id %>">
+              <input type="hidden" name="component_code" id="component_code" >
+              <input type="hidden" name="component_name" id="component_name" >
+              <label class="form-label">Component Code</label>
+              <select name="component_id" id="component_id" class="form-control component-id" required ">
+                <option value = "">Choose Component</option>
+                <% listOfBpjsTenagaKerjaComponent.forEach(function(data) { %>
+                <option value="<%= data.id %>"><%= data.componentCode %> - <%= data.componentName %></option>
+                <% }); %>
+              </select>
+            </div>
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">
+              Insert Data
+            </button>
+          </div>
+        </form>
+    </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-danger" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <form class="card card-md" method="POST" action="/bpjs-tenaga-kerja-template/delete-component" autocomplete="off">
+          <div class="modal-body text-center py-4">
+            <!-- Download SVG icon from http://tabler-icons.io/i/alert-triangle -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+            <h3>Are you sure?</h3>
+            <div class="text-muted">Do you really want to remove the data? What you've done cannot be undone.</div>
+            <input type="hidden" name="template_uuid" id="template_uuid" class="template-uuid">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">
+                    Cancel
+                  </a>
+                </div>
+                <button id="deleteBtn" class="col btn btn-danger ms-auto" type="submit" data-bs-dismiss="modal">
+                  Delete Data
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  <link href="/assets/tom-select/tom-select.css" rel="stylesheet">
+  <script src="/assets/tom-select/tom-select.complete.min.js"></script>
+
+  <script>
+    new TomSelect("#component_id",{
+      create: true,
+      sortField: {
+        field: "text",
+        direction: "asc"
+      },
+      maxItems: 1
+    });
+
+    var deleteModal = document.getElementById('modal-danger');
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var templateUuid = button.getAttribute('data-uuid');
+
+      var modalTemplateUuid = deleteModal.querySelector(".template-uuid");
+      modalTemplateUuid.value = templateUuid;
+    })
+
+    /*
+    function changeComponent() {
+      var e = document.getElementById("component_id");
+      var strUser = e.options[e.selectedIndex].text;
+    } */
+
+    const componentSelect = document.querySelector(`[id="component_id"]`);
+    const code = document.getElementById("component_code");
+    const name = document.getElementById("component_name");
+    componentSelect.addEventListener(`change`, (e) => {
+      // log(`e.target`, e.target);
+      const select = e.target;
+      const value = select.value;
+      const component = select.options[select.selectedIndex].text;
+      const componentCode = component.split('-')[0];
+      const componentName = component.split('-')[1];
+
+      code.value = componentCode.trimEnd();
+      name.value = componentName.trimStart();
+    });
+  </script>
+</body>
+</html>

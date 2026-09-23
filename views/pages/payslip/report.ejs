@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="my-2">
+
+      </div>
+      <!-- Page title actions -->
+      <div class="col-2" style="margin-left:25px">
+        <button class="btn btn-primary" onclick="printDiv('printableArea')" id="print">Print &nbsp;<i class="ti ti-printer"></i></button>
+      </div>
+
+      <div class="page-body">
+        <div class="container-xl">
+          <% if (locals.taxConfigSnapshot) { var snap = taxConfigSnapshot; var ptkpCode = String(getDataPayslipHeader.ptkp).toUpperCase(); var snapPtkp = (snap.ptkpAmounts && snap.ptkpAmounts[ptkpCode] != null) ? snap.ptkpAmounts[ptkpCode] : null; var terCat = (ptkpCode === 'TK/0') ? 'A' : (['TK/1','K/0','TK/2','K/1','TK/3','K/2'].indexOf(ptkpCode) !== -1 ? 'B' : 'C'); var terLayer = null; if (snap.terTables && snap.terTables[terCat]) { var layers = snap.terTables[terCat]; for (var li = 0; li < layers.length; li++) { terLayer = layers[li]; break; } } %>
+          <div class="card card-collapse d-print-none mb-3">
+            <div class="card-header">
+              <h3 class="card-title">Tarif Pajak Saat Payslip Ini Digenerate (Snapshot)</h3>
+              <div class="ms-auto">
+                <form method="POST" action="/payslip/replay" onsubmit="return confirm('Verifikasi ulang payslip ini memakai snapshot tarif yang tersimpan saat generate?')">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="uuid" value="<%= getDataPayslipHeader.uuid %>">
+                  <button class="btn btn-outline-primary btn-sm" type="submit">Verifikasi Ulang</button>
+                </form>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="datagrid">
+                <div class="datagrid-item">
+                  <div class="datagrid-title">Pasal 17 — tarif progresif tahunan</div>
+                  <div class="datagrid-content">
+                    <% (snap.pasal17 || []).forEach(function(b) { %><span class="badge bg-secondary me-1 mb-1"><%= b[1] %>% s.d. Rp <%= generalHelper.formatNumberWithCommas(b[0]) %></span><% }); %>
+                  </div>
+                </div>
+                <div class="datagrid-item">
+                  <div class="datagrid-title">PTKP <%= ptkpCode %> (setahun)</div>
+                  <div class="datagrid-content">Rp <%= snapPtkp != null ? generalHelper.formatNumberWithCommas(snapPtkp) : 'default kode' %></div>
+                </div>
+                <div class="datagrid-item">
+                  <div class="datagrid-title">Tabel TER (lapisan per kategori)</div>
+                  <div class="datagrid-content">
+                    <% Object.keys(snap.terTables || {}).forEach(function(cat) { %><span class="badge bg-blue me-1 mb-1"><%= cat %>: <%= snap.terTables[cat].length %> lapis</span><% }); %>
+                  </div>
+                </div>
+                <div class="datagrid-item">
+                  <div class="datagrid-title">Biaya jabatan</div>
+                  <div class="datagrid-content"><%= snap.biayaJabatanRate %>% — maksimum Rp <%= generalHelper.formatNumberWithCommas(snap.biayaJabatanMaxMonthly) %>/bulan</div>
+                </div>
+                <div class="datagrid-item">
+                  <div class="datagrid-title">Surcharge tanpa NPWP</div>
+                  <div class="datagrid-content">+<%= snap.npwpSurchargePercent %>%</div>
+                </div>
+              </div>
+              <p class="text-muted mt-2 mb-0" style="font-size: 11px;">Angka payslip ini dihitung dengan tarif di atas. Perubahan tarif setelahnya tidak memengaruhi payslip ini — gunakan tombol "Verifikasi Ulang" untuk membuktikan angkanya masih konsisten.</p>
+            </div>
+          </div>
+          <% } %>
+          <div class="card card-lg">
+            <div class="card-body" id="printableArea">
+              <div class="row">                
+                <div class="col-6">
+                  <img src="<%=getDataPayslipHeader.employee.businessUnit.image %>" alt="Payslip" width="120" height="70">
+                </div>
+                <div class="col-6 text-end">
+                  <p class="h3" style="color: red;">*CONFIDENTIAL</p>
+                </div>
+                <div class="col-6">
+                  <h2><%= getDataPayslipHeader.employee.businessUnit.companyName %></h2>
+                </div>
+                <div class="col-6 text-end my-2">
+                  <h2>PAYSLIP</h2>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-2">
+                  Payroll cut off
+                </div>
+                <div class="col-5 text-left">
+                  : <%= moment.utc(getDataPayslipHeader.startPeriod ).format('DD MMM YYYY')%> - <%= moment.utc(getDataPayslipHeader.endPeriod ).format('DD MMM YYYY') %>
+                </div>
+                <div class="col-2">
+                  Job position
+                </div>
+                <div class="col-3">
+                  : <%= getDataPayslipHeader.jobTitle %>
+                </div> 
+              </div>
+
+              <div class="row">
+                <div class="col-2">
+                  ID / Name
+                </div>
+                <div class="col-5 text-left">
+                  : <%= getDataPayslipHeader.employeeId %> / <%= getDataPayslipHeader.fullName %>
+                </div>
+                <div class="col-2">
+                  PTKP
+                </div>
+                <div class="col-3">
+                  : <%= getDataPayslipHeader.ptkp %>
+                </div> 
+              </div>
+
+              <div class="row">
+                <div class="col-2">
+                  Organization
+                </div>
+                <div class="col-5 text-left">
+                  : <%= getDataPayslipHeader.organization %>
+                </div>
+                <div class="col-2">
+                  NPWP
+                </div>
+                <div class="col-3">
+                  : <%= getDataPayslipHeader.npwp %>
+                </div> 
+              </div>
+
+              <div class="col-4 my-4">
+              </div> 
+              <div class="row">
+                <div class="col-6">
+                  <table class="table table-transparent table-responsive">
+                    <thead>
+                      <tr>
+                        <th class="text-left" colspan="2" style="width: 50%"><b>Earning</b></th>
+                      </tr>
+                    </thead>
+                    <% var totalEarnings = 0 %>
+                    <% listOfPayslipTakeHomePayEarnings.forEach(function(data) { %>
+                    <% totalEarnings += Number(data.amount); %>
+                    <tr>
+                      <td class="text-left">
+                        <%= data.name %>
+                      </td>
+                      <td class="text-end">
+                        <%= generalHelper.formatNumberWithCommas(data.amount) %>
+                      </td>
+                    </tr>
+                    <% }); %>
+                    <!--<tr>
+                      <td class="text-left">
+                        <b>Total earnings</b>
+                      </td>
+                      <td class="text-end">
+                        <b><%= totalEarnings %></b>
+                      </td>
+                    </tr> -->
+                  </table>  
+                </div>
+
+                <div class="col-6">
+                  <table class="table table-transparent table-responsive">
+                    <thead>
+                      <tr>
+                        <th class="text-left" colspan="2" style="width: 50%"><b>Deductions</b></th>
+                      </tr>
+                    </thead>
+                    <% var totalDeductions = 0 %>
+                    <% listOfPayslipTakeHomePayDeductions.forEach(function(data) { %>
+                    <% totalDeductions += Number(data.amount) %>
+                    <tr>
+                      <td class="text-left">
+                        <%= data.name %>
+                      </td>
+                      <td class="text-end">
+                        <%= generalHelper.formatNumberWithCommas(data.amount) %>
+                      </td>
+                    </tr>
+                    <% }); %>
+                    <!--<tr>
+                      <td class="text-left">
+                        <b>Total deductions</b>
+                      </td>
+                      <td class="text-end">
+                        <b><%= totalDeductions %></b>
+                      </td>
+                    </tr>-->
+                  </table>  
+                </div>
+              </div>
+
+              <div>
+                <table class="table table-transparent table-responsive">
+                  <tr>
+                    <td class="text-left">
+                      <b>Total earnings</b>
+                    </td>
+                    <td class="text-end">
+                      <b><%= generalHelper.formatNumberWithCommas(totalEarnings) %></b>
+                    </td>
+                    <td class="text-left">
+                      <b>Total deductions</b>
+                    </td>
+                    <td class="text-end">
+                      <b><%= generalHelper.formatNumberWithCommas(totalDeductions) %></b>
+                    </td>
+                  </tr>                  
+                </table>
+              </div>
+
+              <div class="row">
+                <div class="col-6">
+                </div>
+                <div class="col-6">
+                  <table class="table table-transparent table-responsive">                  
+                    <tr>
+                      <td  class="text-left">
+                        <b><h2>Take Home Pay</h2></b>
+                      </td>
+                      <td class="text-end">
+                        <b><h2><%= generalHelper.formatNumberWithCommas(totalEarnings-totalDeductions)  %></h2></b>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <div class="col-6">
+                <table class="table table-transparent table-responsive">
+                  <thead>
+                    <tr>
+                      <th class="text-left" colspan="2" style="width: 50%"><b>Benefit*</b></th>
+                    </tr>
+                  </thead>
+                  <% listOfPayslipBenefits.forEach(function(data) { %>
+                  <tr>
+                    <td class="text-left">
+                      <%= data.name %>
+                    </td>
+                    <td class="text-end">
+                      <%= generalHelper.formatNumberWithCommas(data.amount) %>
+                    </td>
+                  </tr>
+                  <% }); %>
+                </table>  
+              </div>
+
+              <p class="text-muted text-left mt-4" style="font-size: 8px;">*These are the benefits you'll get from the company, but not included in your take-home pay (THP).</p>
+              <p class="text-muted text-left mt-2" style="font-size: 10px;">THIS IS COMPUTER GENERATED PRINTOUT AND NO SIGNATURE IS REQUIRED</p>
+              <p class="text-muted text-left mt-2" style="font-size: 10px;">PLEASE NOTE THAT THE CONTENTS OF THIS STATEMENT SHOULD BE TREATED WITH ABSOLUTE CONFIDENTIALITY EXCEPT TO THE EXTENT YOU ARE REQUIRED TO MAKE DISCLOSURE FOR ANY TAX, LEGAL, OR REGULATORY PURPOSES. ANY BREACH OF THIS CONFIDENTIALITY OBLIGATION WILL BE DEALT WITH SERIOUSLY, WHICH MAY INVOLVE DISCPLINARY ACTION BEING TAKEN.</p>
+              <p class="text-muted text-left mt-2" style="font-size: 10px;">HARAP DIPERHATIKAN, ISI PERNYATAAN INI ADALAH RAHASIA KECUALI ANDA DIMINTA UNTUK MENGUNGKAPKANNYA UNTUK KEPERLUAN PAJAK, HUKUM, ATAU KEPENTINGAN PEMERINTAH. SETIAP PELANGGARAN ATAS KEWAJIBAN MENJAGA KERAHASIAAN INI AKAN DIKENAKAN SANKSI, YANG MUNGKIN BERUPA TINDAKAN KEDISIPLINAN.</p>
+              <p class="text-muted text-left mt-2" style="font-size: 10px;"><b>This payslip is generated by Meme Platform</b></p>
+            </div>
+          </div>
+        </div>
+      </div>   
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <% var flashMsg = message.success || message.error; %>
+  <% if (flashMsg) { %>
+  <div class="modal modal-blur fade" id="modal-flash" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-<%= message.error ? 'danger' : 'success' %>"></div>
+        <div class="modal-body text-center py-4">
+          <h3><%= flashMsg %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">Close</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+  
+  <script>
+    function printDiv(divName) {
+      var printContents = document.getElementById(divName).innerHTML;
+      var originalContents = document.body.innerHTML;
+
+      document.body.innerHTML = printContents;
+      window.print();
+      document.body.innerHTML = originalContents;
+    }
+
+    <% if (flashMsg) { %>
+    new bootstrap.Modal(document.getElementById('modal-flash'), {}).toggle();
+    <% } %>
+  </script>
+</body>
+</html>

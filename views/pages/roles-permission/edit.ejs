@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Data Details </h3>
+                </div>                  
+                <form action="/roles-permission/update" method="POST">
+                  <div class="card-body">
+                    <div class="form-group mb-3 row">
+                      <label class="form-label col-2 col-form-label">Role Name</label>
+                      <div class="col-3">
+                        <input type="text" class="form-control" value="<%= roleName %>" disabled>
+                        <input type="hidden" class="form-control" value="<%= roleId %>" name="roleId">
+                      </div>
+                    </div>  
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                        <th>Feature Name</th>
+                        <th>Read</th>
+                        <th>Create</th>
+                        <th>Update</th>
+                        <th>Delete</th>
+                        <th>Inactive</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% listOfRolesPermission.forEach(function(data) { %>
+                          <tr>
+                              <td>
+                                <% if (data.treeStatus == 'D' && data.parentId != 0) { %>
+                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                  <%= data.feature %>
+                                <% } else { %>
+                                  <strong><%= data.feature %></strong>
+                                <% }; %>
+                                <input type="hidden" class="form-control" value="<%= data.uuid %>" name="uuid">
+                                <input type="hidden" class="form-control" value="<%= data.id %>" name="moduleId">
+                                <input type="hidden" class="form-control" value="<%= data.treeStatus %>" name="treeStatus">
+                                
+                                <input type="hidden" value="<%= data.createRight %>" class="createRight"  name="createRight" id="createRight_<%= data.id %>" maxlength="1">
+                                <input type="hidden" value="<%= data.readRight %>" class="readRight" name="readRight" id="readRight_<%= data.id %>" maxlength="1">
+                                <input type="hidden" value="<%= data.updateRight %>" class="updateRight" name="updateRight"id="updateRight_<%= data.id %>"  maxlength="1">
+                                <input type="hidden" value="<%= data.deleteRight %>" class="deleteRight" name="deleteRight" id="deleteRight_<%= data.id %>" maxlength="1">
+                                <input type="hidden" value="<%= data.inactiveRight %>" class="inactiveRight" name="inactiveRight" id="inactiveRight_<%= data.id %>" maxlength="1">
+                              </td>
+                                <td><input type="checkbox" class="read" id="read_<%= data.id %>" name="read" value="<%= data.readRight %>" data-id="<%= data.id %>" data-uuid="<%= data.uuid %>" <% if (data.readRight==1) { %> checked <% }; %> ></td>
+                                <td><input type="checkbox" class="create" id="create_<%= data.id %>" name="create" value="<%= data.createRight %>" data-id="<%= data.id %>" data-uuid="<%= data.uuid %>" <% if (data.createRight==1) { %> checked <% }; %> ></td>
+                                <td><input type="checkbox" class="update" id="update_<%= data.id %>" name="update" value="<%= data.updateRight %>" data-id="<%= data.id %>" data-uuid="<%= data.uuid %>" <% if (data.updateRight==1) { %> checked <% }; %> ></td>
+                                <td><input type="checkbox" class="delete" id="delete_<%= data.id %>" name="delete" value="<%= data.deleteRight %>" data-id="<%= data.id %>" data-uuid="<%= data.uuid %>" <% if (data.deleteRight==1) { %> checked <% }; %> ></td>
+                                <td><input type="checkbox" class="inactive" id ="inactive_<%= data.id %>" name="inactive" value="<%= data.inactiveRight %>" data-id="<%= data.id %>" <% if (data.inactiveRight==1) { %> checked <% }; %> ></td>
+                              </tr>
+                        <% }); %>                       
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="card-footer">
+                    <input type="hidden" name="_csrf" id="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <a href="/roles-permission" class="btn btn-secondary">Close</a>
+                    <!--<button onclick="saveData()" class="btn btn-primary"> 
+                      Submit
+                    </button>-->
+                  </div>
+                </form>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+  
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+
+  <script>
+    function saveData() {
+        var chkCreate = 
+            document.getElementsByName('create');
+        var chkRead = 
+            document.getElementsByName('read');
+        var chkUpdate = 
+            document.getElementsByName('update');
+        var chkDelete = 
+            document.getElementsByName('delete');
+        var chkInactive = 
+            document.getElementsByName('inactive');
+        var uuid = 
+            document.getElementsByName('uuid');
+        var csrf = 
+            document.getElementById('_csrf');
+
+        var result = "";
+
+        let payload = {};
+        for (var i = 0; i < chkCreate.length; i++) {
+          if (chkCreate[i].checked) {
+            payload.pCreateRight = 1;
+          }
+          if(chkRead[i].checked) {
+            payload.pReadRight = 1;
+          }
+          
+          if(chkUpdate[i].checked) {
+            payload.pUpdateRight = 1;
+          }
+
+          if(chkDelete[i].checked) {
+            payload.pDeleteRight = 1;
+          }
+
+          if(chkInactive[i].checked) {
+            payload.pInactiveRight = 1;
+          }
+          
+          if(payload != null || payload != empty) {
+            payload.pUuid = uuid[i].value;
+          }
+
+          payload._csrf = csrf.value;
+
+          fetch('/roles-permission/update', {
+            method: 'POST', // or 'PUT'
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': csrf.value,
+            },
+            body: JSON.stringify(payload),
+          })
+          .then(response => {
+            console.log(response.json);
+            response.json()
+          })
+          .then(data => {
+            console.log('Success:', data);
+          })
+          .catch((error) => {
+            console.error('Error:', error);
+          });
+
+          /*
+          var data = new FormData();
+          data.append("json", JSON.stringify( payload ) );
+          data.append("_csrf", csrf);
+
+          console.log(data);
+
+          fetch("/roles-permission/update",
+          {
+              method: "POST",
+              headers: {
+                'Content-Type':'application/json',
+                'Accept':'application/json',
+                'Cache': 'no-cache',
+                'X-CSRF-Token': csrf
+              },
+              body: data
+          })
+          .then(function(res){ 
+            console.log('then1')
+            //console.log(res);
+            return res.json(); 
+          })
+          .then(function(data){ 
+            console.log('then2')
+            alert( JSON.stringify(data) )
+          }) 
+          */
+/*
+          
+          (async () => {
+            const rawResponse = await fetch('/roles-permission/update', {
+              method: 'POST',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrf
+              },
+              body: JSON.stringify(payload)
+            });
+            const content = await rawResponse.json();
+
+            console.log(content);
+          })();
+*/
+          //console.log(i);          
+          //console.log(payload);
+          payload = {};
+          //return false;
+        }
+        alert('Save data');
+        return false;
+    }
+
+    let allChkCreate = document.querySelectorAll('.create')
+
+    allChkCreate.forEach((checkbox) => { 
+      checkbox.addEventListener('change', (event) => {
+        let txtCreate = document.getElementById('createRight_' + checkbox.getAttribute("data-id"));
+        if (event.target.checked) {
+          txtCreate.value = 1;
+          event.target.value = 1;
+        } else {
+          txtCreate.value = 0;
+          event.target.value = 0;
+        }
+      })
+    })
+
+    let allChkRead = document.querySelectorAll('.read')
+
+    allChkRead.forEach((checkbox) => { 
+      checkbox.addEventListener('change', (event) => {
+        let txtRead = document.getElementById('readRight_' + checkbox.getAttribute("data-id"));
+        if (event.target.checked) {
+          txtRead.value = 1;
+          event.target.value = 1;
+        } else {
+          txtRead.value = 0;
+          event.target.value = 0;
+        }
+      })
+    })
+
+    let allChkUpdate = document.querySelectorAll('.update')
+
+    allChkUpdate.forEach((checkbox) => { 
+      checkbox.addEventListener('change', (event) => {
+        let txtUpdate = document.getElementById('updateRight_' + checkbox.getAttribute("data-id"));
+        if (event.target.checked) {
+          txtUpdate.value = 1;
+          event.target.value = 1;
+        } else {
+          txtUpdate.value = 0;
+          event.target.value = 0;
+        }
+      })
+    })
+
+    let allChkDelete = document.querySelectorAll('.delete')
+
+    allChkDelete.forEach((checkbox) => { 
+      checkbox.addEventListener('change', (event) => {
+        let txtDelete = document.getElementById('deleteRight_' + checkbox.getAttribute("data-id"));
+        if (event.target.checked) {
+          txtDelete.value = 1;
+          event.target.value = 1;
+        } else {
+          txtDelete.value= 0;
+          event.target.value = 0;
+        }
+      })
+    })
+
+    let allChkInactive = document.querySelectorAll('.inactive')
+
+    allChkInactive.forEach((checkbox) => { 
+      checkbox.addEventListener('change', (event) => {
+        let txtInactive = document.getElementById('inactiveRight_' + checkbox.getAttribute("data-id"));
+        if (event.target.checked) {
+          txtInactive.value = 1;
+          event.target.value = 1;
+        } else {
+          txtInactive.value = 0;
+          event.target.value = 0;
+        }
+      })
+    })
+  </script>
+</body>
+</html>

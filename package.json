@@ -1,0 +1,74 @@
+{
+  "name": "meme-project",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Member.id & TS Media Employee Management & Engagement based on app using Express, Passport, and SQLite for sign in with username and password.",
+  "keywords": [
+    "example",
+    "express",
+    "passport",
+    "sqlite"
+  ],
+  "author": {
+    "name": "Jared Hanson",
+    "email": "jaredhanson@gmail.com",
+    "url": "https://www.jaredhanson.me/"
+  },
+  "homepage": "https://github.com/passport/todos-express-password",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/passport/todos-express-password.git"
+  },
+  "bugs": {
+    "url": "https://github.com/passport/todos-express-password/issues"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/jaredhanson"
+  },
+  "license": "Unlicense",
+  "scripts": {
+    "start": "nodemon ./bin/www",
+    "test": "node --test test/payroll.test.js test/spt-masa.test.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcrypt": "^5.0.1",
+    "body-parser": "^1.20.0",
+    "connect-ensure-login": "^0.1.1",
+    "connect-flash": "^0.1.1",
+    "connect-sqlite3": "^0.9.13",
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "decimal.js": "^10.6.0",
+    "dotenv": "^16.0.0",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-fileupload": "^1.4.0",
+    "express-rate-limit": "^6.7.0",
+    "express-session": "^1.17.2",
+    "express-validator": "^6.14.2",
+    "mkdirp": "^1.0.4",
+    "moment": "^2.29.2",
+    "morgan": "^1.10.1",
+    "mysql2": "^3.14.1",
+    "node-cron": "^3.0.0",
+    "nodemailer": "^6.8.0",
+    "nodemon": "^3.1.10",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+    "pluralize": "^8.0.0",
+    "sqlite3": "^5.0.2",
+    "uuid": "^8.3.2",
+    "winston": "^3.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "prisma": "^5.22.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  }
+}

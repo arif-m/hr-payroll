@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Edit Data </h3>
+                </div>                  
+                  <div class="card-body">
+                    <div class="form-group mb-3 row">
+                      <label class="form-label col-2 col-form-label">Template Name</label>
+                      <div class="col-3">
+                        <input type="text" class="form-control" name="template-name" value="<%= getSalaryTemplate.templateName %>" disabled>
+                        <input type="hidden" class="form-control"  name="uuid" id="uuid" value="<%= getSalaryTemplate.uuid %>" >
+                      </div>
+                    </div>
+                    <div class="col-12 mb-3">
+                      <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-add">Add component</button>
+                    </div>
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                        <th>Component Code</th>
+                        <th>Component Name</th>
+                        <th>Category</th>
+                        <th>Types</th>
+                        <th></th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% listOfSalaryTemplateDetails.forEach(function(data) { %>
+                        <tr>
+                          <td>
+                            <%= data.component.componentCode %>
+                          </td>
+                          <td>
+                            <%= data.component.componentName %>
+                          </td>
+                          <td>
+                            <%= data.component.componentCategories.componentCategory %>
+                          </td>
+                          <td>
+                            <%= data.component.componentTypes.componentType %>
+                          </td>
+                          <td>
+                            <button class="btn btn-outline-danger ms-auto delete" data-bs-toggle="modal" data-bs-target="#modal-danger" data-component-id="<%=data.component.id %>" data-uuid="<%= data.uuid %>">Delete</button>
+                            <button class="btn btn-outline-primary ms-auto edit"><a href="/salary-template/synchronize-component/<%= data.uuid %>">Synchronize component</a></button>
+                          </td>
+                        </tr>            
+                        <% }); %>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="card-footer">
+                    <input type="hidden" name="_csrf" id="_csrf" value="<%= csrfToken %>">
+                    <a href="/salary-template" class="btn btn-secondary">Back</a>
+                  </div>                
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+  
+  <div class="modal modal-blur fade" id="modal-add" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New Salary Component</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/salary-template/insert-component" autocomplete="off">
+          <div class="modal-body">
+            <div class="mb-3">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" name="template_id" id="template_id" value="<%= getSalaryTemplate.id %>">
+              <label class="form-label">Component Code</label>
+              <select name="component_id" id="component_id" class="form-control component-id" required>
+                <% listOfSalaryComponent.forEach(function(data) { %>
+                <option value="<%= data.id %>"><%= data.componentCode %> - <%= data.componentName %></option>
+                <% }); %>
+              </select>
+            </div>
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">
+              Insert Data
+            </button>
+          </div>
+        </form>
+    </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-danger" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <form class="card card-md" method="POST" action="/salary-template/delete-component" autocomplete="off">
+          <div class="modal-body text-center py-4">
+            <!-- Download SVG icon from http://tabler-icons.io/i/alert-triangle -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+            <h3>Are you sure?</h3>
+            <div class="text-muted">Do you really want to remove the data? What you've done cannot be undone.</div>
+            <input type="hidden" name="template_uuid" id="template_uuid" class="template-uuid">
+            <input type="hidden" name="component_id" id="component_id" class="component-id">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">
+                    Cancel
+                  </a>
+                </div>
+                <button id="deleteBtn" class="col btn btn-danger ms-auto" type="submit" data-bs-dismiss="modal">
+                  Delete Data
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-error" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+          <h3><%= message.errorDelete %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-danger w-100" data-bs-dismiss="modal">
+                  Close
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.0.2/dist/css/tom-select.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.0.2/dist/js/tom-select.complete.min.js"></script>
+
+  <% var messageErrorDelete = message.errorDelete; %>
+  <script>
+    new TomSelect("#component_id",{
+      sortField: {
+        field: "text",
+        direction: "asc"
+      },
+      maxItems: 1
+    });
+
+    var deleteModal = document.getElementById('modal-danger');
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var templateUuid = button.getAttribute('data-uuid');
+      var componentId = button.getAttribute('data-component-id');
+
+      var modalTemplateUuid = deleteModal.querySelector(".template-uuid");
+      var modalComponentId = deleteModal.querySelector(".component-id");
+      modalTemplateUuid.value = templateUuid;
+      modalComponentId.value = componentId;
+    })
+
+    let getMessageErrorDelete = "<%= messageErrorDelete %>";
+    if(getMessageErrorDelete) {
+      var errorDeleteModal = new bootstrap.Modal(document.getElementById('modal-error'), {})
+      errorDeleteModal.toggle();
+    }
+
+  </script>
+</body>
+</html>

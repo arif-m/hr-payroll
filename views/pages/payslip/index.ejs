@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Data Listing</h3>
+                  </div>
+                  <div class="card-body border-bottom py-3">
+                    <form action="/payslip" id="frmSearch" type="GET">
+                      <div class="d-flex">
+                        <div class="text-muted">
+                        Show
+                        <div class="mx-2 d-inline-block">
+                            <input type="text" class="form-control form-control-sm" value="<%= listOfPayslip.meta.limit %>" size="3" aria-label="data count">
+                        </div>
+                        entries
+                        </div>
+                        <div class="ms-auto text-muted">
+                          <div class="input-group mb-2">
+                            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search data" value="<% if(locals.search) { %><%= search  %><% } %>">
+                            <button class="btn" type="submit">Go</button>
+                          </div>
+                        </div>
+                    </form>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                        <th>Month of Period</th>
+                        <th>Year of Period</th>
+                        <th>Start Period</th>
+                        <th>End Period</th>
+                        <th></th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% listOfPayslip.data.forEach(function(data) { %>
+                          <tr>
+                              <td>
+                                <% if (data.monthPeriod == '01') { %>
+                                  January
+                                <% } else if (data.monthPeriod == '02') { %>
+                                  February
+                                <% } else if (data.monthPeriod == '03') { %>
+                                  March
+                                <% } else if (data.monthPeriod == '04') { %>
+                                  April
+                                <% } else if (data.monthPeriod == '05') { %>
+                                  May
+                                <% } else if (data.monthPeriod == '06') { %>
+                                  June
+                                <% } else if (data.monthPeriod == '07') { %>
+                                  July
+                                <% } else if (data.monthPeriod == '08') { %>
+                                  August
+                                <% } else if (data.monthPeriod == '09') { %>
+                                  September
+                                <% } else if (data.monthPeriod == '10') { %>
+                                  October
+                                <% } else if (data.monthPeriod == '11') { %>
+                                  November   
+                                <% } else { %>
+                                  December
+                                <% } %>
+                              </td>
+                              <td><%= data.yearPeriod %></td>
+                              <td><%= moment.utc(data.startPeriod).format('DD-MM-YYYY') %></td>
+                              <td><%= moment.utc(data.endPeriod).format('DD-MM-YYYY') %></td>
+                              <td class="text-end">
+                                <a href="/payslip/generate/<%= data.uuid %>" class="btn btn-outline-primary ms-auto" target="_new">Preview &nbsp;<i class="ti ti-zoom-in"></i></a>
+                              </td>
+                          </tr>
+                        <% }); %>                       
+                      </tbody>
+                    </table>
+                  </div>
+                                    
+                  <div class="card-footer d-flex align-items-center">
+                    <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfPayslip.meta.limit %></span> of <span><%= listOfPayslip.meta.totalRecords %></span> entries</p>
+                    <% if (listOfPayslip.meta.totalPage > 1) { %>
+                    <ul class="pagination m-0 ms-auto">
+                      <% if (listOfPayslip.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/payslip?page=0&limit=<%= listOfPayslip.meta.limit %>"><< First</a></li>&nbsp;
+                      <% } %>
+                      
+                      <% if (listOfPayslip.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/payslip?page=<%= listOfPayslip.meta.currentPage-1 %>&limit=<%= listOfPayslip.meta.limit %>">< Previous</a></li>&nbsp;
+                      <% } %>
+
+                      <% if ((listOfPayslip.meta.currentPage + 1) == listOfPayslip.meta.totalPage) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/payslip?page=<%= listOfPayslip.meta.currentPage+1 %>&limit=<%= listOfPayslip.meta.limit %>"> Next ></a></li>&nbsp;
+                      <% } %>
+
+                      <% if (listOfPayslip.meta.currentPage == (listOfPayslip.meta.totalPage-1)) { %>
+                        <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                      <% } else { %>
+                          <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/payslip?page=<%= listOfPayslip.meta.totalPage - 1 %>&limit=<%= listOfPayslip.meta.limit %>">Last >></a></li>
+                      <% } %>
+                    </ul>
+                    <% } %>
+                  </div> 
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+  
+  <script type = "text/JavaScript">
+
+  </script>
+</body>
+</html>

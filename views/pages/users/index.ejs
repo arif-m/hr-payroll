@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../../partials/head'); %>
+</head>
+<body class="container">
+
+<header>
+  <%- include('../../partials/header'); %>
+</header>
+
+<main>
+  <div class="jumbotron">
+    <h1>Users</h1>
+    <p>Listing Data</p>
+
+    <ul>
+      <% users.forEach(function(user) { %>
+        <li>
+          <strong><%= user.firstName %></strong>
+          representing <%= user.lastName %>,
+          born <%= user.email %>
+        </li>
+      <% }); %>
+  </ul>
+    
+</main>
+
+<footer>
+  <%- include('../../partials/footer'); %>
+</footer>
+
+</body>
+</html>

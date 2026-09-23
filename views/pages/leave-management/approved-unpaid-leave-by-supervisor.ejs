@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Data Listing</h3>
+                  </div>
+                  <div class="card-body border-bottom py-3">
+                    <form action="/approve-unpaid-leave-by-supervisor" id="frmSearch" type="GET">
+                      <div class="d-flex">
+                        <div class="text-muted">
+                        Show
+                        <div class="mx-2 d-inline-block">
+                            <input type="text" class="form-control form-control-sm" value="<%= listOfRequestUnpaidLeave.meta.limit %>" size="3" aria-label="data count">
+                        </div>
+                        entries
+                        </div>
+                        <div class="ms-auto text-muted">
+                          <div class="input-group mb-2">
+                            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search data" value="<% if(locals.search) { %><%= search  %><% } %>">
+                            <button class="btn" type="submit">Go</button>
+                          </div>
+                        </div>
+                    </form>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Job Title</th>
+                        <th>Division</th>
+                        <th>Start Duration</th>
+                        <th>End Duration</th>
+                        <th>Description</th>
+                        <th></th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% listOfRequestUnpaidLeave.data.forEach(function(data) { %>
+                          <tr>
+                              <td><%= data.fullName %></td>
+                              <td><%= data.jobTitleName %></td>
+                              <td><%= data.divisionName %></td>
+                              <td><%= moment(data.startDuration).format('DD-MM-YYYY') %></td>
+                              <td><%= moment(data.endDuration).format('DD-MM-YYYY') %></td>
+                              <td><%= data.leaveDescription %></td>
+                              <td class="text-end">
+                                <button class="btn btn-outline-primary ms-auto edit" data-bs-toggle="modal" data-bs-target="#modal-edit" data-uuid="<%= data.uuid %>" data-employee-id="<%= data.employeeId %>" data-days="<%= data.days %>" data-full_name="<%= data.fullName %>" data-start-duration="<%= moment(data.startDuration).format('DD-MM-YYYY') %>" data-end-duration="<%= moment(data.endDuration).format('DD-MM-YYYY') %>" data-leave-description="<%= data.leaveDescription %>">Approve</button>
+                              </td>
+                          </tr>
+                        <% }); %>                        
+                      </tbody>
+                    </table>
+                  </div>
+                                    
+                  <div class="card-footer d-flex align-items-center">
+                    <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfRequestUnpaidLeave.meta.totalRecordCurrentPage %></span> of <span><%= listOfRequestUnpaidLeave.meta.totalRecords %></span> entries</p>
+                    <% if (listOfRequestUnpaidLeave.meta.totalPage > 1) { %>
+                    <ul class="pagination m-0 ms-auto">
+                      <% if (listOfRequestUnpaidLeave.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/approve-unpaid-leave-by-supervisor?page=0&limit=<%= listOfRequestUnpaidLeave.meta.limit %>"><< First</a></li>&nbsp;
+                      <% } %>
+                      
+                      <% if (listOfRequestUnpaidLeave.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/approve-unpaid-leave-by-supervisor?page=<%= listOfRequestUnpaidLeave.meta.currentPage-1 %>&limit=<%= listOfRequestUnpaidLeave.meta.limit %>">< Previous</a></li>&nbsp;
+                      <% } %>
+
+                      <% if ((listOfRequestUnpaidLeave.meta.currentPage + 1) == listOfRequestUnpaidLeave.meta.totalPage) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/approve-unpaid-leave-by-supervisor?page=<%= listOfRequestUnpaidLeave.meta.currentPage+1 %>&limit=<%= listOfRequestUnpaidLeave.meta.limit %>"> Next ></a></li>&nbsp;
+                      <% } %>
+
+                      <% if (listOfRequestUnpaidLeave.meta.currentPage == (listOfRequestUnpaidLeave.meta.totalPage-1)) { %>
+                        <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                      <% } else { %>
+                          <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/approve-unpaid-leave-by-supervisor?page=<%= listOfRequestUnpaidLeave.meta.totalPage - 1 %>&limit=<%= listOfRequestUnpaidLeave.meta.limit %>">Last >></a></li>
+                      <% } %>
+                    </ul>
+                    <% } %>
+                  </div> 
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Approve / Denied Unpaid Leave by Supervisor</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="frmEdit" class="card card-md" method="POST" action="/leave-management/approve-unpaid-leave-by-supervisor" autocomplete="off">
+          <div class="modal-body">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="hidden" name="uuid" id="uuid" class="uuid" >
+                        <input type="hidden" name="employee_id" id="employee_id" class="employee-id" >
+                        <input type="hidden" name="days" id="days" class="days" >
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="text" class="form-control full-name" name="full_name" id="full_name" placeholder="Name of Employee" disabled>
+                    </div>   
+                </div> 
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Description</label>
+                      <textarea class="form-control leave-description" name="leave_description" id="leave_description" maxlength="300" disabled></textarea>
+                  </div>
+                </div>                
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Start Duration</label>
+                      <input type="text" class="form-control start-duration" name="start_duration" id="start_duration" disabled>
+                  </div>
+                </div>            
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">End Duration</label>
+                      <input type="text" class="form-control end-duration" name="end_duration" id="end_duration" disabled>
+                  </div>
+                </div>            
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Days</label>
+                      <input type="text" class="form-control days2" name="days2" id="days2" disabled>
+                  </div>
+                </div>            
+                <div class="col-lg-6">
+                    <div class="mb-3">
+                        <label class="form-label">Is Approved ?</label>
+                        <select name="is_approved" id="is_approved" class="form-control is_approved" required>
+                            <!--<option value="0">Open</option>-->
+                            <option value="1">Approved</option>
+                            <option value="2">Not Approved</option>                            
+                        </select>
+                    </div>
+                </div>   
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Approved Date</label>
+                      <input type="text" class="form-control approved-date" placeholder="DD-MM-YYYY" name="approved_date" id="approved_date" value="<%= moment().format('DD-MM-yyyy'); %>" disabled>
+                  </div>
+                </div>            
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Comments</label>
+                      <textarea class="form-control comments" name="comments" id="comments" placeholder="Comments" maxlength="300"></textarea>
+                  </div>
+                </div>                  
+            </div>
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button id="submit" class="btn btn-primary ms-auto" type="submit">
+              Submit
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="modal modal-blur fade" id="modal-error" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Approve / Denied unpaid Leave by Supervisor</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="frmEdit" class="card card-md" method="POST" action="/leave-management/approve-unpaid-leave-by-supervisor" autocomplete="off">
+          <div class="modal-body">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="hidden" name="uuid" id="uuid" class="error-uuid" >
+                        <input type="hidden" name="employee_id" id="employee_id" class="error-employee-id" >
+                        <input type="hidden" name="days" id="days" class="error-days" >
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="text" class="form-control error-full-name" name="full_name" id="full_name" placeholder="Name of Employee" disabled>
+                    </div>   
+                </div> 
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Description</label>
+                      <textarea class="form-control error-leave-description" name="leave_description" id="leave_description" maxlength="300" disabled></textarea>
+                  </div>
+                </div>                
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Start Duration</label>
+                      <input type="text" class="form-control error-start-duration" name="start_duration" id="start_duration" disabled>
+                  </div>
+                </div>            
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">End Duration</label>
+                      <input type="text" class="form-control error-end-duration" name="end_duration" id="end_duration" disabled>
+                  </div>
+                </div>            
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Days</label>
+                      <input type="text" class="form-control error-days2" name="days2" id="days2" disabled>
+                  </div>
+                </div>            
+                <div class="col-lg-6">
+                    <div class="mb-3">
+                        <label class="form-label">Is Approved ?</label>
+                        <select name="is_approved" id="is_approved" class="form-control is_approved" required>
+                            <!--<option value="0">Open</option>-->
+                            <option value="1">Approved</option>
+                            <option value="2">Not Approved</option>                            
+                        </select>
+                    </div>
+                </div>   
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Approved Date</label>
+                      <input type="text" class="form-control error-approved-date is-invalid" placeholder="DD-MM-YYYY" name="approved_date" id="error_approved_date" value="<%= moment().format('DD-MM-yyyy'); %>">
+                      <div class="invalid-feedback"><%= message.error %></div>
+                  </div>
+                </div>            
+                <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Comments</label>
+                      <textarea class="form-control error-comments" name="comments" id="comments" placeholder="Comments" maxlength="300"></textarea>
+                  </div>
+                </div>                  
+            </div>
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button id="submit" class="btn btn-primary ms-auto" type="submit">
+              Submit
+            </button>
+          </div>
+        </form>
+    </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-success" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-success"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-green icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" /><path d="M9 12l2 2l4 -4" /></svg>
+          <h3><%= message.success %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-success w-100" data-bs-dismiss="modal">
+                  OK
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+
+  <script src="/assets/tabler/libs/litepicker/dist/litepicker.js" ></script>
+
+  <% var messageSuccess = message.success; %>
+  <% var messageError = message.error; %>
+  <% var messageUuid = message.uuid; %>
+  <% var messageApprovedDate = message.approvedDate; %>
+  <script type = "text/JavaScript">
+    var editModal = document.getElementById('modal-edit');
+    editModal.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var employeeUuid = button.getAttribute('data-uuid')
+      var employeeId = button.getAttribute('data-employee-id')
+      var employeeName = button.getAttribute('data-full_name')
+      var startDuration = button.getAttribute('data-start-duration')
+      var endDuration = button.getAttribute('data-end-duration')
+      var days = button.getAttribute('data-days')
+      var days2 = button.getAttribute('data-days')
+      var leaveDescription = button.getAttribute('data-leave-description')
+
+      let modalEmployeeUuid = editModal.querySelector(".uuid");      
+      let modalEmployeeId = editModal.querySelector(".employee-id");
+      let modalEmployeeName = editModal.querySelector(".full-name");
+      let modalStartDuration = editModal.querySelector(".start-duration");
+      let modalEndDuration = editModal.querySelector(".end-duration");
+      let modalDays = editModal.querySelector(".days");
+      let modalDays2 = editModal.querySelector(".days2");
+      let modalLeaveDescription = editModal.querySelector(".leave-description");
+
+      modalEmployeeUuid.value = employeeUuid;
+      modalEmployeeId.value = employeeId;
+      modalEmployeeName.value = employeeName;
+      modalStartDuration.value = startDuration;
+      modalEndDuration.value = endDuration;
+      modalDays.value = days;
+      modalDays2.value = days2;
+      modalLeaveDescription.value = leaveDescription;
+    })
+
+    let getMessageSuccess = "<%= messageSuccess %>";
+    if(getMessageSuccess) {
+      var successModal = new bootstrap.Modal(document.getElementById('modal-success'), {})
+      successModal.toggle();
+    }
+
+    let uuid = "<%= messageUuid %>"
+    var errorModal = document.getElementById('modal-error');
+    errorModal.addEventListener('show.bs.modal', function (event) {
+      let url = '/unpaid-leave-by-uuid/' + uuid;
+      fetch(url)
+        .then(res => res.json())
+        .then(json => {
+          let modalEmployeeUuid = errorModal.querySelector(".error-uuid");      
+          let modalEmployeeId = errorModal.querySelector(".error-employee-id");
+          let modalEmployeeName = errorModal.querySelector(".error-full-name");
+          let modalStartDuration = errorModal.querySelector(".error-start-duration");
+          let modalEndDuration = errorModal.querySelector(".error-end-duration");
+          let modalDays = errorModal.querySelector(".error-days");
+          let modalDays2 = errorModal.querySelector(".error-days2");
+          let modalLeaveDescription = errorModal.querySelector(".error-leave-description");
+
+          modalEmployeeUuid.value = json.data[0].uuid;
+          modalEmployeeId.value = json.data[0].employeeId;
+          modalEmployeeName.value = json.data[0].fullName;
+          const [yearStartDuration, monthStartDuration, dayStartDuration] = json.data[0].startDuration.split('-');
+          const startDurationDDMMYY = `${dayStartDuration.slice(0, 2)}-${monthStartDuration}-${yearStartDuration}`;
+          modalStartDuration.value = startDurationDDMMYY;
+
+          const [yearEndDuration, monthEndDuration, dayEndDuration] = json.data[0].endDuration.split('-');
+          const endDurationDDMMYY = `${dayEndDuration.slice(0, 2)}-${monthEndDuration}-${yearEndDuration}`;
+          modalEndDuration.value = endDurationDDMMYY;
+          modalDays.value = json.data[0].days;
+          modalDays2.value = json.data[0].days;
+          modalLeaveDescription.value = json.data[0].leaveDescription;
+        })
+    })
+
+    let getMessageError = "<%= messageError %>";
+    if(getMessageError) {
+      var modalForm = new bootstrap.Modal(document.getElementById('modal-error'), {})
+      modalForm.toggle();
+    }
+
+  </script>
+</body>
+</html>

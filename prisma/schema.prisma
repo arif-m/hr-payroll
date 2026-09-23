@@ -1,0 +1,1058 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Division {
+  id           Int      @id @default(autoincrement())
+  createdBy    String   @db.VarChar(100)
+  updatedBy    String   @db.VarChar(100)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now())
+  divisionName String   @unique @db.VarChar(150)
+  divisions    Users[]
+  divisionOvertime      RequestOvertimeHeader[]
+
+  @@map("division")
+}
+
+model JobTitle {
+  id           Int      @id @default(autoincrement())
+  createdBy    String   @db.VarChar(100)
+  updatedBy    String   @db.VarChar(100)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now())
+  jobTitleName String   @unique @db.VarChar(150)
+  jobTitles    Users[]
+
+  @@map("jobTitle")
+}
+
+model BusinessUnit {
+  id               Int      @id @default(autoincrement())
+  createdBy        String   @db.VarChar(100)
+  updatedBy        String   @db.VarChar(100)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now())
+  businessUnitName String   @unique @db.VarChar(150)
+  companyName      String?  @db.VarChar(300)
+  image            String?  @db.VarChar(300)
+  BusinessUnits    Users[]
+
+  @@map("businessUnit")
+}
+
+model Roles {
+  id        Int                @id @default(autoincrement())
+  uuid      String             @unique @default(uuid()) @db.VarChar(60)
+  createdBy String             @db.VarChar(100)
+  updatedBy String             @db.VarChar(100)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @default(now())
+  roleName  String             @unique @db.VarChar(150)
+  role2     ModulePermission[]
+  role      Users[]
+
+  @@map("roles")
+}
+
+model Ptkp {
+  id          Int      @id @default(autoincrement())
+  createdBy   String   @db.VarChar(100)
+  updatedBy   String   @db.VarChar(100)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  code        String   @unique @db.VarChar(5)
+  description String?  @db.VarChar(150)
+  amount      Decimal? @db.Decimal(15, 2)
+  ptkp2       Users[]
+
+  @@map("ptkp")
+}
+
+model Pkp {
+  id                Int      @id @default(autoincrement())
+  createdBy         String   @db.VarChar(100)
+  updatedBy         String   @db.VarChar(100)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  code              String   @unique @db.VarChar(10)
+  description       String?  @db.VarChar(350)
+  startSalary       Decimal  @db.Decimal(18, 2)
+  endSalary         Decimal  @db.Decimal(18, 2)
+  ratesPercentage   Decimal  @db.Decimal(5, 2)
+
+  @@map("pkp")
+}
+
+model Users {
+  id                         Int                   @id @default(autoincrement())
+  uuid                       String                @unique @default(uuid()) @db.VarChar(150)
+  createdBy                  String                @db.VarChar(100)
+  updatedBy                  String                @db.VarChar(100)
+  createdAt                  DateTime              @default(now()) @map("created_at")
+  updatedAt                  DateTime              @updatedAt @map("updated_at")
+  employeeId                 BigInt                @unique
+  status                     users_status          @default(Active)
+  roleId                     Int
+  assignDate                 DateTime?             @db.Date
+  assignBy                   String?               @db.VarChar(150)
+  fullName                   String                @db.VarChar(150)
+  joinDate                   DateTime              @db.Date
+  email                      String                @unique @db.VarChar(150)
+  mobilePhone                String?               @db.VarChar(20)
+  dob                        DateTime              @db.Date
+  placeOfBirth               String                @db.VarChar(150)
+  personalIdType             String?               @db.VarChar(25)
+  personalIdNumber           String?               @db.VarChar(150)
+  address                    String                @db.VarChar(150)
+  employmentStatus           EmployementStatus?    @default(Probation)
+  businessUnitId             Int
+  divisionId                 Int
+  jobTitleId                 Int
+  basicSalary                Decimal?              @db.Decimal(15, 2)
+  npwp                       String?               @db.VarChar(150)
+  bankName                   String?               @db.VarChar(50)
+  bankAccountNumber          String?               @db.VarChar(50)
+  bankAccountHolder          String?               @db.VarChar(150)
+  password                   String                @db.VarChar(150)
+  salt                       String                @db.VarChar(150)
+  annualLeave                Int?                  @default(0)
+  annualLeaveBalance         Int?                  @default(0)
+  sickLeave                  Int?                  @default(0)
+  sickLeaveBalance           Int?                  @default(0)
+  promoteDate                DateTime?             @db.Date
+  supervisor                 Int
+  ptkpId                     Int
+  salaryTemplateHeaderId     Int?
+  is_using_bjps_tenaga_kerja Int?                  @default(1)  @db.TinyInt
+  is_using_bjps_kesehatan    Int?                  @default(0)  @db.TinyInt
+  businessUnit               BusinessUnit          @relation(fields: [businessUnitId], references: [id])
+  division                   Division              @relation(fields: [divisionId], references: [id])
+  jobTitle                   JobTitle              @relation(fields: [jobTitleId], references: [id])
+  ptkp                       Ptkp                  @relation(fields: [ptkpId], references: [id])
+  role                       Roles                 @relation(fields: [roleId], references: [id])
+  salaryTemplate             SalaryTemplateHeader? @relation(fields: [salaryTemplateHeaderId], references: [id])
+  medicalReimbursementBudget Float                 @default(0)  @db.Float
+  medicalReimbursementTaken  Float                 @default(0)  @db.Float
+  medicalReimbursementRemaining       Float                 @default(0)  @db.Float
+  verificationCode           String?               @db.VarChar(350)     @unique
+  provider                   String?               @db.VarChar(350)
+  passwordResetToken         String?               @db.VarChar(100)
+  passwordResetAt            DateTime?
+  image                      String?               @db.VarChar(350)
+  payrollPeriod              String                @db.VarChar(7)       @default("Monthly")
+  user4                      AdminManagement[]
+  user                       EmployeeAnnualLeave[]
+  user2                      EmployeeSickLeave[]
+  user3                      RequestLeave[]
+  user5                      UsersSalary[]
+  user6                      PayslipHeader[]
+  userRequestLeaveOther      RequestOtherLeave[]
+  userRequestMedicalReimbursement      RequestMedicalReimbursementHeader[]
+  userTimeAttendance         TimeAttendance[] 
+  userRequestOvertime        RequestOvertimeDetails[] 
+  employmentHistories        EmploymentHistory[]
+
+  @@unique([email, verificationCode, passwordResetToken])
+  @@index([businessUnitId], map: "users_businessUnitId_fkey")
+  @@index([divisionId], map: "users_divisionId_fkey")
+  @@index([jobTitleId], map: "users_jobTitleId_fkey")
+  @@index([ptkpId], map: "users_ptkpId_fkey")
+  @@index([roleId], map: "users_roleId_fkey")
+  @@index([salaryTemplateHeaderId], map: "users_salaryTemplateHeaderId_fkey")
+  @@map("users")
+}
+
+model Module {
+  id          Int                @id @default(autoincrement())
+  uuid        String             @unique @default(uuid()) @db.VarChar(60)
+  createdBy   String             @db.VarChar(100)
+  updatedBy   String             @db.VarChar(100)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @default(now())
+  feature     String             @unique @db.VarChar(150)
+  description String?            @db.VarChar(300)
+  uri         String             @db.VarChar(300)
+  parentId    Int                @default(0)
+  treeStatus  String             @default("H") @db.VarChar(1)
+  icon        String?            @db.VarChar(100)
+  isVisible   Int                @default(1) @db.TinyInt
+  sequence    Int?
+  modul       ModulePermission[]
+
+  @@map("module")
+}
+
+model ModulePermission {
+  id            Int      @id @default(autoincrement())
+  uuid          String   @unique @default(uuid()) @db.VarChar(60)
+  createdBy     String   @db.VarChar(100)
+  updatedBy     String   @db.VarChar(100)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  modulId       Int
+  roleId        Int
+  createRight   Int      @default(0) @db.TinyInt
+  readRight     Int      @default(1) @db.TinyInt
+  updateRight   Int      @default(0) @db.TinyInt
+  deleteRight   Int      @default(0) @db.TinyInt
+  inactiveRight Int      @default(0) @db.TinyInt
+  module        Module   @relation(fields: [modulId], references: [id])
+  role          Roles    @relation(fields: [roleId], references: [id])
+
+  @@index([modulId], map: "modulePermission_modulId_fkey")
+  @@index([roleId], map: "modulePermission_roleId_fkey")
+  @@map("modulePermission")
+}
+
+model AdminManagement {
+  id         Int      @id @default(autoincrement())
+  uuid       String   @unique @default(uuid()) @db.VarChar(150)
+  createdBy  String   @db.VarChar(100)
+  updatedBy  String   @db.VarChar(100)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+  employeeId Int
+  role       String   @db.VarChar(100)
+  assignDate DateTime @db.Date
+  assignBy   String?  @db.VarChar(150)
+  fullName   Users    @relation(fields: [employeeId], references: [id])
+
+  @@index([employeeId], map: "adminManagement_employeeId_fkey")
+  @@map("adminManagement")
+}
+
+model SetupAnnualLeave {
+  id                 Int          @id @default(autoincrement())
+  uuid               String       @unique @default(uuid()) @db.VarChar(150)
+  createdBy          String       @db.VarChar(100)
+  updatedBy          String       @db.VarChar(100)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @default(now())
+  name               String?      @unique @db.VarChar(150)
+  timeOffPerMonth    Int
+  timeOffPerYear     Int?
+  additionalTimeOff  Int
+  defaultCalculation GenerateType @default(Monthly)
+
+  @@map("setupAnnualLeave")
+}
+
+model SetupSickLeave {
+  id                 Int                               @id @default(autoincrement())
+  uuid               String                            @unique @default(uuid()) @db.VarChar(150)
+  createdBy          String                            @db.VarChar(100)
+  updatedBy          String                            @db.VarChar(100)
+  createdAt          DateTime                          @default(now())
+  updatedAt          DateTime                          @default(now())
+  name               String?                           @unique @db.VarChar(150)
+  day                Int
+  defaultCalculation setupSickLeave_defaultCalculation @default(Monthly)
+
+  @@map("setupSickLeave")
+}
+
+model EmployeeAnnualLeave {
+  id         Int      @id @default(autoincrement())
+  uuid       String   @unique @default(uuid()) @db.VarChar(150)
+  createdBy  String   @db.VarChar(100)
+  updatedBy  String   @db.VarChar(100)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+  employeeId Int
+  Period     Int
+  year       Int
+  day        Int      @default(1) @db.TinyInt
+  remarks    String   @db.VarChar(200)
+  fullName   Users    @relation(fields: [employeeId], references: [id])
+
+  @@index([employeeId], map: "employeeAnnualLeave_employeeId_fkey")
+  @@map("employeeAnnualLeave")
+}
+
+model EmployeeSickLeave {
+  id         Int      @id @default(autoincrement())
+  uuid       String   @unique @default(uuid()) @db.VarChar(150)
+  createdBy  String   @db.VarChar(100)
+  updatedBy  String   @db.VarChar(100)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+  employeeId Int
+  Period     Int
+  year       Int
+  day        Int      @default(1) @db.TinyInt
+  remarks    String   @db.VarChar(200)
+  fullName   Users    @relation(fields: [employeeId], references: [id])
+
+  @@index([employeeId], map: "employeeSickLeave_employeeId_fkey")
+  @@map("employeeSickLeave")
+}
+
+model LeaveType {
+  id                   Int        @id @default(autoincrement())
+  uuid                 String     @unique @default(uuid()) @db.VarChar(150)
+  createdBy            String     @db.VarChar(100)
+  updatedBy            String     @db.VarChar(100)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @default(now())
+  description          String     @unique @db.VarChar(150)
+  day                  Int        @default(1) @db.TinyInt
+  allowToOverrideLimit Int        @default(0) @db.TinyInt
+  status               StatusUser @default(Active)
+  requestLeaves        RequestLeave[] @relation("RLToLeaveType")
+
+  @@map("leaveType")
+}
+
+model RequestLeave {
+  id                   Int       @id @default(autoincrement())
+  uuid                 String    @unique @default(uuid()) @db.VarChar(150)
+  createdBy            String    @db.VarChar(100)
+  updatedBy            String    @db.VarChar(100)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @default(now())
+  leaveType            Int
+  leaveTypeDescription String    @db.VarChar(150)
+  startDuration        DateTime  @db.DateTime(0)
+  endDuration          DateTime  @db.DateTime(0)
+  days                 Decimal   @db.Decimal(5, 2)
+  leaveDescription     String    @db.VarChar(300)
+  employeeId           Int
+  businessUnitId       Int?
+  businessUnitName     String?   @db.VarChar(150)
+  divisionId           Int?
+  divisionName         String?   @db.VarChar(150)
+  jobTitleId           Int?
+  jobTitleName         String?   @db.VarChar(150)
+  isApproved           Int       @default(0) @db.TinyInt
+  approvedBy           String?   @db.VarChar(150)
+  approvedDate         DateTime? @db.DateTime(0)
+  commentsBySupervisor String?   @db.VarChar(300)
+  fullName             Users     @relation(fields: [employeeId], references: [id])
+  leaveTypeRef         LeaveType @relation("RLToLeaveType", fields: [leaveType], references: [id])
+  image                String?   @db.VarChar(300)
+  isApprovedByHR       Int       @default(0)           @db.TinyInt
+  approvedHRBy         String?   @db.VarChar(150)
+  approvedDateByHR     DateTime? @db.DateTime(0)
+  commentsByHR         String?   @db.VarChar(300)
+
+  @@index([employeeId], map: "requestLeave_employeeId_fkey")
+  @@index([leaveType], map: "requestLeave_leaveType_fkey")
+  @@map("requestLeave")
+}
+
+model SetupSystem {
+  id                   Int                   @id @default(autoincrement())
+  uuid                 String                @unique @default(uuid()) @db.VarChar(150)
+  createdBy            String                @db.VarChar(100)
+  updatedBy            String                @db.VarChar(100)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @default(now())
+  workDays             Int
+  workHours            Int
+  workStart            DateTime              @db.Time(0)
+  workEnd              DateTime              @db.Time(0)
+  defaultTaxMethod     DefaultTaxMethod?     @default(GrossUp)
+  taxRegime            TaxRegime?            @default(TER)
+  taxCalculationMethod TaxCalculationMethod? @default(Standard)
+  taxPercentage        Decimal?              @db.Decimal(5, 2) @default(5)
+  biayaJabatanMaxMonthly Decimal             @db.Decimal(15, 2) @default(500000)
+  npwpSurchargePct     Decimal               @db.Decimal(5, 2) @default(20)
+  isActivatePercentageMedicalReimbursement   Int       @default(0) @db.TinyInt
+  thrBudgetBaseCodes   String    @default("BS") @db.VarChar(150)
+  thrEligibilityMonths Int       @default(1)
+  thrProrateRoundDays  Int       @default(1) @db.TinyInt
+
+  @@map("setupSystem")
+}
+
+model SetupCalendar {
+  id          Int      @id @default(autoincrement())
+  uuid        String   @unique @default(uuid()) @db.VarChar(150)
+  createdBy   String   @db.VarChar(100)
+  updatedBy   String   @db.VarChar(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  eventDate   DateTime @db.Date
+  eventName   String   @db.VarChar(300)
+  description String?  @db.Text
+  is_workdays Int      @default(0) @db.TinyInt
+
+  @@map("setupCalendar")
+}
+
+model SalaryComponentType {
+  id                   Int               @id @default(autoincrement())
+  uuid                 String            @unique @default(uuid()) @db.VarChar(150)
+  createdBy            String            @db.VarChar(100)
+  updatedBy            String            @db.VarChar(100)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @default(now())
+  componentType        String            @db.VarChar(150)
+  isActive             Int               @default(1) @db.TinyInt
+
+  salaryComponentTypes    SalaryComponent[]
+  salaryComponentTypes2   UsersSalary[]
+  @@map("salaryComponentType")
+}
+
+model SalaryComponentCategory {
+  id                       Int               @id @default(autoincrement())
+  uuid                     String            @unique @default(uuid()) @db.VarChar(150)
+  createdBy                String            @db.VarChar(100)
+  updatedBy                String            @db.VarChar(100)
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @default(now())
+  componentCategory        String            @db.VarChar(150)
+  isActive                 Int               @default(1) @db.TinyInt
+
+  salaryComponentCategories SalaryComponent[]
+  salaryComponentCategories2 UsersSalary[]
+  @@map("salaryComponentCategory")
+}
+
+model SalaryComponent {
+  id                        Int                     @id @default(autoincrement())
+  uuid                      String                  @unique @default(uuid()) @db.VarChar(150)
+  createdBy                 String                  @db.VarChar(100)
+  updatedBy                 String                  @db.VarChar(100)
+  createdAt                 DateTime                @default(now())
+  updatedAt                 DateTime                @default(now())
+  componentCode             String                  @unique @db.VarChar(30)
+  componentName             String                  @db.VarChar(250)
+  salaryComponentTypeId     Int
+  salaryComponentCategoryId Int
+  isTaxable                 Int                     @default(0) @db.TinyInt
+  isActive                  Int                     @default(1) @db.TinyInt
+  sequence                  Int?
+  isTakeHomePay             Int                     @default(0) @db.TinyInt
+  componentCategories       SalaryComponentCategory @relation(fields: [salaryComponentCategoryId], references: [id])
+  componentTypes            SalaryComponentType     @relation(fields: [salaryComponentTypeId], references: [id])
+  salaryComponents          SalaryTemplateDetails[]
+
+  @@index([salaryComponentCategoryId], map: "salaryComponent_salaryComponentCategoryId_fkey")
+  @@index([salaryComponentTypeId], map: "salaryComponent_salaryComponentTypeId_fkey")
+  @@map("salaryComponent")
+}
+
+model SalaryTemplateHeader {
+  id              Int                              @id @default(autoincrement())
+  uuid            String                           @unique @default(uuid()) @db.VarChar(150)
+  createdBy       String                           @db.VarChar(100)
+  updatedBy       String                           @db.VarChar(100)
+  createdAt       DateTime                         @default(now())
+  updatedAt       DateTime                         @default(now())
+  templateName    String                           @db.VarChar(250) @unique 
+  isActive        Int                              @default(1) @db.TinyInt
+  salaryTemplate  SalaryTemplateDetails[]
+  salaryTemplate4 TemplateBpjsKesehatanDetails[]
+  salaryTemplate3 TemplateBpjsTenagaKerjaDetails[]
+  salaryTemplate2 Users[]
+
+  @@map("salaryTemplateHeader")
+}
+
+model SalaryTemplateDetails {
+  id                Int                  @id @default(autoincrement())
+  uuid              String               @unique @default(uuid()) @db.VarChar(150)
+  createdBy         String               @db.VarChar(100)
+  updatedBy         String               @db.VarChar(100)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @default(now())
+  salaryTemplateId  Int
+  salaryComponentId Int
+  formula           String?              @db.VarChar(300)
+  amount            Decimal?             @db.Decimal(15, 2)
+  component         SalaryComponent      @relation(fields: [salaryComponentId], references: [id])
+  template          SalaryTemplateHeader @relation(fields: [salaryTemplateId], references: [id])
+
+  @@index([salaryComponentId], map: "salaryTemplateDetails_salaryComponentId_fkey")
+  @@index([salaryTemplateId], map: "salaryTemplateDetails_salaryTemplateId_fkey")
+  @@map("salaryTemplateDetails")
+}
+
+model UsersSalary {
+  id                            Int                         @id @default(autoincrement())
+  uuid                          String                      @unique @default(uuid()) @db.VarChar(150)
+  createdBy                     String                      @db.VarChar(100)
+  updatedBy                     String                      @db.VarChar(100)
+  createdAt                     DateTime                    @default(now())
+  updatedAt                     DateTime                    @default(now())
+  usersId                       Int
+  user                          Users                       @relation(fields: [usersId], references: [id])
+  componentId                   Int
+  componentCode                 String                      @db.VarChar(30)
+  componentName                 String                      @db.VarChar(250)
+  salaryComponentTypeId         Int
+  salaryComponentTypeName       String                      @db.VarChar(150)
+  componentTypes                SalaryComponentType         @relation(fields: [salaryComponentTypeId], references: [id])
+  salaryComponentCategoryId     Int
+  salaryComponentCategoryName   String                      @db.VarChar(150)
+  componentCategories           SalaryComponentCategory     @relation(fields: [salaryComponentCategoryId], references: [id])
+  formula                       String?                     @db.VarChar(300)
+  amount                        Decimal?                    @default(0) @db.Decimal(15, 2)
+  isTakeHomePay                 Int                         @default(0) @db.TinyInt
+  sequence                      Int?
+
+  @@index([usersId], map: "usersSalary_usersId_fkey")
+  @@map("usersSalary")
+}
+
+model BpjsTenagaKerjaComponent {
+  id            Int      @id @default(autoincrement())
+  uuid          String   @unique @default(uuid()) @db.VarChar(150)
+  createdBy     String   @db.VarChar(100)
+  updatedBy     String   @db.VarChar(100)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  isActive      Int      @default(1) @db.TinyInt
+  componentCode String   @unique @db.VarChar(250)
+  componentName String   @db.VarChar(250)
+  percentage    Decimal? @default(0) @db.Decimal(5, 2)
+  minimumWages  Decimal? @default(0) @db.Decimal(15, 2)
+  maximumWages  Decimal? @default(0) @db.Decimal(15, 2)
+  formula       String?  @db.VarChar(300)
+  sequence      Int?
+  isTakeHomePay Int      @default(0) @db.TinyInt
+
+  @@map("bpjsTenagaKerjaComponent")
+}
+
+model TemplateBpjsTenagaKerjaHeader {
+  id             Int                              @id @default(autoincrement())
+  uuid           String                           @unique @default(uuid()) @db.VarChar(150)
+  createdBy      String                           @db.VarChar(100)
+  updatedBy      String                           @db.VarChar(100)
+  createdAt      DateTime                         @default(now())
+  updatedAt      DateTime                         @default(now())
+  isActive       Int                              @default(1) @db.TinyInt
+  templateName   String                           @db.VarChar(250)
+  templateBpjsTK TemplateBpjsTenagaKerjaDetails[]
+
+  @@map("templateBpjsTenagaKerjaHeader")
+}
+
+model TemplateBpjsTenagaKerjaDetails {
+  id                        Int                           @id @default(autoincrement())
+  uuid                      String                        @unique @default(uuid()) @db.VarChar(150)
+  createdBy                 String                        @db.VarChar(100)
+  updatedBy                 String                        @db.VarChar(100)
+  createdAt                 DateTime                      @default(now())
+  updatedAt                 DateTime                      @default(now())
+  salaryTemplateId          Int
+  bpjsTenagaKerjaTemplateId Int
+  componentId               Int
+  componentCode             String                        @db.VarChar(250)
+  componentName             String                        @db.VarChar(250)
+  percentage                Decimal?                      @default(0) @db.Decimal(5, 2)
+  minimumWages              Decimal?                      @default(0) @db.Decimal(15, 2)
+  maximumWages              Decimal?                      @default(0) @db.Decimal(15, 2)
+  formula                   String?                       @db.VarChar(300)
+  sequence                  Int?
+  isTakeHomePay             Int                           @default(0) @db.TinyInt
+  templateBpjsTK            TemplateBpjsTenagaKerjaHeader @relation(fields: [bpjsTenagaKerjaTemplateId], references: [id])
+  templateOfSalary          SalaryTemplateHeader          @relation(fields: [salaryTemplateId], references: [id])
+
+  @@index([bpjsTenagaKerjaTemplateId], map: "templateBpjsTenagaKerjaDetails_bpjsTenagaKerjaTemplateId_fkey")
+  @@index([salaryTemplateId], map: "templateBpjsTenagaKerjaDetails_salaryTemplateId_fkey")
+  @@map("templateBpjsTenagaKerjaDetails")
+}
+
+model BpjsKesehatanComponent {
+  id            Int      @id @default(autoincrement())
+  uuid          String   @unique @default(uuid()) @db.VarChar(150)
+  createdBy     String   @db.VarChar(100)
+  updatedBy     String   @db.VarChar(100)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  isActive      Int      @default(1) @db.TinyInt
+  componentCode String   @unique @db.VarChar(250)
+  componentName String   @db.VarChar(250)
+  percentage    Decimal? @default(0) @db.Decimal(5, 2)
+  minimumWages  Decimal? @default(0) @db.Decimal(15, 2)
+  maximumWages  Decimal? @default(0) @db.Decimal(15, 2)
+  formula       String?  @db.VarChar(300)
+  isTakeHomePay Int      @default(0) @db.TinyInt
+
+  @@map("bpjsKesehatanComponent")
+}
+
+model TemplateBpjsKesehatanHeader {
+  id             Int                            @id @default(autoincrement())
+  uuid           String                         @unique @default(uuid()) @db.VarChar(150)
+  createdBy      String                         @db.VarChar(100)
+  updatedBy      String                         @db.VarChar(100)
+  createdAt      DateTime                       @default(now())
+  updatedAt      DateTime                       @default(now())
+  isActive       Int                            @default(1) @db.TinyInt
+  templateName   String                         @db.VarChar(250)
+  templateBpjsKS TemplateBpjsKesehatanDetails[]
+
+  @@map("templateBpjsKesehatanHeader")
+}
+
+model TemplateBpjsKesehatanDetails {
+  id                      Int                         @id @default(autoincrement())
+  uuid                    String                      @unique @default(uuid()) @db.VarChar(150)
+  createdBy               String                      @db.VarChar(100)
+  updatedBy               String                      @db.VarChar(100)
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @default(now())
+  salaryTemplateId        Int
+  bpjsKesehatanTemplateId Int
+  componentId             Int
+  componentCode           String                      @db.VarChar(250)
+  componentName           String                      @db.VarChar(250)
+  percentage              Decimal?                      @default(0) @db.Decimal(5, 2)
+  minimumWages            Decimal?                      @default(0) @db.Decimal(15, 2)
+  maximumWages            Decimal?                      @default(0) @db.Decimal(15, 2)
+  formula                 String?                       @db.VarChar(300)
+  isTakeHomePay           Int                           @default(0) @db.TinyInt
+  templateBpjsKS          TemplateBpjsKesehatanHeader @relation(fields: [bpjsKesehatanTemplateId], references: [id])
+  templateOfSalary        SalaryTemplateHeader        @relation(fields: [salaryTemplateId], references: [id])
+
+  @@index([bpjsKesehatanTemplateId], map: "templateBpjsKesehatanDetails_bpjsKesehatanTemplateId_fkey")
+  @@index([salaryTemplateId], map: "templateBpjsKesehatanDetails_salaryTemplateId_fkey")
+  @@map("templateBpjsKesehatanDetails")
+}
+
+model CutOffPeriod {
+  id          Int      @id @default(autoincrement())
+  uuid        String   @unique @default(uuid()) @db.VarChar(150)
+  createdBy   String   @db.VarChar(100)
+  updatedBy   String   @db.VarChar(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  isActive    Int      @default(1) @db.TinyInt
+  startPeriod DateTime @db.Date
+  endPeriod   DateTime @db.Date
+  monthPeriod String   @db.VarChar(2)
+  yearPeriod  String   @db.VarChar(4)
+  workDays    Int?     @db.TinyInt
+  isClosing   Int      @default(0) @db.TinyInt
+  isThr       Int      @default(0) @db.TinyInt
+  payrollRuns PayrollRun[]
+
+  @@unique([monthPeriod, yearPeriod], name: "monthPeriod_yearPeriod_unique_constraint")
+  @@map("cutOffPeriod")
+}
+
+/// Satu siklus proses payroll untuk satu periode cut-off:
+/// DRAFT → SUBMITTED → APPROVED → LOCKED.
+/// Payslip hanya bisa digenerate/dikoreksi saat run berstatus DRAFT;
+/// LOCKED = final (siap laporan & pembayaran).
+model PayrollRun {
+  id                Int                @id @default(autoincrement())
+  uuid              String             @unique @default(uuid()) @db.VarChar(150)
+  createdBy         String             @db.VarChar(100)
+  updatedBy         String             @db.VarChar(100)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  cutOffPeriodId    Int
+  cutOffPeriod      CutOffPeriod       @relation(fields: [cutOffPeriodId], references: [id])
+  status            PayrollRunStatus   @default(DRAFT)
+  submittedBy       String?            @db.VarChar(100)
+  submittedAt       DateTime?
+  approvedBy        String?            @db.VarChar(100)
+  approvedAt        DateTime?
+  lockedBy          String?            @db.VarChar(100)
+  lockedAt          DateTime?
+  taxConfigSnapshot Json?
+  note              String?            @db.VarChar(300)
+  runDetail         PayrollRunDetail[]
+  payslips          PayslipHeader[]
+
+  @@unique([cutOffPeriodId])
+  @@map("payrollRun")
+}
+
+/// Ringkasan hasil generate per karyawan dalam satu run (audit ringkas
+/// tanpa membuka payslip): status OK/FAILED, bruto, potongan, THP, PPh 21.
+model PayrollRunDetail {
+  id              Int         @id @default(autoincrement())
+  createdBy       String      @db.VarChar(100)
+  updatedBy       String      @db.VarChar(100)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  payrollRunId    Int
+  payrollRun      PayrollRun  @relation(fields: [payrollRunId], references: [id])
+  usersId         Int
+  fullName        String      @db.VarChar(150)
+  status          String      @db.VarChar(20) @default("OK")
+  errorMessage    String?     @db.VarChar(300)
+  grossAmount     Decimal     @default(0) @db.Decimal(15, 2)
+  deductionAmount Decimal     @default(0) @db.Decimal(15, 2)
+  thpAmount       Decimal     @default(0) @db.Decimal(15, 2)
+  pph21Amount     Decimal     @default(0) @db.Decimal(15, 2)
+
+  @@unique([payrollRunId, usersId])
+  @@index([usersId])
+  @@map("payrollRunDetail")
+}
+
+model PayslipHeader {
+  id             Int              @id @default(autoincrement())
+  uuid           String           @unique @default(uuid()) @db.VarChar(150)
+  createdBy      String           @db.VarChar(100)
+  updatedBy      String           @db.VarChar(100)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @default(now())
+  cutOffPeriodId Int
+  monthPeriod    String           @db.VarChar(2)
+  yearPeriod     String           @db.VarChar(4)
+  startPeriod    DateTime         @db.Date
+  endPeriod      DateTime         @db.Date
+  workDays       Int?             @db.TinyInt
+  attendance     Int              @db.TinyInt
+  usersId        Int
+  employee       Users            @relation(fields: [usersId], references: [id])
+  employeeId     BigInt
+  fullName       String           @db.VarChar(150)
+  organization   String           @db.VarChar(150)
+  jobTitle       String           @db.VarChar(150)
+  ptkp           String           @db.VarChar(5)
+  npwp           String           @db.VarChar(150)
+  absent         Int              @db.TinyInt         @default(0)
+  sick           Int              @db.TinyInt         @default(0)
+  paidLeave      Int              @db.TinyInt         @default(0)
+  unpaidLeave    Int              @db.TinyInt         @default(0)
+  taxConfigSnapshot Json?
+  payrollRunId    Int?
+  payrollRun      PayrollRun?     @relation(fields: [payrollRunId], references: [id])
+  payslip_header PayslipDetails[]
+  emailLogs      EmailLog[]
+
+  @@unique([usersId, monthPeriod, yearPeriod], map: "payslipHeader_users_month_year_unique")
+  @@map("payslipHeader")
+}
+
+model PayslipDetails {
+  id                        Int           @id @default(autoincrement())
+  uuid                      String        @unique @default(uuid()) @db.VarChar(150)
+  createdBy                 String        @db.VarChar(100)
+  updatedBy                 String        @db.VarChar(100)
+  createdAt                 DateTime      @default(now())
+  updatedAt                 DateTime      @default(now())
+  payslipHeaderId Int
+  code                      String        @db.VarChar(30)
+  name                      String        @db.VarChar(250)
+  category                  String        @db.VarChar(150)
+  isTakeHomePay             Int           @db.TinyInt
+  isTaxBase                 Int           @default(1) @db.TinyInt
+  amount                    Decimal       @db.Decimal(15, 2)
+  payslip                   PayslipHeader @relation(fields: [payslipHeaderId], references: [id])
+  sequence                  Int?
+
+  @@index([payslipHeaderId], map: "payslipDetails_payslipHeaderId_fkey")
+  @@map("payslipDetails")
+}
+
+model OtherLeaveType {
+  id            Int      @id @default(autoincrement())
+  createdBy     String   @db.VarChar(100)
+  updatedBy     String   @db.VarChar(100)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  description   String   @unique @db.VarChar(250)
+  limit         Int
+  isActive      Int      @default(1) @db.TinyInt
+
+  @@map("otherLeaveType")
+}
+
+model RequestOtherLeave {
+  id                          Int       @id @default(autoincrement())
+  uuid                        String    @unique @default(uuid()) @db.VarChar(150)
+  createdBy                   String    @db.VarChar(100)
+  updatedBy                   String    @db.VarChar(100)
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @default(now())
+  otherLeaveType              Int
+  otherleaveTypeDescription   String    @db.VarChar(250)
+  startDuration               DateTime  @db.DateTime(0)
+  endDuration                 DateTime  @db.DateTime(0)
+  days                        Float     @db.Float
+  leaveDescription            String    @db.VarChar(300)
+  employeeId                  Int
+  employeDetail               Users?    @relation(fields: [employeeId], references: [id])
+  businessUnitId              Int?
+  businessUnitName            String?   @db.VarChar(150)
+  divisionId                  Int?
+  divisionName                String?   @db.VarChar(150)
+  jobTitleId                  Int?
+  jobTitleName                String?   @db.VarChar(150)
+  isApproved                  Int       @default(0) @db.TinyInt
+  approvedBy                  String?   @db.VarChar(150)
+  approvedDate                DateTime? @db.DateTime(0)
+  commentsBySupervisor        String?   @db.VarChar(300)
+  isApprovedByHR       Int       @default(0)           @db.TinyInt
+  approvedHRBy         String?   @db.VarChar(150)
+  approvedDateByHR     DateTime? @db.DateTime(0)
+  commentsByHR         String?   @db.VarChar(300)
+
+  @@index([employeeId], map: "requestOtherLeave_employeeId_fkey")
+  @@map("requestOtherLeave")
+}
+
+model MedicalReimbursementCategory {
+  id            Int      @id @default(autoincrement())
+  uuid          String   @unique @default(uuid()) @db.VarChar(150)
+  createdBy     String   @db.VarChar(100)
+  updatedBy     String   @db.VarChar(100)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  description   String   @unique @db.VarChar(250)
+  percentage    Decimal  @db.Decimal(5, 2)
+  isActive      Int      @default(1) @db.TinyInt
+
+  @@map("medicalReimbursementCategory")
+}
+
+model RequestMedicalReimbursementHeader {
+  id                              Int       @id @default(autoincrement())
+  uuid                            String    @unique @default(uuid()) @db.VarChar(150)
+  createdBy                       String    @db.VarChar(100)
+  updatedBy                       String    @db.VarChar(100)
+  createdAt                       DateTime  @default(now())
+  updatedAt                       DateTime  @default(now())
+  reimbursementCategoryId         Int
+  reimbursementCategory           String    @db.VarChar(150)
+  reimbursementDescription        String    @db.VarChar(300)
+  totalReimbursement              Decimal   @db.Decimal(15, 2)
+  totalReimbursementApproved      Decimal   @db.Decimal(15, 2)
+  employeeId                      Int
+  businessUnitId                  Int?
+  businessUnitName                String?   @db.VarChar(150)
+  divisionId                      Int?
+  divisionName                    String?   @db.VarChar(150)
+  jobTitleId                      Int?
+  jobTitleName                    String?   @db.VarChar(150)
+  isApproved                      Int       @default(0)           @db.TinyInt
+  approvedBySupervisor            String?   @db.VarChar(150)
+  approvedBySupervisorDate        DateTime? @db.DateTime(0)
+  commentsBySupervisor            String?   @db.VarChar(300)
+  isApprovedByHR                  Int       @default(0)           @db.TinyInt
+  approvedByHRDate                DateTime? @db.DateTime(0)
+  commentsByHR                    String?   @db.VarChar(300)
+  isApprovedByFinance             Int       @default(0)           @db.TinyInt
+  approvedByFinanceDate           DateTime? @db.DateTime(0)
+  commentsByFinance               String?   @db.VarChar(300)
+  employeeInfo                    Users?    @relation(fields: [employeeId], references: [id])
+  image                           String?   @db.VarChar(300)
+  requestMedicalReimbursement     RequestMedicalReimbursementDetails[]
+
+  @@index([employeeId], map: "requestMedicalReimbursementHeader_employeeId_fkey")
+  @@map("requestMedicalReimbursementHeader")
+}
+
+model RequestMedicalReimbursementDetails {
+  id                                    Int       @id @default(autoincrement())
+  uuid                                  String    @unique @default(uuid()) @db.VarChar(150)
+  requestMedicalReimbursementHeaderId   Int
+  detailsDescription                    String?   @db.VarChar(300)
+  amount                                Decimal   @db.Decimal(15, 2)
+  requestMedicalReimbursement           RequestMedicalReimbursementHeader @relation(fields: [requestMedicalReimbursementHeaderId], references: [id])
+
+  @@map("requestMedicalReimbursementDetails")
+}
+
+model TimeAttendance {
+  id                          Int                 @id @default(autoincrement())
+  uuid                        String              @unique @default(uuid()) @db.VarChar(150)
+  createdBy                   String              @db.VarChar(100)
+  updatedBy                   String              @db.VarChar(100)
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @default(now())
+  status                      String              @db.VarChar(1)
+  employeeId                  Int
+  fullName                    String?             @db.VarChar(150)
+  businessUnitId              Int?
+  businessUnitName            String?             @db.VarChar(150)
+  divisionId                  Int?
+  divisionName                String?             @db.VarChar(150)
+  jobTitleId                  Int?
+  jobTitleName                String?             @db.VarChar(150)
+  workDate                    DateTime            @db.Date
+  checkIn                     DateTime?           @db.Time(0)
+  checkOut                    DateTime?           @db.Time(0)
+  reason                      String?             @db.VarChar(300)
+  employeeInfo                Users?              @relation(fields: [employeeId], references: [id])
+
+  @@index([employeeId], map: "timeAttendance_employeeId_fkey")
+  @@unique([employeeId, workDate], map: "timeAttendance_employee_workDate_unique")
+  @@map("timeAttendance")
+}
+
+model RequestOvertimeHeader {
+  id                        Int              @id @default(autoincrement())
+  uuid                      String           @unique @default(uuid()) @db.VarChar(150)
+  createdBy                 String           @db.VarChar(100)
+  updatedBy                 String           @db.VarChar(100)
+  createdAt                 DateTime         @default(now())
+  updatedAt                 DateTime         @default(now())
+  divisionId                Int
+  divisionTbl               Division         @relation(fields: [divisionId], references: [id])           
+  overtimeDate              DateTime
+  typeOfDay                 TypeOfDay        @default(Workday)
+  description               String           @db.VarChar(300)
+  isApprovedByHead          Int              @default(0)           @db.TinyInt
+  approvedDateByHead        DateTime?        @db.DateTime(0)
+  commentsByHead            String?          @db.VarChar(300)
+  isApprovedByHR            Int              @default(0)           @db.TinyInt
+  approvedDateByHR          DateTime?        @db.DateTime(0)
+  commentsByHR              String?          @db.VarChar(300)
+  isClosed                  Int              @default(0)           @db.TinyInt
+  requestOvertime_header    RequestOvertimeDetails[]
+
+  @@map("requestOvertimeHeader")
+}
+
+model RequestOvertimeDetails {
+  id                        Int                     @id @default(autoincrement())
+  uuid                      String                  @unique @default(uuid()) @db.VarChar(150)
+  createdBy                 String                  @db.VarChar(100)
+  updatedBy                 String                  @db.VarChar(100)
+  createdAt                 DateTime                @default(now())
+  updatedAt                 DateTime                @default(now())
+  requestOvertimeHeaderId   Int
+  employee                  Users                   @relation(fields: [employeeId], references: [id])
+  employeeId                Int
+  fullName                  String                  @db.VarChar(150)
+  organization              String                  @db.VarChar(150)
+  jobTitle                  String                  @db.VarChar(150)
+  startTime                 DateTime                @db.Time(0)
+  endTime                   DateTime                @db.Time(0)
+  overtime                  RequestOvertimeHeader   @relation(fields: [requestOvertimeHeaderId], references: [id])
+  hourlyWages               Decimal?                @db.Decimal(15, 2)   @default(0)
+  workHour                  Decimal?                @db.Decimal(6, 2)   @default(0)
+  multiplier                Decimal?                @db.Decimal(5, 2)   @default(0)
+
+  @@index([requestOvertimeHeaderId], map: "requestOvertimeDetails_requestOvertimeHeaderId_fkey")
+  @@map("requestOvertimeDetails")
+}
+
+model SetupOvertimeMultiplier {
+  id                                Int                     @id @default(autoincrement())
+  uuid                              String                  @unique @default(uuid()) @db.VarChar(150)
+  createdBy                         String                  @db.VarChar(100)
+  updatedBy                         String                  @db.VarChar(100)
+  createdAt                         DateTime                @default(now())
+  updatedAt                         DateTime                @default(now())
+  numberOfOvertimeHours             Decimal                 @db.Decimal(6, 2) @default(1)
+  workDaysMultiplier                Decimal                 @db.Decimal(5, 2)
+  workDays6MultiplierHoliday        Decimal                 @db.Decimal(5, 2)
+  workDays6MultiplierHolidaySortDay Decimal                 @db.Decimal(5, 2)
+  workDays5MultiplierHoliday        Decimal                 @db.Decimal(5, 2)
+
+  @@map("setupOvertimeMultiplier")
+}
+
+enum TypeOfDay {
+  Workday
+  Holiday
+}
+
+enum StatusUser {
+  Active
+  Inactive
+}
+
+enum EmployementStatus {
+  Probation
+  Contract
+  Permanent
+}
+
+enum DefaultTaxMethod {
+  Gross
+  Netto
+  GrossUp
+}
+
+enum TaxCalculationMethod {
+  Standard
+  Forward
+}
+
+enum GenerateType {
+  Monthly
+  Yearly
+}
+
+enum setupSickLeave_defaultCalculation {
+  Monthly
+  Yearly
+}
+
+enum users_status {
+  Active
+  Inactive
+}
+
+enum TaxRegime {
+  TER
+  Legacy
+}
+
+enum PayrollRunStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  LOCKED
+}
+
+/// Tarif Efektif Rata-rata bulanan (PP 58/2023 & PMK 168/2023).
+/// category: 'A' | 'B' | 'C'; upperBound = batas atas bruto bulanan;
+/// baris dengan sequence terakhir per kategori = batas terbuka (1e12).
+model TerRate {
+  id          Int     @id @default(autoincrement())
+  category    String  @db.VarChar(1)
+  upperBound  Decimal @db.Decimal(18, 2)
+  ratePercent Decimal @db.Decimal(5, 2)
+  sequence    Int
+
+  @@index([category, sequence])
+  @@map("terRate")
+}
+
+model EmploymentHistory {
+  id                  Int       @id @default(autoincrement())
+  usersId             Int
+  effectiveDate       DateTime  @db.Date
+  changeType          String    @db.VarChar(50)
+  reason              String?   @db.VarChar(150)
+  jobTitleId          Int?
+  jobTitleName        String?   @db.VarChar(150)
+  divisionId          Int?
+  divisionName        String?   @db.VarChar(150)
+  employmentStatus    String?   @db.VarChar(50)
+  ptkpCode            String?   @db.VarChar(20)
+  salaryComponents    Json?
+  createdBy           String    @db.VarChar(100)
+  updatedBy           String    @db.VarChar(100)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  users               Users     @relation(fields: [usersId], references: [id])
+
+  @@index([usersId, effectiveDate])
+  @@map("employmentHistory")
+}
+
+model EmailLog {
+  id              Int      @id @default(autoincrement())
+  payslipHeaderId Int
+  toEmail         String   @db.VarChar(150)
+  status          String   @db.VarChar(20)
+  error           String?  @db.VarChar(300)
+  sentAt          DateTime @default(now())
+  sentBy          String   @db.VarChar(100)
+  payslip         PayslipHeader @relation(fields: [payslipHeaderId], references: [id])
+
+  @@index([payslipHeaderId])
+  @@map("emailLog")
+}

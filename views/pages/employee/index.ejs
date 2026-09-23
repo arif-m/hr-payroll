@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Data Listing</h3>
+                  </div>
+                  <div class="card-body border-bottom py-3">
+                    <div class="col-12 mb-3">
+                      <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-add">Add</button><br />
+                    </div>
+                    <form action="/employee" id="frmSearch" type="GET">
+                      <div class="d-flex">
+                        <div class="text-muted">
+                        Show
+                        <div class="mx-2 d-inline-block">
+                            <input type="text" class="form-control form-control-sm" value="<%= listOfEmployee.meta.limit %>" size="3" aria-label="Invoices count">
+                        </div>
+                        entries
+                        </div>
+                        <!--<div class="ms-auto text-muted">
+                        Search:
+                        <div class="ms-2 d-inline-block">
+                            <input type="text" id="search" class="form-control form-control-sm" aria-label="search data">
+                        </div>
+                        </div>-->
+                        <div class="ms-auto text-muted">
+                          <div class="input-group mb-2">
+                            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search data" value="<% if(locals.search) { %><%= search  %><% } %>">
+                            <button class="btn" type="submit">Go</button>
+                          </div>
+                        </div>
+                    </form>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                          <th>Emp Id</th>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Role</th>
+                          <th>Email</th>
+                          <th>Join Date</th>
+                          <th>Empl. Status</th>
+                          <th></th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <% listOfEmployee.data.forEach(function(employee) { %>
+                      <tr>
+                          <td><%= employee.employeeId %></td>
+                          <td><%= employee.fullName %></td>
+                          <td><%= employee.status %></td>
+                          <td><%= employee.role.roleName %></td>
+                          <td><%= employee.email %></td>
+                          <td><%= moment(employee.joinDate).format('DD-MM-yyyy') %></td>
+                          <td><%= employee.employmentStatus %></td>
+                          <td class="text-end">
+                            <% if (employee.status=='Active') {  %>
+                            <button class="btn btn-outline-primary ms-auto inactive" data-bs-toggle="modal" data-bs-target="#modal-inactive" data-id="<%= employee.id %>" data-uuid="<%= employee.uuid %>" >Set Inactive</button>
+                            <% } else { %>
+                              <button class="btn btn-outline-primary ms-auto inactive" data-bs-toggle="modal" data-bs-target="#modal-inactive" data-id="<%= employee.id %>" data-uuid="<%= employee.uuid %>" disabled>Set Inactive</button>
+                            <% } %>
+                            <button class="btn btn-outline-primary ms-auto edit" data-bs-toggle="modal" data-bs-target="#modal-edit" data-id="<%= employee.id %>" data-uuid="<%= employee.uuid %>" data-full_name="<%= employee.fullName %>" >Edit</button>
+                          </td>
+                      </tr>
+                      <% }); %>                      
+                      </tbody>
+                    </table>
+                  </div>
+                                    
+                  <div class="card-footer d-flex align-items-center">
+                    <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfEmployee.meta.totalRecordCurrentPage %></span> of <span><%= listOfEmployee.meta.totalRecords %></span> entries</p>
+                    <% if (listOfEmployee.meta.totalPage > 1) { %>
+                    <ul class="pagination m-0 ms-auto">
+                      <!--<li class="page-item disabled">
+                      <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>
+                          prev
+                      </a>
+                      </li>-->
+                      <% if (listOfEmployee.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/employee?page=0&limit=<%= listOfEmployee.meta.limit %>"><< First</a></li>&nbsp;
+                      <% } %>
+                      <% if (listOfEmployee.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/employee?page=<%= listOfEmployee.meta.currentPage-1 %>&limit=<%= listOfEmployee.meta.limit %>">< Previous</a></li>&nbsp;
+                      <% } %>
+
+                      <% if ((listOfEmployee.meta.currentPage + 1) == listOfEmployee.meta.totalPage) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/employee?page=<%= listOfEmployee.meta.currentPage+1 %>&limit=<%= listOfEmployee.meta.limit %>"> Next ></a></li>&nbsp;
+                      <% } %>
+
+                      <% if (listOfEmployee.meta.currentPage == (listOfEmployee.meta.totalPage-1)) { %>
+                        <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                      <% } else { %>
+                          <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/employee?page=<%= listOfEmployee.meta.totalPage - 1 %>&limit=<%= listOfEmployee.meta.limit %>">Last >></a></li>
+                      <% } %>
+                      
+                    </ul>
+                    <% } %>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+  
+  <div class="modal modal-blur fade" id="modal-add" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New Employee</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/employee" autocomplete="off" enctype="multipart/form-data">
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-lg-12">
+                <div class="mb-3">
+                  <i class="fa fa-asterisk" style="font-size:10px;color:red"></i> Mandatory
+                </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Status</label>
+                      <select name="status" id="status" class="form-control">
+                          <option value="Active">Active</option>
+                          <option value="Inactive">Inactive</option>
+                      </select>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Role <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <select name="role" id="role" class="form-control" required>
+                          <% listOfRoles.forEach(function(role) { %>                               
+                          <option value="<%= role.id %>"   
+                              <% if(role.id === 1){ %>
+                                  selected
+                              <% } %>
+                          >
+                              <%= role.roleName %>
+                          </option>
+                          <% }); %>
+                      </select>
+                  </div>
+              </div>   
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Full Name <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <input type="text" class="form-control" name="full_name" id="full_name" placeholder="Name of Employee" required>
+                  </div>   
+              </div>                   
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Join Date <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <input type="text" class="form-control join-date" placeholder="DD-MM-YYYY" name="join_date" id="join_date" required>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Email <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <input type="email" class="form-control" name="email" id="email" placeholder="Email" required>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Mobile Phone</label>
+                      <input type="text" class="form-control" name="mobile_phone" id="mobile_phone" placeholder="Mobile Phone">
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Date of Birth <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <input type="text" class="form-control" name="dob" id="dob" placeholder="DD-MM-YYYY" required>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Place of Birth <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <input type="text" class="form-control" name="place_of_birth" id="place_of_birth" placeholder="Place of Birth" required>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Personal ID Type</label>
+                      <select name="personal_id_type" id="personal_id_type" class="form-control">
+                          <option value="KTP">KTP</option>
+                          <option value="SIM">SIM</option>
+                      </select>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Personal ID Number</label>
+                      <input type="text" class="form-control" name="personal_id_number" id="personal_id_number" placeholder="Personal ID Number">
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Address</label>
+                      <input type="text" class="form-control" name="address" id="address" placeholder="Address">
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Employment Status <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <select class="form-control" name="employment_status" id="employment_status" required>
+                          <option value="Probation">Probation</option>
+                          <option value="Contract">Contract</option>
+                      </select>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Business Unit</label>
+                      <select name="business_unit" id="business_unit" class="form-control">
+                          <% listOfBU.forEach(function(bu) { %>
+                          <option value="<%= bu.id %>"><%= bu.businessUnitName %></option>
+                          <% }); %>
+                      </select>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Division</label>
+                      <select name="division" id="division" class="form-control">
+                        <!--<option value="">Select Division</option>-->
+                        <% listOfDivision.forEach(function(division) { %>
+                        <option value="<%= division.id %>"><%= division.divisionName %></option>
+                        <% }); %>
+                      </select>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Job Titles</label>
+                      <select name="job_titles" id="job_titles" class="form-control">
+                        <!--<option value="">Select Jobtitles</option>-->
+                        <% listOfJobtitles.forEach(function(jobtitles) { %>
+                        <option value="<%= jobtitles.id %>"><%= jobtitles.jobTitleName %></option>
+                        <% }); %>
+                    </select>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="mb-3">
+                    <label class="form-label">Supervisor <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                    <select name="supervisor" id="supervisor" class="form-control" required>
+                      <option value="">Select Supervisor</option>
+                      <% listOfSupervisor.forEach(function(supervisor) { %>
+                        <option value="<%= supervisor.id %>"><%= supervisor.fullName %></option>
+                        <% }); %>
+                    </select>
+                </div>
+              </div>
+              <!--
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Basic Salary <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <input type="number" class="form-control" name="basic_salary" id="basic_salary" min="0" value="0" required>
+                  </div>
+              </div>-->
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">NPWP <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <input type="text" class="form-control" name="npwp" id="npwp" placeholder="NPWP" required>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="mb-3">
+                    <label class="form-label">PTKP <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                    <select name="ptkp" id="ptkp" class="form-control" required>
+                      <option value="">Select Ptkp</option>
+                      <% listOfPtkp.forEach(function(data) { %>
+                        <option value="<%= data.id %>"><%= data.code %> - <%= data.description %></option>
+                        <% }); %>
+                    </select>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="mb-3">
+                    <label class="form-label">Maximum of Medical Reimbursement <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                    <input type="number" class="form-control" name="medical_reimbursement" id="medical_reimbursement" placeholder="Maximum of Medical Reimbursement" min="0" required>
+                </div>
+              </div>
+              <!--
+              <div class="col-lg-6">
+                <div class="mb-3">
+                  <label class="form-label col-3 col-form-label">Picture</label>
+                  <input type="file" class="form-control" name="image" id="image" accept=".jpg, .jpeg, .png, .tif" required >
+                </div>
+              </div> -->
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">
+              Insert Data
+            </button>
+          </div>
+        </form>
+    </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Employee</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="frmEdit" class="card card-md" method="POST" action="/employee/update"  autocomplete="off">
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-lg-12">
+                <div class="mb-3">
+                  <i class="fa fa-asterisk" style="font-size:10px;color:red"></i> Mandatory
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="mb-3">
+                    <label class="form-label">Employee ID <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                    <input type="text" name="employee_id" id="employee_id" class="form-control employee-id" disabled>
+                </div>   
+              </div>                   
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Status</label>
+                      <select name="status" id="status" class="form-control status-employee" disabled>
+                          <option value="Active">Active</option>
+                          <option value="Inactive">Inactive</option>
+                      </select>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Role <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <select name="role" id="role" class="form-control role" required>
+                          <% listOfRoles.forEach(function(role) { %>
+                          <option value="<%= role.id %>"><%= role.roleName %></option>
+                          <% }); %>
+                      </select>
+                  </div>
+              </div>   
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Full Name <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <input type="hidden" name="employee_uuid" id="employee_uuid" class="employee-uuid" >
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <input type="text" class="form-control full-name" name="full_name" id="full_name" placeholder="Name of Employee" required>
+                  </div>   
+              </div>                   
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Join Date <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <input type="text" class="form-control join-date" placeholder="DD-MM-YYYY" name="join_date_edit" id="join_date_edit" required>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Email</label>
+                      <input type="email" class="form-control email" name="email" id="email" placeholder="Email" required>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Mobile Phone</label>
+                      <input type="text" class="form-control mobile-phone" name="mobile_phone" id="mobile_phone" placeholder="Mobile Phone">
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Date of Birth <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <input type="text" class="form-control dob" name="dob_edit" id="dob_edit" placeholder="DD-MM-YYYY" required>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Place of Birth <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <input type="text" class="form-control place-of-birth" name="place_of_birth" id="place_of_birth" placeholder="Place of Birth" required>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Personal ID Type</label>
+                      <select name="personal_id_type" id="personal_id_type" class="form-control personal-id-type">
+                          <option value="KTP">KTP</option>
+                          <option value="SIM">SIM</option>
+                      </select>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Personal ID Number</label>
+                      <input type="text" class="form-control personal-id-number" name="personal_id_number" id="personal_id_number" placeholder="Personal ID Number">
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Address</label>
+                      <input type="text" class="form-control address" name="address" id="address" placeholder="Address">
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Employment Status <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <select class="form-control employment-status" name="employment_status" id="employment_status" disabled>
+                        <option value="Probation">Probation</option>
+                        <option value="Contract">Contract</option>
+                        <option value="Permanent">Permanent</option>
+                      </select>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Business Unit</label>
+                      <select name="business_unit" id="business_unit" class="form-control business-unit">
+                          <% listOfBU.forEach(function(bu) { %>
+                          <option value="<%= bu.id %>"><%= bu.businessUnitName %></option>
+                          <% }); %>
+                      </select>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Division</label>
+                      <select name="division" id="division" class="form-control division">
+                          <% listOfDivision.forEach(function(division) { %>
+                          <option value="<%= division.id %>"><%= division.divisionName %></option>
+                          <% }); %>
+                      </select>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Job Titles</label>
+                      <select name="job_titles" id="job_titles" class="form-control job-titles">
+                          <% listOfJobtitles.forEach(function(jobtitles) { %>
+                          <option value="<%= jobtitles.id %>"><%= jobtitles.jobTitleName %></option>
+                          <% }); %>
+                      </select>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="mb-3">
+                    <label class="form-label">Supervisor <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                    <select name="supervisor" id="supervisor_edit" class="form-control supervisor" required>
+                      <option value="">Select Supervisor</option>
+                      <% listOfSupervisor.forEach(function(supervisor) { %>
+                        <option value="<%= supervisor.id %>"><%= supervisor.fullName %></option>
+                        <% }); %>
+                    </select>
+                </div>
+              </div>
+              <!--<div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Basic Salary <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <input type="number" class="form-control basic-salary" name="basic_salary" id="basic_salary" placeholder="Basic Salary" min="0" required>
+                  </div>
+              </div>-->
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">NPWP <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                      <input type="text" class="form-control npwp" name="npwp" id="npwp" placeholder="NPWP" required>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Bank (untuk transfer gaji)</label>
+                      <input type="text" class="form-control bank-name" name="bank_name" id="bank_name" placeholder="cth: BCA / MANDIRI / BRI">
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">No. Rekening</label>
+                      <input type="text" class="form-control bank-account-number" name="bank_account_number" id="bank_account_number" placeholder="Nomor rekening">
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <div class="mb-3">
+                      <label class="form-label">Nama Pemilik Rekening</label>
+                      <input type="text" class="form-control bank-account-holder" name="bank_account_holder" id="bank_account_holder" placeholder="Sesuai buku rekening">
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="mb-3">
+                    <label class="form-label">PTKP <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                    <select name="ptkp" id="ptkp_edit" class="form-control" required>
+                      <option value="">Select Ptkp</option>
+                      <% listOfPtkp.forEach(function(data) { %>
+                        <option value="<%= data.id %>"><%= data.code %> - <%= data.description %></option>
+                        <% }); %>
+                    </select>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="mb-3">
+                    <label class="form-label">Maximum of Medical Reimbursement <i class="fa fa-asterisk" style="font-size:10px;color:red"></i></label>
+                    <input type="number" class="form-control medical-reimbursement" name="medical_reimbursement" id="medical_reimbursement" placeholder="Maximum of Medical Reimbursement" min="0" required>
+                    <input type="hidden" class="form-control medical-reimbursement2" name="medical_reimbursement2" id="medical_reimbursement2">
+                </div>
+              </div>
+              <!--
+              <div class="col-lg-6">
+                <div class="mb-3">
+                  <label class="form-label col-3 col-form-label">Picture</label>
+                  <input type="file" class="form-control" name="image" id="image" accept=".jpg, .jpeg, .png, .tif" required >
+                </div>
+              </div>  -->
+
+            </div>
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button id="updateBtn" class="btn btn-primary ms-auto" type="submit">
+              Update Data
+            </button>
+          </div>
+        </form>
+    </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-inactive" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <form class="card card-md" method="POST" action="/employee/set-inactive" autocomplete="off">
+          <div class="modal-body text-center py-4">
+            <!-- Download SVG icon from http://tabler-icons.io/i/alert-triangle -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+            <h3>Are you sure?</h3>
+            <div class="text-muted">Do you really want to set inactive this employee? What you've done cannot be undone.</div>
+            <input type="hidden" name="employee_uuid" id="employee_uuid" class="employee-uuid" >
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">
+                    Cancel
+                  </a>
+                </div>
+                <button id="deleteBtn" class="col btn btn-danger ms-auto" type="submit" data-bs-dismiss="modal">
+                  Set Inactive
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+
+  <script src="/assets/tom-select/tom-select.complete.min.js"></script>
+  <link href="/assets/tom-select/tom-select.css" rel="stylesheet">
+
+<!--  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.0.2/dist/css/tom-select.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.0.2/dist/js/tom-select.complete.min.js"></script>
+-->
+
+  <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/litepicker/2.0.11/litepicker.js" defer></script>-->
+  <script src="/assets/tabler/libs/litepicker/dist/litepicker.js" ></script>
+  <script type = "text/JavaScript">
+    new TomSelect("#supervisor",{
+      create: true,
+      sortField: {
+        field: "text",
+        direction: "asc"
+      },
+      maxItems: 1
+    });
+    new TomSelect("#job_titles",{
+      create: true,
+      sortField: {
+        field: "text",
+        direction: "asc"
+      },
+      maxItems: 1
+    });
+    new TomSelect("#division",{
+      create: true,
+      sortField: {
+        field: "text",
+        direction: "asc"
+      },
+      maxItems: 1
+    });
+    var control = new TomSelect("#supervisor_edit",{
+      sortField: {
+        field: "text",
+        direction: "asc"
+      },
+      maxItems: 1
+    }); 
+    new TomSelect("#ptkp",{
+      create: true,
+      sortField: {
+        field: "text",
+        direction: "asc"
+      },
+      maxItems: 1
+    });
+    var ctrlPtkp = new TomSelect("#ptkp_edit",{
+      create: true,
+      sortField: {
+        field: "text",
+        direction: "asc"
+      },
+      maxItems: 1
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+    	window.Litepicker && (new Litepicker({
+    		element: document.getElementById('join_date'),
+        format: 'DD-MM-YYYY',
+        dropdowns: {
+          minYear: new Date().getFullYear() - 30,
+          maxYear: new Date().getFullYear() + 0,
+          months: true,
+          years: true
+        },
+    		buttonText: {
+    			previousMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-left -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>`,
+    			nextMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-right -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>`,
+    		},
+    	}));
+
+        window.Litepicker && (new Litepicker({
+    		element: document.getElementById('join_date_edit'),
+        format: 'DD-MM-YYYY',
+        dropdowns: {
+          minYear: new Date().getFullYear() - 30,
+          maxYear: new Date().getFullYear() + 0,
+          months: true,
+          years: true
+        },
+    		buttonText: {
+    			previousMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-left -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>`,
+    			nextMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-right -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>`,
+    		},
+    	}));
+
+        window.Litepicker && (new Litepicker({
+    		element: document.getElementById('dob'),
+        format: 'DD-MM-YYYY',
+        dropdowns: {
+          minYear: new Date().getFullYear() - 150,
+          maxYear: new Date().getFullYear() + 100,
+          months: true,
+          years: true
+        },
+    		buttonText: {
+    			previousMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-left -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>`,
+    			nextMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-right -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>`,
+    		},
+    	}));
+
+        window.Litepicker && (new Litepicker({
+    		element: document.getElementById('dob_edit'),
+        format: 'DD-MM-YYYY',
+        dropdowns: {
+          minYear: new Date().getFullYear() - 150,
+          maxYear: new Date().getFullYear() + 100,
+          months: true,
+          years: true
+        },
+    		buttonText: {
+    			previousMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-left -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18" /></svg>`,
+    			nextMonth: `<!-- Download SVG icon from http://tabler-icons.io/i/chevron-right -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>`,
+    		},
+    	}));
+
+    });
+
+    var editModal = document.getElementById('modal-edit');
+    editModal.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var employeeId = button.getAttribute('data-id')
+      var employeeUuid = button.getAttribute('data-uuid')
+      var employeeName = button.getAttribute('data-full_name')
+      // If necessary, you could initiate an AJAX request here
+      // and then do the updating in a callback.
+      //
+      let url = 'employee/' + employeeUuid;
+      fetch(url)
+        .then(res => res.json())
+        .then(json => {
+          let modalEmployeeId = editModal.querySelector(".employee-id");
+          let modalStatus= editModal.querySelector(".status-employee");
+          let modalRole = editModal.querySelector(".role");
+          let modalEmployeeUuid = editModal.querySelector(".employee-uuid");
+          let modalEmployeeName = editModal.querySelector(".full-name");
+          let modalJoinDate = editModal.querySelector(".join-date");
+          let modalEmail = editModal.querySelector(".email");
+          let modalMobilePhone = editModal.querySelector(".mobile-phone");
+          let modalDateOfBirth = editModal.querySelector(".dob");
+          let modalPlaceOfBirth = editModal.querySelector(".place-of-birth");
+          let modalPersonalIdType = editModal.querySelector(".personal-id-type");
+          let modalPersonalIdNumber = editModal.querySelector(".personal-id-number");
+          let modalAddress = editModal.querySelector(".address");
+          let modalEmploymentStatus = editModal.querySelector(".employment-status");
+          let modalBusinessUnit = editModal.querySelector(".business-unit");
+          let modalDivision = editModal.querySelector(".division");
+          let modalJobtitles = editModal.querySelector(".job-titles");
+          //let modalBasicSalary = editModal.querySelector(".basic-salary");
+          let modalMedicalReimbursement = editModal.querySelector(".medical-reimbursement");
+          let modalMedicalReimbursement2 = editModal.querySelector(".medical-reimbursement2");
+          let modalNpwp = editModal.querySelector(".npwp");
+          let modalBankName = editModal.querySelector(".bank-name");
+          let modalBankAccountNumber = editModal.querySelector(".bank-account-number");
+          let modalBankAccountHolder = editModal.querySelector(".bank-account-holder");
+          let modalPtkp = editModal.querySelector(".ptkp");
+
+          // Deserialize json because have BIG INT data type
+          const jsonDeserialize = JSON.parse(json.data, (key, value) => {
+              if (typeof value === "string" && value.startsWith('BIGINT::')) {
+                  return BigInt(value.substr(8));
+              }
+              return value;
+          });
+
+          modalEmployeeId.value = jsonDeserialize.employeeId;
+          modalStatus.value = jsonDeserialize.status;
+          modalRole.value = jsonDeserialize.role.id;
+          modalEmployeeUuid.value = jsonDeserialize.uuid;
+          modalEmployeeName.value = jsonDeserialize.fullName;
+
+          let joinDate =  new Date(jsonDeserialize.joinDate);
+          var dd = String(joinDate.getDate()).padStart(2, '0');
+          var mm = String(joinDate.getMonth() + 1).padStart(2, '0'); //January is 0!
+          var yyyy = joinDate.getFullYear();
+          joinDate = dd + '-' + mm + '-' + yyyy;
+          
+          modalJoinDate.value = joinDate;
+          modalEmail.value = jsonDeserialize.email;
+          modalMobilePhone.value = jsonDeserialize.mobilePhone;
+
+          let dob =  new Date(jsonDeserialize.dob);
+          var dd = String(dob.getDate()).padStart(2, '0');
+          var mm = String(dob.getMonth() + 1).padStart(2, '0'); //January is 0!
+          var yyyy = dob.getFullYear();
+          dob = dd + '-' + mm + '-' + yyyy;
+
+          modalDateOfBirth.value = dob;
+          modalPlaceOfBirth.value = jsonDeserialize.placeOfBirth;
+          modalPersonalIdType.value = jsonDeserialize.personalIdType;
+          modalPersonalIdNumber.value = jsonDeserialize.personalIdNumber;
+          modalAddress.value = jsonDeserialize.address;
+          modalEmploymentStatus.value = jsonDeserialize.employmentStatus;
+          modalBusinessUnit.value = jsonDeserialize.businessUnit.id;
+          modalDivision.value = jsonDeserialize.division.id;
+          modalJobtitles.value = jsonDeserialize.jobTitle.id;
+          //modalBasicSalary.value = jsonDeserialize.basicSalary;
+          modalMedicalReimbursement.value = jsonDeserialize.medicalReimbursementBudget;
+          modalMedicalReimbursement2.value = jsonDeserialize.medicalReimbursementBudget;
+          modalNpwp.value = jsonDeserialize.npwp;
+          modalBankName.value = jsonDeserialize.bankName || '';
+          modalBankAccountNumber.value = jsonDeserialize.bankAccountNumber || '';
+          modalBankAccountHolder.value = jsonDeserialize.bankAccountHolder || '';
+          control.setValue(jsonDeserialize.supervisor);
+          ctrlPtkp.setValue(jsonDeserialize.ptkpId);
+      })
+    })
+
+    var inactiveModal = document.getElementById('modal-inactive');
+    inactiveModal.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var employeeUuid = button.getAttribute('data-uuid')
+
+      var modalEmployeeUuid = inactiveModal.querySelector(".employee-uuid");
+      modalEmployeeUuid.value = employeeUuid;
+    })
+
+    var searchElement = document.getElementById('search');
+    searchElement.addEventListener('keyup', function(event){
+      if (event.code === 'Enter')
+      {
+          event.preventDefault();
+          document.querySelector('frmSearch').submit();
+      }
+    });
+  </script>
+</body>
+</html>

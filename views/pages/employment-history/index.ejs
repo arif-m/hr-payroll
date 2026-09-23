@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Riwayat Kepegawaian — Efektif Tanggal</h3>
+                  <form action="/employment-history" id="frmSearch" method="GET" class="ms-auto d-flex">
+                    <input type="text" name="search" class="form-control form-control-sm me-2" style="width: 220px;"
+                      placeholder="Cari nama karyawan..." value="<%= search %>">
+                    <button class="btn btn-sm" type="submit">Search</button>
+                  </form>
+                </div>
+                <div class="card-body border-bottom py-3">
+                  <span class="text-muted">Setiap perubahan gaji, jabatan, divisi, status, dan PTKP terekam otomatis dengan tanggal efektif. Klik <strong>Riwayat</strong> untuk melihat timeline dan menghitung gaji pada tanggal berapa pun.</span>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                    <thead>
+                    <tr>
+                      <th>Nama</th>
+                      <th>Employee ID</th>
+                      <th>Jabatan</th>
+                      <th>Divisi</th>
+                      <th>Status</th>
+                      <th>Tanggal Masuk</th>
+                      <th style="text-align: center;">Jml Perubahan</th>
+                      <th class="text-end"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                      <% employees.forEach(function(employee) { %>
+                        <tr>
+                          <td><%= employee.fullName %></td>
+                          <td><%= employee.employeeId.toString() %></td>
+                          <td><%= employee.jobTitle ? employee.jobTitle.jobTitleName : '-' %></td>
+                          <td><%= employee.division ? employee.division.divisionName : '-' %></td>
+                          <td><span class="badge bg-<%= employee.employmentStatus === 'Permanent' ? 'green' : 'orange' %>"><%= employee.employmentStatus %></span></td>
+                          <td><%= moment(employee.joinDate).format('DD-MM-yyyy') %></td>
+                          <td style="text-align: center;">
+                            <span class="badge bg-<%= employee._count.employmentHistories > 0 ? 'blue' : 'secondary' %>"><%= employee._count.employmentHistories %></span>
+                          </td>
+                          <td class="text-end">
+                            <a class="btn btn-outline-primary btn-sm" href="/employment-history/<%= employee.uuid %>">Riwayat</a>
+                          </td>
+                        </tr>
+                      <% }); %>
+                      <% if (employees.length === 0) { %>
+                      <tr><td colspan="8" class="text-center text-muted py-4">Tidak ada karyawan aktif.</td></tr>
+                      <% } %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+</body>
+</html>

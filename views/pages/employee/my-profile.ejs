@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-6">
+              <div class="card">
+                <div class="card-body p-4 text-center">
+                  <% if (employeeData.image == '') { %>
+                    <span class="avatar avatar-xl mb-3 avatar-rounded" data-bs-toggle="modal" data-bs-target="#modal-edit" ><%= acronymFullName %></span>
+                    <% } else { %>
+                    <img class="avatar avatar-xl mb-3 avatar-rounded" src="<%= employeeData.image %>" data-bs-toggle="modal" data-bs-target="#modal-edit">
+                  <% }%>
+                  <h3 class="m-0 mb-1"><a href="#"><%= employeeData.fullName %></a></h3>
+                  <div class="text-muted">Employment Status : <%= employeeData.employmentStatus %></div>
+                  <div class="text-muted">Business Unit : <%= employeeData.businessUnit.businessUnitName %></div>
+                  <div class="text-muted">Division : <%= employeeData.division.divisionName %></div>
+                  <div class="mt-3">
+                    <span class="badge bg-green-lt"><%= employeeData.jobTitle.jobTitleName %></span>
+                  </div>
+                </div>
+
+                <div class="d-flex">
+                  <a href="#" class="card-btn"><!-- Download SVG icon from http://tabler-icons.io/i/mail -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2 text-muted" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="3" y="5" width="18" height="14" rx="2" /><polyline points="3 7 12 13 21 7" /></svg>
+                    <%= employeeData.email %> </a>
+                  <a href="#" class="card-btn"><!-- Download SVG icon from http://tabler-icons.io/i/phone -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2 text-muted" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2" /></svg>
+                    <%= employeeData.mobilePhone %> </a>
+                </div>
+              </div>                
+            </div>
+
+            <div class="col-6">
+              <div class="card">
+                <div class="card-body">
+                  <div class="form-group mb-3 row">
+                    <label class="form-label col-4 col-form-label">Join Date</label>
+                    <div class="col">
+                    <input type="text" class="form-control" value="<%= moment(employeeData.joinDate).format('DD-MM-YYYY') %>" disabled>
+                    </div>
+                  </div> 
+                  <div class="form-group mb-3 row">
+                    <label class="form-label col-4 col-form-label">Place of Birth</label>
+                    <div class="col">
+                    <input type="text" class="form-control" placeholder="dob" value="<%= employeeData.placeOfBirth %>" disabled>
+                    </div>
+                  </div>  
+                  <div class="form-group mb-3 row">
+                    <label class="form-label col-4 col-form-label">Date of Birth</label>
+                    <div class="col">
+                    <input type="text" class="form-control" placeholder="dob" value="<%= moment(employeeData.dob).format('DD-MM-YYYY') %>" disabled>
+                    </div>
+                  </div>  
+                  <div class="form-group mb-3 row">
+                    <label class="form-label col-4 col-form-label">Personal ID Type</label>
+                    <div class="col">
+                    <input type="text" class="form-control" placeholder="Personal ID Type" value="<%= employeeData.personalIdType %>" disabled>
+                    </div>
+                  </div>  
+                  <div class="form-group mb-3 row">
+                    <label class="form-label col-4 col-form-label">Personal ID Number</label>
+                    <div class="col">
+                    <input type="text" class="form-control" placeholder="Personal ID Number" value="<%= employeeData.personalIdNumber %>" disabled>
+                    </div>
+                  </div>  
+                  <div class="form-group mb-3 row">
+                      <label class="form-label col-4 col-form-label">Address</label>
+                      <div class="col">
+                      <input type="text" class="form-control" placeholder="Address" value="<%= employeeData.address %>" disabled>
+                      </div>
+                  </div>  
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+  
+  <div class="modal modal-blur fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Change Profile Image</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="frmEdit" class="card card-md" method="POST" action="/my-profile/update"  autocomplete="off" enctype="multipart/form-data">
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-lg-6">
+                <div class="mb-3">
+                  <label class="form-label col-6 col-form-label">Image</label>
+                  <% if (employeeData.image == '') { %>
+                    <span class="avatar avatar-xl mb-3 avatar-rounded" ><%= acronymFullName %></span>
+                  <% } else { %>
+                    <img id="preview" class="avatar avatar-xl mb-3 avatar-rounded" height="200" src="<%= employeeData.image %>">
+                  <% }%>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="mb-3">
+                  <label class="form-label col-6 col-form-label">Change Image</label>
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="file" class="form-control" name="image" id="image" accept=".jpg, .jpeg, .png, .tif" required >
+                </div>
+              </div>
+            </div>
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button id="updateBtn" class="btn btn-primary ms-auto" type="submit">
+              Update Data
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-success" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-success"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-green icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" /><path d="M9 12l2 2l4 -4" /></svg>
+          <h3><%= message.success %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-success w-100" data-bs-dismiss="modal">
+                  OK
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+
+  <script>
+    const imageClick = document.querySelector('#image');
+    imageClick.addEventListener('change', function (e) {      
+      var input=this;
+			if ( input.files && input.files[0]){
+				if(input.files[0]['type']=='image/jpeg' || input.files[0]['type']=='image/jpg' || input.files[0]['type']=='image/png' || input.files[0]['type']=='image/gif'){
+					if(input.files[0]['size'] > 3584000){
+						message = "File too big, max size 10Mb !!!";
+            alert(message)
+						return false;
+					}
+				}else{
+					message = "File format is invalid. Please re-upload your image with an appropriate format (JPEG, JPG, PNG)";
+          alert(message)
+					return false;
+				}
+			}
+			previewFile();
+    })
+
+    function previewFile() {
+      var preview = document.querySelector('#preview');
+      var file    = document.querySelector('input[type=file]').files[0];
+      var reader  = new FileReader();
+      reader.addEventListener("load", function () {
+        preview.src = reader.result;
+      }, false);
+      if (file) {
+        reader.readAsDataURL(file);
+      }
+    }
+
+    let getMessageSuccess = "<%= message.success %>";
+    if(getMessageSuccess) {
+      var successModal = new bootstrap.Modal(document.getElementById('modal-success'), {})
+      successModal.toggle();
+    }
+  </script>
+</body>
+</html>

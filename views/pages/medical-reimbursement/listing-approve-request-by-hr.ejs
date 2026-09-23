@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Data Listing</h3>
+                  </div>
+                  <div class="card-body border-bottom py-3">
+                    <form action="/medical-reimbursement-approved-by-hr" id="frmSearch" type="GET">
+                      <div class="d-flex">
+                        <div class="text-muted">
+                        Show
+                        <div class="mx-2 d-inline-block">
+                            <input type="text" class="form-control form-control-sm" value="<%= listOfMedicalReimbursement.meta.limit %>" size="3" aria-label="data count">
+                        </div>
+                        entries
+                        </div>
+                        <div class="ms-auto text-muted">
+                          <div class="input-group mb-2">
+                            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search data" value="<% if(locals.search) { %><%= search  %><% } %>">
+                            <button class="btn" type="submit">Go</button>
+                          </div>
+                        </div>
+                    </form>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                        <th>Employee</th>
+                        <th>Job Title</th>
+                        <th>Division</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Created Date</th>
+                        <th style="text-align: right">Amount</th>
+                        <th style="text-align: right">Budget</th>
+                        <th style="text-align: right">Taken</th>
+                        <th></th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% listOfMedicalReimbursement.data.forEach(function(data) { %>
+                          <tr>
+                            <td><%= data.fullName %></td>
+                            <td><%= data.jobTitleName %></td>
+                            <td><%= data.divisionName %></td>
+                            <td><%= data.reimbursementCategory %></td>
+                            <td><%= data.reimbursementDescription.substring(0,40) %></td>
+                            <td><%= moment.utc(data.createdAt).format('DD-MM-YYYY') %></td>
+                            <td style="text-align: right"><%= generalHelper.formatNumberWithCommas(data.totalReimbursement) %></td>
+                            <td style="text-align: right"><%= generalHelper.formatNumberWithCommas(data.medicalReimbursementBudget) %></td>
+                            <td style="text-align: right"><%= generalHelper.formatNumberWithCommas(data.medicalReimbursementTaken) %></td>
+                            <td class="text-end">
+                              <button class="btn btn-outline-primary ms-auto edit"><a href="/medical-reimbursement-approved-by-hr/<%= data.uuid %>">Approve</a></button>
+                              <!--<button class="btn btn-outline-primary ms-auto edit" data-bs-toggle="modal" data-bs-target="#modal-edit" data-uuid="<%= data.uuid %>" data-employee-id="<%= data.employeeId %>" data-category="<%= data.reimbursementCategory %>" data-full_name="<%= data.fullName %>" data-reimbursement_description="<%= data.reimbursementDescription %>" data-created_date="<%= moment(data.createdDate).format('DD-MM-YYYY') %>" data-amount="<%= data.totalReimbursement %>" data-balance="<%= data.medicalReimbursementBudget %>">Approved</button>-->
+                            </td>
+                          </tr>
+                        <% }); %>                       
+                      </tbody>
+                    </table>
+                  </div>
+                                    
+                  <div class="card-footer d-flex align-items-center">
+                    <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfMedicalReimbursement.meta.totalRecordCurrentPage %></span> of <span><%= listOfMedicalReimbursement.meta.totalRecords %></span> entries</p>
+                    <% if (listOfMedicalReimbursement.meta.totalPage > 1) { %>
+                    <ul class="pagination m-0 ms-auto">
+                      <% if (listOfMedicalReimbursement.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/medical-reimbursement-approved-by-hr/listing?page=0&limit=<%= listOfMedicalReimbursement.meta.limit %>"><< First</a></li>&nbsp;
+                      <% } %>
+                      
+                      <% if (listOfMedicalReimbursement.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/medical-reimbursement-approved-by-hr/listing?page=<%= listOfMedicalReimbursement.meta.currentPage-1 %>&limit=<%= listOfMedicalReimbursement.meta.limit %>">< Previous</a></li>&nbsp;
+                      <% } %>
+
+                      <% if ((listOfMedicalReimbursement.meta.currentPage + 1) == listOfMedicalReimbursement.meta.totalPage) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/medical-reimbursement-approved-by-hr/listing?page=<%= listOfMedicalReimbursement.meta.currentPage+1 %>&limit=<%= listOfMedicalReimbursement.meta.limit %>"> Next ></a></li>&nbsp;
+                      <% } %>
+
+                      <% if (listOfMedicalReimbursement.meta.currentPage == (listOfMedicalReimbursement.meta.totalPage-1)) { %>
+                        <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                      <% } else { %>
+                          <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/medical-reimbursement-approved-by-hr/listing?page=<%= listOfMedicalReimbursement.meta.totalPage - 1 %>&limit=<%= listOfMedicalReimbursement.meta.limit %>">Last >></a></li>
+                      <% } %>
+                    </ul>
+                    <% } %>
+                  </div> 
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-success" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-success"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-green icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" /><path d="M9 12l2 2l4 -4" /></svg>
+          <h3><%= message.success %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-success w-100" data-bs-dismiss="modal">
+                  OK
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+
+  <% var messageSuccess = message.success; %>
+  <script type = "text/JavaScript">
+    let getMessageSuccess = "<%= messageSuccess %>";
+    if(getMessageSuccess) {
+      var successModal = new bootstrap.Modal(document.getElementById('modal-success'), {})
+      successModal.toggle();
+    }
+  </script>
+</body>
+</html>

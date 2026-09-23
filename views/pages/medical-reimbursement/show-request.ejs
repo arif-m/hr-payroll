@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body onload="createTable()">  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Data</h3>
+                </div>                  
+                <form action="/medical-reimbursement-request/add" method="POST" autocomplete="off">
+                  <div class="card-body">
+                    <div class="row">                
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Description</label>
+                          <div class="col-9">
+                            <textarea class="form-control" name="description_header" disabled><%=getDataRequestMedicalReimbursementHeader.reimbursementDescription %></textarea>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">Category</label>
+                            <div class="col-9">
+                              <input type="text" class="form-control" name="category_description" id="category_description" value="<%=getDataRequestMedicalReimbursementHeader.reimbursementCategory %>" disabled>
+                          </div>
+                        </div>
+                      </div> 
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Total</label>
+                          <div class="col-9">
+                            <input type="hidden" class="form-control" name="total" id="total" value="<%= getDataRequestMedicalReimbursementHeader.totalReimbursement %>">
+                            <input type="text" class="form-control" name="total_2" id="total_2" value="<%= String(getDataRequestMedicalReimbursementHeader.totalReimbursement).replace(/(.)(?=(\d{3})+$)/g,'$1,')  %>" disabled>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group mb-3 row">
+                          <label class="form-label col-3 col-form-label">Balance</label>
+                          <div class="col-9">
+                            <input type="hidden" class="form-control" name="balance" id="balance" value="<%= employeeData.medicalReimbursementRemaining %>">
+                            <input type="text" class="form-control" name="balance2" id="balance2" value="<%= String(employeeData.medicalReimbursementRemaining).replace(/(.)(?=(\d{3})+$)/g,'$1,') %>" disabled>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="mb-3">
+                            <label class="form-label">Image</label>
+                            <a href="<%= getDataRequestMedicalReimbursementHeader.image %>" id="href_image" clas="href_image" target="_blank"><img src="<%= getDataRequestMedicalReimbursementHeader.image %>" alt="Image medical reimbursment" id="image" class="image" style="width:200px"></a>
+                        </div>
+                      </div>  
+                      <fieldset class="form-fieldset">
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">SPV Status</label>
+                            <div class="col-9">
+                              <% if (getDataRequestMedicalReimbursementHeader.isApproved == 0) { %>
+                                <input type="text" name="is_approved" class="form-control" value="Open" disabled>
+                              <% } else if (getDataRequestMedicalReimbursementHeader.isApproved == 1) { %>
+                                <input type="text" name="is_approved" class="form-control" value="Approved" disabled>
+                              <% } else if (getDataRequestMedicalReimbursementHeader.isApproved == 2) { %>
+                                <input type="text" name="is_approved" class="form-control" value="Not Approved" disabled>
+                              <% } %>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">Approved Date by SPV</label>
+                            <div class="col-9">
+                              <% if (getDataRequestMedicalReimbursementHeader.approvedBySupervisorDate) { %>
+                              <input type="text" class="form-control approved-date" name="approved_date" id="approved_date" value="<%= moment.utc(getDataRequestMedicalReimbursementHeader.approvedBySupervisorDate).format('DD-MM-YYYY'); %>" disabled>
+                              <% } else { %>
+                              <input type="text" class="form-control approved-date" name="approved_date" id="approved_date" disabled>
+                              <% } %>
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label class="form-label col-3 col-form-label">Comments by SPV</label>
+                            <div class="col-9">
+                              <textarea class="form-control comments" name="comments" id="comments" placeholder="Comments" maxlength="300" disabled><%= getDataRequestMedicalReimbursementHeader.commentsBySupervisor; %></textarea>
+                            </div>
+                        </div>
+                      </fieldset>
+                      <fieldset class="form-fieldset">
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">HR Status</label>
+                            <div class="col-9">
+                              <% if (getDataRequestMedicalReimbursementHeader.isApprovedByHR == 0) { %>
+                                <input type="text" name="is_approved" class="form-control" value="Open" disabled>
+                              <% } else if (getDataRequestMedicalReimbursementHeader.isApprovedByHR == 1) { %>
+                                <input type="text" name="is_approved" class="form-control" value="Approved" disabled>
+                              <% } else if (getDataRequestMedicalReimbursementHeader.isApprovedByHR == 2) { %>
+                                <input type="text" name="is_approved" class="form-control" value="Not Approved" disabled>
+                              <% } %>
+                            </div>
+                        </div>                      
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">Approved Date by HR</label>
+                            <div class="col-9">
+                              <% if (getDataRequestMedicalReimbursementHeader.approvedByHRDate) { %>
+                              <input type="text" class="form-control approved-date-by-hr" name="approved_date_by_hr" id="approved_date_by_hr" value="<%= moment.utc(getDataRequestMedicalReimbursementHeader.approvedByHRDate).format('DD-MM-YYYY') ; %>" disabled>
+                              <% } else { %>
+                              <input type="text" class="form-control approved-date-by-hr" name="approved_date_by_hr" id="approved_date_by_hr" disabled>
+                              <% } %>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">Comments by HR</label>
+                            <div class="col-9">
+                              <textarea class="form-control comments" name="comments" id="comments" placeholder="Comments" maxlength="300" disabled><%= getDataRequestMedicalReimbursementHeader.commentsByHR; %></textarea>
+                            </div>
+                        </div>
+                      </fieldset>
+                      <fieldset class="form-fieldset">                        
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">Finance Status</label>
+                            <div class="col-9">
+                              <% if (getDataRequestMedicalReimbursementHeader.isApprovedByFinance == 0) { %>
+                                <input type="text" name="is_approved" class="form-control" value="Open" disabled>
+                              <% } else if (getDataRequestMedicalReimbursementHeader.isApprovedByFinance == 1) { %>
+                                <input type="text" name="is_approved" class="form-control" value="Approved" disabled>
+                              <% } else if (getDataRequestMedicalReimbursementHeader.isApprovedByFinance == 2) { %>
+                                <input type="text" name="is_approved" class="form-control" value="Not Approved" disabled>
+                              <% } %>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">Approved Date by Finance</label>
+                            <div class="col-9">
+                              <% if (getDataRequestMedicalReimbursementHeader.approvedByFinanceDate) { %>
+                              <input type="text" class="form-control approved-date-by-finance" name="approved_date_by_finance" id="approved_date_by_finance" value="<%= moment.utc(getDataRequestMedicalReimbursementHeader.approvedByFinanceDate).format('DD-MM-YYYY') ; %>" disabled>
+                              <% } else { %>
+                              <input type="text" class="form-control approved-date-by-finance" name="approved_date_by_finance" id="approved_date_by_finance" value="" disabled>
+                              <% } %>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3 row">
+                            <label class="form-label col-3 col-form-label">Comments by Finance</label>
+                            <div class="col-9">
+                              <textarea class="form-control comments" name="comments" id="comments" placeholder="Comments" maxlength="300" disabled><%= getDataRequestMedicalReimbursementHeader.commentsByFinance; %></textarea>
+                            </div>
+                        </div>
+                      </fieldset>
+                    </div>   
+                  </div>
+
+                  <div class="col-12">
+                    <div class="card">
+                      <div class="card-header">
+                        <!--<h3 class="card-title">Details</h3>-->
+                      </div> 
+                      <div class="table-responsive">
+                        <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                          <thead>
+                          <tr>
+                              <th>No</th>
+                              <th>Description</th>
+                              <th style="text-align: center;">Amount</th>
+                              <th></th>
+                          </tr>
+                          </thead>
+                          <tbody>
+                            <% index = 0; %>
+                            <% getDataRequestMedicalReimbursementDetails.forEach(function(data) { %>
+                            <% index++; %>
+                              <tr>
+                                  <td><span class="text-muted"><%=index; %></span></td>
+                                  <td><%= data.detailsDescription %></td>
+                                  <td style="text-align: right;"><%= String(data.amount).replace(/(.)(?=(\d{3})+$)/g,'$1,') %></td>
+                              </tr>
+                            <% }); %>    
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-footer">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <a href="/medical-reimbursement-request" class="btn btn-secondary">Back</a>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  
+  <script>
+
+  </script>
+</body>
+</html>

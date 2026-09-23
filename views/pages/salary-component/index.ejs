@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>  
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Data Listing</h3>
+                  </div>
+                  <div class="card-body border-bottom py-3">
+                    <div class="col-12 mb-3">
+                      <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-add">Add</button><br />
+                    </div>
+                    <form action="/salary-component" id="frmSearch" type="GET">
+                      <div class="d-flex">
+                        <div class="text-muted">
+                        Show
+                        <div class="mx-2 d-inline-block">
+                            <input type="text" class="form-control form-control-sm" value="<%= listOfSalaryComponent.meta.limit %>" size="3" aria-label="data count">
+                        </div>
+                        entries
+                        </div>
+                        <div class="ms-auto text-muted">
+                          <div class="input-group mb-2">
+                            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search data" value="<% if(locals.search) { %><%= search  %><% } %>">
+                            <button class="btn" type="submit">Go</button>
+                          </div>
+                        </div>
+                    </form>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                        <th class="w-1">Id. <!-- Download SVG icon from http://tabler-icons.io/i/chevron-up -->
+                          <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm text-dark icon-thick" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="6 15 12 9 18 15" /></svg>
+                        </th>
+                        <th>Component Code</th>
+                        <th>Component Name</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Is Taxable ?</th>
+                        <th>Is Active ?</th>
+                        <th>Sequence</th>
+                        <th></th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% listOfSalaryComponent.data.forEach(function(data) { %>
+                          <tr>
+                              <td><span class="text-muted"><%= data.id %></span></td>
+                              <td><%=  data.componentCode %></td>
+                              <td><%=  data.componentName %></td>
+                              <td><%= data.componentTypes.componentType %></td>
+                              <td><%= data.componentCategories.componentCategory %></td>
+                              <td>
+                                <% if(data.isTaxable == 0) { %>
+                                No
+                                <% } else { %>
+                                Yes
+                                <% } %>
+                              </td>
+                              <td>
+                                <% if(data.isActive == 0) { %>
+                                No
+                                <% } else { %>
+                                Yes
+                                <% } %>
+                              </td>
+                              <td><%= data.sequence %></td>
+                              <td class="text-end">
+                                <button class="btn btn-outline-primary ms-auto edit" data-bs-toggle="modal" data-bs-target="#modal-edit" data-id="<%= data.id %>" data-uuid="<%= data.uuid %>"  data-component_code="<%= data.componentCode %>" data-component_name="<%= data.componentName %>" data-component_type="<%= data.componentTypes.id %>" data-component_category="<%= data.componentCategories.id %>" data-is_taxable="<%= data.isTaxable %>" data-is_active="<%= data.isActive %>" data-sequence="<%= data.sequence %>">Edit</button>
+                                <button class="btn btn-outline-danger ms-auto delete" data-bs-toggle="modal" data-bs-target="#modal-danger" data-id="<%= data.id %>" data-uuid="<%= data.uuid %>">Delete</button>
+                              </td>
+                          </tr>
+                        <% }); %>                     
+                      </tbody>
+                    </table>
+                  </div>
+                                    
+                  <div class="card-footer d-flex align-items-center">
+                    <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfSalaryComponent.meta.totalRecordCurrentPage %></span> of <span><%= listOfSalaryComponent.meta.totalRecords %></span> entries</p>
+                    <% if (listOfSalaryComponent.meta.totalPage > 1) { %>
+                    <ul class="pagination m-0 ms-auto">
+                      <% if (listOfSalaryComponent.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/salary-component?page=0&limit=<%= listOfSalaryComponent.meta.limit %>"><< First</a></li>&nbsp;
+                      <% } %>
+                      
+                      <% if (listOfSalaryComponent.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/salary-component?page=<%= listOfSalaryComponent.meta.currentPage-1 %>&limit=<%= listOfSalaryComponent.meta.limit %>">< Previous</a></li>&nbsp;
+                      <% } %>
+  
+                      <% if ((listOfSalaryComponent.meta.currentPage + 1) == listOfSalaryComponent.meta.totalPage) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></Next></a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/salary-component?page=<%= listOfSalaryComponent.meta.currentPage+1 %>&limit=<%= listOfSalaryComponent.meta.limit %>"> Next ></a></li>&nbsp;
+                      <% } %>
+  
+                      <% if (listOfSalaryComponent.meta.currentPage == (listOfSalaryComponent.meta.totalPage-1)) { %>
+                        <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                      <% } else { %>
+                          <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/salary-component?page=<%= listOfSalaryComponent.meta.totalPage - 1 %>&limit=<%= listOfSalaryComponent.meta.limit %>">Last >></a></li>
+                      <% } %>
+                    </ul>
+                    <% } %>
+                  </div> 
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+  
+  <div class="modal modal-blur fade" id="modal-add" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New Salary Component</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/salary-component" autocomplete="off">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Component Code</label>
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="text" class="form-control" name="component_code" id="component_code" placeholder="Code of component" required>
+            </div>          
+            <div class="mb-3">
+              <label class="form-label">Component Name</label>
+              <input type="text" class="form-control" name="component_name" id="component_name" placeholder="Name of component" required>
+            </div>  
+            <div class="mb-3">
+              <label class="form-label">Component Category</label>
+              <select name="component_category" id="component_category" class="form-control component-category" required>
+                <% listOfDataSalaryComponentCategory.forEach(function(data) { %>
+                <option value="<%= data.id %>"><%= data.componentCategory %></option>
+                <% }); %>
+              </select>
+            </div>  
+            <div class="mb-3">
+              <label class="form-label">Component Type</label>
+              <select name="component_type" id="component_type" class="form-control component-type" required>
+                <% listOfDataSalaryComponentType.forEach(function(data) { %>
+                <option value="<%= data.id %>"><%= data.componentType %></option>
+                <% }); %>
+              </select>
+            </div>          
+            <div class="mb-3">
+              <label class="form-label" for="is_taxable">Is Taxable ?</label>
+              <input type="hidden" class="form-control is-taxable" name="is_taxable" id="is_taxable">
+              <input type="checkbox" class="chk-is-taxable" id="chk_is_taxable" name="chk_is_taxable">
+            </div>          
+            <div class="mb-3">
+              <label class="form-label">Sequence Number</label>
+              <input type="number" class="form-control" name="sequence" id="sequence" placeholder="Sequence Number" min="1">
+            </div>          
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">
+              Insert Data
+            </button>
+          </div>
+        </form>
+    </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Salary Component</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="frmEdit" class="card card-md" method="POST" action="/salary-component/update"  autocomplete="off">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Component Code</label>
+              <input type="hidden" name="component_id" id="component_id" class="component-id">
+              <input type="hidden" name="component_uuid" id="component_uuid" class="component-uuid">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="text" class="form-control component-code" name="component_code" id="component_code" placeholder="Code of component" required>
+            </div>          
+            <div class="mb-3">
+              <label class="form-label">Component Name</label>
+              <input type="text" class="form-control component-name" name="component_name" id="component_name" placeholder="Name of component" required>
+            </div>  
+            <div class="mb-3">
+              <label class="form-label">Component Category</label>
+              <select name="component_category" id="component_category" class="form-control component-category" required>
+                <% listOfDataSalaryComponentCategory.forEach(function(data) { %>
+                <option value="<%= data.id %>"><%= data.componentCategory %></option>
+                <% }); %>
+              </select>
+            </div>          
+            <div class="mb-3">
+              <label class="form-label">Component Type</label>
+              <select name="component_type" id="component_type" class="form-control component-type" required>
+                <% listOfDataSalaryComponentType.forEach(function(data) { %>
+                <option value="<%= data.id %>"><%= data.componentType %></option>
+                <% }); %>
+              </select>
+            </div>          
+            <div class="mb-3">
+              <label class="form-label" for="is_taxable">Is Taxable ?</label>
+              <input type="hidden" class="form-control is-taxable" name="is_taxable" id="is_taxable">
+              <input type="checkbox" class="chk-is-taxable" id="chk_is_taxable" name="chk_is_taxable" >
+            </div>         
+            <div class="mb-3">
+              <label class="form-label" for="is_taxable">Is Active ?</label>
+              <input type="hidden" class="form-control is-active" name="is_active" id="is_active">
+              <input type="checkbox" class="chk-is-active" id="chk_is_active" name="chk_is_active" >
+            </div>   
+            <div class="mb-3">
+              <label class="form-label">Sequence Number</label>
+              <input type="number" class="form-control sequence" name="sequence" id="sequence" placeholder="Sequence Number" min="1">
+            </div> 
+          </div>      
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button id="updateBtn" class="btn btn-primary ms-auto" type="submit">
+              Update Data
+            </button>
+          </div>
+        </form>
+    </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-danger" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <form class="card card-md" method="POST" action="/salary-component/delete" autocomplete="off">
+          <div class="modal-body text-center py-4">
+            <!-- Download SVG icon from http://tabler-icons.io/i/alert-triangle -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+            <h3>Are you sure?</h3>
+            <div class="text-muted">Do you really want to remove the data? What you've done cannot be undone.</div>
+            <input type="hidden" name="component_id" id="component_id" class="component-id">
+            <input type="hidden" name="component_uuid" id="component_uuid" class="component-uuid">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">
+                    Cancel
+                  </a>
+                </div>
+                <button id="deleteBtn" class="col btn btn-danger ms-auto" type="submit" data-bs-dismiss="modal">
+                  Delete Data
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="modal modal-blur fade" id="modal-success" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-success"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-green icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" /><path d="M9 12l2 2l4 -4" /></svg>
+          <h3><%= message.success %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-success w-100" data-bs-dismiss="modal">
+                  OK
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-error" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <div class="modal-body text-center py-4">
+          <!-- Download SVG icon from http://tabler-icons.io/i/circle-check -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+          <h3><%= message.errorDelete %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-danger w-100" data-bs-dismiss="modal">
+                  Close
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+
+  <% var messageErrorDelete = message.errorDelete; %>
+  <script type = "text/JavaScript">
+    var addModal = document.getElementById('modal-add');
+
+    var editModal = document.getElementById('modal-edit');
+    editModal.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var componentId = button.getAttribute('data-id');
+      var componentUuid = button.getAttribute('data-uuid');
+      var componentCode = button.getAttribute('data-component_code');
+      var componentName = button.getAttribute('data-component_name');
+      var componentType = button.getAttribute('data-component_type');
+      var componentCategory = button.getAttribute('data-component_category');
+      var isTaxable = button.getAttribute('data-is_taxable');
+      var isActive = button.getAttribute('data-is_active');
+      var sequence = button.getAttribute('data-sequence');
+
+      // If necessary, you could initiate an AJAX request here
+      // and then do the updating in a callback.
+      //
+      // Update the modal's content.
+      var modalTitle = editModal.querySelector('.modal-title');
+
+      var modalComponentId = editModal.querySelector(".component-id");
+      var modalComponentUuid = editModal.querySelector(".component-uuid");
+      var modalComponentCode = editModal.querySelector(".component-code");
+      var modalComponentName = editModal.querySelector(".component-name");
+      var modalComponentType = editModal.querySelector(".component-type");
+      var modalComponentCategory = editModal.querySelector(".component-category");
+
+      var modalIsTaxable = editModal.querySelector(".is-taxable");
+      var modalChkIsTaxable = editModal.querySelector(".chk-is-taxable");
+      if (isTaxable == 1) {
+        modalChkIsTaxable.removeAttribute('checked');
+        modalChkIsTaxable.toggleAttribute('checked');
+      } else {
+        modalChkIsTaxable.removeAttribute('checked');
+      }
+
+      var modalIsActive = editModal.querySelector(".is-active");
+      var modalChkIsActive = editModal.querySelector(".chk-is-active");
+      if (isActive == 1) {
+        modalChkIsActive.removeAttribute('checked');
+        modalChkIsActive.toggleAttribute('checked');
+      } else {
+        modalChkIsActive.removeAttribute('checked');
+      }
+
+      var modalSequence = editModal.querySelector(".sequence");
+
+      modalComponentId.value = componentId;
+      modalComponentUuid.value = componentUuid;
+      modalComponentCode.value = componentCode;
+      modalComponentName.value = componentName;
+      modalComponentType.value = componentType;
+      modalComponentCategory.value = componentCategory;
+      modalIsTaxable.value = isTaxable;
+      modalIsActive.value = isActive;
+      modalSequence.value = sequence;
+    })
+
+    var deleteModal = document.getElementById('modal-danger');
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+      // Button that triggered the modal
+      var button = event.relatedTarget
+      // Extract info from data-bs-* attributes
+      var componentId = button.getAttribute('data-id');
+      var componentUuid = button.getAttribute('data-uuid');
+
+      var modalComponentId = deleteModal.querySelector(".component-id");
+      var modalComponentUuid = deleteModal.querySelector(".component-uuid");
+      modalComponentId.value = componentId;
+      modalComponentUuid.value = componentUuid;
+    })
+
+    let getMessageErrorDelete = "<%= messageErrorDelete %>";
+    if(getMessageErrorDelete) {
+      var errorDeleteModal = new bootstrap.Modal(document.getElementById('modal-error'), {})
+      errorDeleteModal.toggle();
+    }
+
+    let getMessageSuccessDelete = "<%= message.success %>";
+    if(getMessageSuccessDelete) {
+      var successDeleteModal = new bootstrap.Modal(document.getElementById('modal-success'), {})
+      successDeleteModal.toggle();
+    }
+
+    let chkIsTaxable = document.querySelectorAll('.chk-is-taxable')
+    chkIsTaxable.forEach((checkbox) => { 
+      checkbox.addEventListener('change', (event) => {
+        let txtChkEdit = editModal.querySelector(".is-taxable");
+        let txtChkAdd = addModal.querySelector(".is-taxable");
+        if (event.target.checked) {
+          txtChkAdd.value = 1;
+          txtChkEdit.value = 1;
+          event.target.value = 1;
+        } else {
+          txtChkAdd.value = 0;
+          txtChkEdit.value = 0;
+          event.target.value = 0;
+        }
+      })
+    })
+
+    let chkIsActive = document.querySelectorAll('.chk-is-active')
+    chkIsActive.forEach((checkbox) => { 
+      checkbox.addEventListener('change', (event) => {
+        let txtChkEdit = editModal.querySelector(".is-active");
+        if (event.target.checked) {
+          txtChkEdit.value = 1;
+          event.target.value = 1;
+        } else {
+          txtChkEdit.value = 0;
+          event.target.value = 0;
+        }
+      })
+    })
+
+  </script>
+</body>
+</html>

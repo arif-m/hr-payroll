@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Tabel Tarif Efektif Bulanan — Lampiran PMK 168/2023</h3>
+                  <div class="ms-auto d-flex">
+                    <form method="POST" action="/ter-rate/reset" class="me-2" onsubmit="return confirm('Reset seluruh tabel TER dari default kode (44/40/41 baris)? Perubahan manual Anda akan hilang.')">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button class="btn btn-outline-warning btn-sm" type="submit">Reset dari Kode</button>
+                    </form>
+                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-add">Add Row</button>
+                  </div>
+                </div>
+                <div class="card-body border-bottom py-3">
+                  <div class="d-flex align-items-center">
+                    <span class="text-muted">Perubahan di halaman ini <strong>langsung memengaruhi perhitungan PPh 21</strong> pada generate payroll berikutnya.</span>
+                    <form action="/ter-rate" id="frmSearch" method="GET" class="ms-auto d-flex">
+                      <select name="category" class="form-select form-select-sm me-2" style="width: 140px;">
+                        <option value="">Semua Kategori</option>
+                        <option value="A" <% if (locals.category === 'A') { %>selected<% } %>>Kategori A (TK/0)</option>
+                        <option value="B" <% if (locals.category === 'B') { %>selected<% } %>>Kategori B (TK/1–K/2)</option>
+                        <option value="C" <% if (locals.category === 'C') { %>selected<% } %>>Kategori C (K/3, K/I/*)</option>
+                      </select>
+                      <button class="btn btn-sm" type="submit">Filter</button>
+                    </form>
+                  </div>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                    <thead>
+                    <tr>
+                      <th>Kategori</th>
+                      <th>Urutan</th>
+                      <th style="text-align: right;">Batas Atas Bruto (Rp/bulan)</th>
+                      <th style="text-align: right;">Rate (%)</th>
+                      <th class="text-end"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                      <% listOfTerRate.data.forEach(function(data) { %>
+                        <tr>
+                            <td><span class="badge bg-<%= data.category === 'A' ? 'blue' : (data.category === 'B' ? 'green' : 'orange') %>"><%= data.category %></span></td>
+                            <td><%= data.sequence %></td>
+                            <td style="text-align: right;"><%= generalHelper.formatNumberWithCommas(data.upperBound) %></td>
+                            <td style="text-align: right;"><%= data.ratePercent %>%</td>
+                            <td class="text-end">
+                              <button class="btn btn-outline-primary btn-sm edit" data-bs-toggle="modal" data-bs-target="#modal-edit"
+                                data-id="<%= data.id %>" data-category="<%= data.category %>"
+                                data-upper_bound="<%= data.upperBound %>" data-rate_percent="<%= data.ratePercent %>"
+                                data-sequence="<%= data.sequence %>">Edit</button>
+                              <button class="btn btn-outline-danger btn-sm delete" data-bs-toggle="modal" data-bs-target="#modal-danger"
+                                data-id="<%= data.id %>" data-category="<%= data.category %>"
+                                data-upper_bound="<%= generalHelper.formatNumberWithCommas(data.upperBound) %>">Delete</button>
+                            </td>
+                        </tr>
+                        <% }); %>
+                        <% if (listOfTerRate.data.length === 0) { %>
+                        <tr><td colspan="5" class="text-center text-muted py-4">Belum ada data. Klik "Reset dari Kode" untuk mengisi dari default PMK 168/2023.</td></tr>
+                        <% } %>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="card-footer d-flex align-items-center">
+                  <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfTerRate.meta.totalRecordCurrentPage %></span> of <span><%= listOfTerRate.meta.totalRecords %></span> entries</p>
+                  <% if (listOfTerRate.meta.totalPage > 1) { %>
+                  <ul class="pagination m-0 ms-auto">
+                    <% if (listOfTerRate.meta.currentPage == 0) { %>
+                      <li class="page-item disabled"><a class="btn btn-outline-primary disabled btn-sm"><< First</a></li>&nbsp;
+                    <% } else { %>
+                      <li class="page-item"><a class="btn btn-outline-primary btn-sm" href="/ter-rate?page=0&limit=<%= listOfTerRate.meta.limit %><% if (locals.category) { %>&category=<%= category %><% } %>"><< First</a></li>&nbsp;
+                    <% } %>
+
+                    <% if (listOfTerRate.meta.currentPage == 0) { %>
+                      <li class="page-item disabled"><a class="btn btn-outline-primary disabled btn-sm">< Prev</a></li>&nbsp;
+                    <% } else { %>
+                      <li class="page-item"><a class="btn btn-outline-primary btn-sm" href="/ter-rate?page=<%= listOfTerRate.meta.currentPage-1 %>&limit=<%= listOfTerRate.meta.limit %><% if (locals.category) { %>&category=<%= category %><% } %>">< Previous</a></li>&nbsp;
+                    <% } %>
+
+                    <% if ((listOfTerRate.meta.currentPage + 1) == listOfTerRate.meta.totalPage) { %>
+                      <li class="page-item disabled"><a class="btn btn-outline-primary disabled btn-sm">Next ></a></li>&nbsp;
+                    <% } else { %>
+                      <li class="page-item"><a class="btn btn-outline-primary btn-sm" href="/ter-rate?page=<%= listOfTerRate.meta.currentPage+1 %>&limit=<%= listOfTerRate.meta.limit %><% if (locals.category) { %>&category=<%= category %><% } %>"> Next ></a></li>&nbsp;
+                    <% } %>
+
+                    <% if (listOfTerRate.meta.currentPage == (listOfTerRate.meta.totalPage-1)) { %>
+                      <li class="disabled"><a class="btn btn-outline-primary disabled btn-sm">Last >></a></li>&nbsp;
+                    <% } else { %>
+                      <li><a class="btn btn-outline-primary btn-sm" href="/ter-rate?page=<%= listOfTerRate.meta.totalPage - 1 %>&limit=<%= listOfTerRate.meta.limit %><% if (locals.category) { %>&category=<%= category %><% } %>">Last >></a></li>
+                    <% } %>
+                  </ul>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-add" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Tambah Baris TER</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/ter-rate" autocomplete="off">
+          <div class="modal-body">
+            <div class="row">
+              <div class="mb-3 col-4">
+                <label class="form-label">Kategori</label>
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <select class="form-select" name="category" id="category" required>
+                  <option value="A">A (TK/0)</option>
+                  <option value="B">B (TK/1, K/0–K/2)</option>
+                  <option value="C">C (K/3, K/I/*)</option>
+                </select>
+              </div>
+              <div class="mb-3 col-4">
+                <label class="form-label">Urutan</label>
+                <input type="text" class="form-control" name="sequence" id="sequence" placeholder="mis. 1" required>
+              </div>
+              <div class="mb-3 col-4">
+                <label class="form-label">Rate (%)</label>
+                <input type="text" class="form-control" name="rate_percent" id="rate_percent" placeholder="mis. 0.25" required>
+              </div>
+              <div class="mb-3 col-12">
+                <label class="form-label">Batas Atas Bruto (Rp/bulan)</label>
+                <input type="text" class="form-control" name="upper_bound" id="upper_bound" placeholder="mis. 5.400.000" onKeyPress="return isNumber(event)" required>
+                <small class="form-hint text-muted">Baris dengan batas atas terbesar berlaku sebagai batas terbuka (rate atas semua bruto di atasnya).</small>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">Insert Data</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Baris TER</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/ter-rate/update" autocomplete="off">
+          <div class="modal-body">
+            <div class="row">
+              <div class="mb-3 col-4">
+                <label class="form-label">Kategori</label>
+                <input type="hidden" name="ter_rate_id" id="edit_ter_rate_id">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="text" class="form-control" id="edit_category" disabled>
+              </div>
+              <div class="mb-3 col-4">
+                <label class="form-label">Urutan</label>
+                <input type="text" class="form-control" name="sequence" id="edit_sequence" required>
+              </div>
+              <div class="mb-3 col-4">
+                <label class="form-label">Rate (%)</label>
+                <input type="text" class="form-control" name="rate_percent" id="edit_rate_percent" required>
+              </div>
+              <div class="mb-3 col-12">
+                <label class="form-label">Batas Atas Bruto (Rp/bulan)</label>
+                <input type="text" class="form-control" name="upper_bound" id="edit_upper_bound" onKeyPress="return isNumber(event)" required>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">Update Data</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-danger" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <div class="modal-body text-center py-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+          <h3>Hapus baris ini?</h3>
+          <div class="text-muted">Kategori <strong id="del_category"></strong> — batas atas <strong id="del_upper_bound"></strong></div>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">Cancel</a>
+              </div>
+              <div class="col">
+                <form method="POST" action="/ter-rate/delete">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="ter_rate_id" id="del_ter_rate_id">
+                  <button class="btn btn-danger w-100" type="submit">Delete</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <% var flashMsg = message.success || message.error; %>
+  <div class="modal modal-blur fade" id="modal-flash" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-<%= message.error ? 'danger' : 'success' %>"></div>
+        <div class="modal-body text-center py-4">
+          <h3><%= flashMsg %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">Close</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+  <script src="/js/validateNumber.js"></script>
+
+  <script type="text/JavaScript">
+    var editModal = document.getElementById('modal-edit');
+    editModal.addEventListener('show.bs.modal', function (event) {
+      var button = event.relatedTarget;
+      editModal.querySelector('#edit_ter_rate_id').value = button.getAttribute('data-id');
+      editModal.querySelector('#edit_category').value = button.getAttribute('data-category');
+      editModal.querySelector('#edit_sequence').value = button.getAttribute('data-sequence');
+      editModal.querySelector('#edit_rate_percent').value = button.getAttribute('data-rate_percent');
+      editModal.querySelector('#edit_upper_bound').value = String(button.getAttribute('data-upper_bound')).replace(/(.)(?=(\d{3})+$)/g,'$1,');
+    });
+
+    var delModal = document.getElementById('modal-danger');
+    delModal.addEventListener('show.bs.modal', function (event) {
+      var button = event.relatedTarget;
+      delModal.querySelector('#del_ter_rate_id').value = button.getAttribute('data-id');
+      delModal.querySelector('#del_category').textContent = button.getAttribute('data-category');
+      delModal.querySelector('#del_upper_bound').textContent = button.getAttribute('data-upper_bound');
+    });
+
+    var upperBoundAdd = document.getElementById('upper_bound');
+    upperBoundAdd.addEventListener('blur', function (event) {
+      upperBoundAdd.value = String(upperBoundAdd.value).replace(/(.)(?=(\d{3})+$)/g,'$1,');
+    });
+    upperBoundAdd.addEventListener('click', function (event) {
+      if (upperBoundAdd.value != '')
+        upperBoundAdd.value = Number(upperBoundAdd.value.toString().replace(/\,/g,''));
+    });
+    var upperBoundEdit = document.getElementById('edit_upper_bound');
+    upperBoundEdit.addEventListener('click', function (event) {
+      if (upperBoundEdit.value != '')
+        upperBoundEdit.value = Number(upperBoundEdit.value.toString().replace(/\,/g,''));
+    });
+
+    <% if (flashMsg) { %>
+    var flashModal = new bootstrap.Modal(document.getElementById('modal-flash'), {});
+    flashModal.toggle();
+    <% } %>
+  </script>
+</body>
+</html>
