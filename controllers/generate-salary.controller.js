@@ -128,7 +128,7 @@ const createDataGenerateSalary = async (req, res) => {
 
 const updateDataGenerateSalary = async (req, res) => {
   try {
-    const { cutoff_period_uuid, month_period, year_period, start_period, end_period, work_days, is_active, is_thr } = req.body;
+    const { cutoff_period_uuid, month_period, year_period, start_period, end_period, work_days, is_active, is_thr, attendance_closed } = req.body;
 
     const existing = await prisma.cutOffPeriod.findFirst({ where: { uuid: cutoff_period_uuid } });
     if (!existing) throw new Error('Cutoff period tidak ditemukan');
@@ -147,6 +147,7 @@ const updateDataGenerateSalary = async (req, res) => {
         isActive: Number(is_active),
         isThr: Number(is_thr) === 1 ? 1 : 0,
         workDays: Number(work_days) || 0,
+        attendanceClosed: Number(attendance_closed) === 1 ? 1 : 0,
         updatedBy: req.user.fullName,
       },
     });

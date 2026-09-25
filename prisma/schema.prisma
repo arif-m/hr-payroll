@@ -42,8 +42,54 @@ model BusinessUnit {
   companyName      String?  @db.VarChar(300)
   image            String?  @db.VarChar(300)
   BusinessUnits    Users[]
+  attendanceMode   String   @default("EXCEPTION") @db.VarChar(10)
+  defaultShiftId   Int?
+  defaultShift     Shift?   @relation(fields: [defaultShiftId], references: [id])
 
   @@map("businessUnit")
+}
+
+/// Shift kerja untuk unit/karyawan mode PRESENCE (pabrik).
+/// crossesMidnight = shift malam (contoh 22:00 -> 06:00 besoknya).
+model Shift {
+  id              Int      @id @default(autoincrement())
+  uuid            String   @unique @default(uuid()) @db.VarChar(150)
+  createdBy       String   @db.VarChar(100)
+  updatedBy       String   @db.VarChar(100)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  shiftName       String   @unique @db.VarChar(150)
+  startTime       DateTime @db.Time(0)
+  endTime         DateTime @db.Time(0)
+  crossesMidnight Int      @default(0) @db.TinyInt
+  graceMinutes    Int      @default(10)
+  businessUnits   BusinessUnit[]
+  employeeShifts  EmployeeShift[]
+  timeAttendances TimeAttendance[]
+
+  @@map("shift")
+}
+
+/// Penugasan shift per karyawan dengan riwayat effectiveFrom.
+/// Resolusi shift untuk tanggal D: penugasan efektif terbaru <= D;
+/// fallback: BusinessUnit.defaultShift.
+model EmployeeShift {
+  id            Int      @id @default(autoincrement())
+  uuid          String   @unique @default(uuid()) @db.VarChar(150)
+  createdBy     String   @db.VarChar(100)
+  updatedBy     String   @db.VarChar(100)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  employeeId    Int
+  shiftId       Int
+  effectiveFrom DateTime @db.Date
+  employee      Users    @relation(fields: [employeeId], references: [id])
+  shift         Shift    @relation(fields: [shiftId], references: [id])
+
+  @@unique([employeeId, effectiveFrom], map: "employeeShift_employee_effectiveFrom_unique")
+  @@index([employeeId], map: "employeeShift_employeeId_fkey")
+  @@index([shiftId], map: "employeeShift_shiftId_fkey")
+  @@map("employeeShift")
 }
 
 model Roles {
@@ -154,7 +200,8 @@ model Users {
   user6                      PayslipHeader[]
   userRequestLeaveOther      RequestOtherLeave[]
   userRequestMedicalReimbursement      RequestMedicalReimbursementHeader[]
-  userTimeAttendance         TimeAttendance[] 
+  userTimeAttendance         TimeAttendance[]
+  employeeShifts             EmployeeShift[]
   userRequestOvertime        RequestOvertimeDetails[] 
   employmentHistories        EmploymentHistory[]
 
@@ -367,6 +414,12 @@ model SetupSystem {
   thrBudgetBaseCodes   String    @default("BS") @db.VarChar(150)
   thrEligibilityMonths Int       @default(1)
   thrProrateRoundDays  Int       @default(1) @db.TinyInt
+  // --- Fase 2: sanksi keterlambatan (mode PRESENCE) ---
+  latePenaltyEnabled   Int       @default(0) @db.TinyInt
+  latePenaltyBaseCodes String    @default("BS") @db.VarChar(150)
+  latePenaltyTiers     Json?
+  latePenaltyEscalation Json?
+
 
   @@map("setupSystem")
 }
@@ -636,6 +689,7 @@ model CutOffPeriod {
   workDays    Int?     @db.TinyInt
   isClosing   Int      @default(0) @db.TinyInt
   isThr       Int      @default(0) @db.TinyInt
+  attendanceClosed Int @default(0) @db.TinyInt
   payrollRuns PayrollRun[]
 
   @@unique([monthPeriod, yearPeriod], name: "monthPeriod_yearPeriod_unique_constraint")
@@ -881,7 +935,12 @@ model TimeAttendance {
   checkIn                     DateTime?           @db.Time(0)
   checkOut                    DateTime?           @db.Time(0)
   reason                      String?             @db.VarChar(300)
+  lateMinutes                 Int                 @default(0)
+  earlyOutMinutes             Int                 @default(0)
+  shiftId                     Int?
+  isDerived                   Int                 @default(0) @db.TinyInt
   employeeInfo                Users?              @relation(fields: [employeeId], references: [id])
+  shift                       Shift?              @relation(fields: [shiftId], references: [id])
 
   @@index([employeeId], map: "timeAttendance_employeeId_fkey")
   @@unique([employeeId, workDate], map: "timeAttendance_employee_workDate_unique")

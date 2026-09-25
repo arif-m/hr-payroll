@@ -200,6 +200,55 @@ hari raya (praktik Kep-102/MEN/VI/2004); override via config di `setupSystem`
 (`thrBudgetBaseCodes` default `BS`, bisa `BS,TJ`). THR masuk brutto → PPh 21
 TER bulan berjalan, THP, run summary, dan payment file otomatis.
 
+### Absensi Mode Pabrik (PRESENCE) — Fase 1
+
+Secara default aplikasi berjalan mode **EXCEPTION** (kantor): karyawan
+dianggap hadir setiap hari kecuali didaftarkan tidak masuk. Untuk unit
+kerja tipe pabrik, Business Unit dapat disetel ke mode **PRESENCE** di
+halaman **Business Unit** (`/business-unit`): karyawan wajib clock-in dan
+kehadiran dibuktikan via punch.
+
+- **Master Shift** (`/shift`): jam masuk/keluar, flag *Crosses Midnight*
+  (shift malam 22:00→06:00), dan *Grace Minutes* (toleransi telat).
+- **Penugasan Shift** (`/employee-shift`): assign per karyawan (berbasis
+  tanggal efektif, riwayat tersimpan) atau bulk per Business Unit; fallback
+  ke *default shift* BU.
+- **Derivasi harian** (`libs/attendance/derive.js`): cron 01:00 mengolah
+  tanggal kemarin — tanpa punch → **A** (Absent), lewat grace → **L** (Late
+  + menit telat), keluar lebih awal → earlyOutMinutes, check-in tanpa
+  check-out → **M** (butuh review admin). Baris manual tanpa punch, hari
+  libur kalender, dan cuti approved **tidak pernah ditimpa**. Tombol
+  **Run Derivation** di halaman *Time Attendance Admin* untuk backfill
+  range tanggal.
+- **Payroll**: baris Absent hasil derivasi otomatis terbaca prorating
+  payroll (engine sudah menghitung `TimeAttendance` status `A`). Periode
+  cut-off dengan `attendanceClosed = 1` tidak ditulis ulang.
+- Unit test: `test/attendance-derive.test.js` (bagian dari `npm test`).
+- Menu samping: jalankan `node scripts/seed-attendance-menu.js` (idempotent)
+  untuk mendaftarkan **Master Shift**, **Employee Shift**, dan **Business
+  Unit** sebagai anak menu *Payroll Management* (Admin/Super Admin: CRUD,
+  HR: lihat).
+
+### Sanksi Keterlambatan (LD) — Fase 2
+
+Untuk karyawan di unit **PRESENCE**, telat dapat dipotong dari THP via baris
+payslip **Late Deduction (LD)** (`libs/payroll/late-penalty.js`, kode engine
+`LD`, `isTaxBase 0` — penalti tidak masuk basis PPh 21). Konfigurasi di
+`setupSystem` (migrasi `20260925100000_late_penalty_phase2`):
+
+| Kolom | Default | Arti |
+|---|---|---|
+| `latePenaltyEnabled` | `0` | Off bawaan; 1 = aktif (hanya unit PRESENCE) |
+| `latePenaltyBaseCodes` | `'BS'` | Basis upah harian = Σ komponen Fixed berkode ini ÷ hari kerja |
+| `latePenaltyTiers` | JSON default | Tier per kejadian dari `lateMinutes`: `NONE`, `MINUTES` (proporsional), `HALF_DAY` (0,5×), `FULL_DAY` (1×) |
+| `latePenaltyEscalation` | `null` | Sanksi kumulatif, mis. `{"every":3,"type":"FULL_DAY"}` = tiap 3× telat +1 hari |
+
+Tingkatan default: ≤30 mnt = bebas, 31–120 mnt = proporsional menit,
+>120 mnt = 0,5 hari. **Anti double-penalty**: baris `'A'` (absent) dan `'M'`
+(missing check-out) tidak dikenai LD — absent sudah menurunkan prorating
+komponen Variable. Unit test `test/late-penalty.test.js`; smoke terarah
+(reversible): `node scripts/smoke-test-late-penalty.js`.
+
 ### Testing & verifikasi
 
     npm test                          # 43 unit test kalkulasi (PPh, BPJS, run state, riwayat, THR)

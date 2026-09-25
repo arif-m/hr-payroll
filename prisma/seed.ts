@@ -65,7 +65,7 @@ async function main() {
            { 'feature': 'PTKP', 'uri': '/ptkp', 'description': '', 'parentId': 22, 'treeStatus': 'D', 'createdBy': 'Admin', 'updatedBy': 'Admin', 'sequence': 660 },
            { 'feature': 'Tarif Efektif Bulanan (TER)', 'uri': '/ter-rate', 'description': 'Tabel TER PMK 168/2023', 'parentId': 22, 'treeStatus': 'D', 'createdBy': 'Admin', 'updatedBy': 'Admin', 'sequence': 665 },
            { 'feature': 'Payroll Run', 'uri': '/payroll-run', 'description': 'Alur DRAFT-SUBMITTED-APPROVED-LOCKED', 'parentId': 22, 'treeStatus': 'D', 'createdBy': 'Admin', 'updatedBy': 'Admin', 'sequence': 615 },           
-           { 'feature': 'Riwayat Kepegawaian', 'uri': '/employment-history', 'description': 'Gaji & jabatan efektif-tanggal', 'parentId': 22, 'treeStatus': 'D', 'createdBy': 'Admin', 'updatedBy': 'Admin', 'sequence': 618 },           
+           { 'feature': 'History of Employment', 'uri': '/employment-history', 'description': 'Gaji & jabatan efektif-tanggal', 'parentId': 22, 'treeStatus': 'D', 'createdBy': 'Admin', 'updatedBy': 'Admin', 'sequence': 618 },           
            { 'feature': 'Calendar', 'uri': '/calendar', 'description': '', 'parentId': 22, 'treeStatus': 'D', 'createdBy': 'Admin', 'updatedBy': 'Admin', 'sequence': 670 },           
            { 'feature': 'BPJS Tenaga Kerja', 'uri': '#', 'description': '', 'parentId': 0, 'treeStatus': 'H',  'createdBy': 'Admin', 'updatedBy': 'Admin', 'sequence': 700 }, 
            { 'feature': 'Master Management', 'uri': '#', 'description': '', 'parentId': 0, 'treeStatus': 'H',  'createdBy': 'Admin', 'updatedBy': 'Admin', 'sequence': 150, 'isVisible': 1 }, 

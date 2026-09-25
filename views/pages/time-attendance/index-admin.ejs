@@ -64,6 +64,21 @@
                       </div><br />                    
                     </form>
 
+                    <form action="/time-attendance-admin/derive" method="POST" class="row g-2 align-items-end mt-2" autocomplete="off">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <div class="col-auto">
+                        <label class="form-label mb-0">Derive From</label>
+                        <input type="text" class="form-control form-control-sm" name="date_from" id="derive_date_from" placeholder="YYYY-MM-DD" value="<% if(locals.dateFrom) { %><%= dateFrom %><% } %>">
+                      </div>
+                      <div class="col-auto">
+                        <label class="form-label mb-0">Derive To</label>
+                        <input type="text" class="form-control form-control-sm" name="date_to" id="derive_date_to" placeholder="YYYY-MM-DD" value="<% if(locals.dateTo) { %><%= dateTo %><% } %>">
+                      </div>
+                      <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-warning btn-sm" onclick="return confirm('Run attendance derivation for this date range? Only PRESENCE business units, manual rows are never overwritten.');">Run Derivation &nbsp;<i class="ti ti-wand"></i></button>
+                      </div>
+                    </form>
+
                     <form action="/time-attendance-admin" id="frmSearch" type="GET">
                       <div class="d-flex">
                         <div class="text-muted">
@@ -92,6 +107,7 @@
                           <th>Division</th>
                           <th>Job Titles</th>
                           <th>Status</th>
+                          <th>Late/Early</th>
                           <th></th>
                         </tr>
                         </thead>
@@ -112,7 +128,12 @@
                                   <td><span class="badge bg-green">UNPAID LEAVE</span></td>
                                 <% } else if (data.status == 'P') { %>
                                 <td><span class="badge bg-green">PRESENT</span></td>
+                                <% } else if (data.status == 'L') { %>
+                                <td><span class="badge bg-orange">LATE</span></td>
+                                <% } else if (data.status == 'M') { %>
+                                <td><span class="badge bg-purple">MISSING OUT</span></td>
                                 <% } %>
+                                <td><%= data.lateMinutes %> / <%= data.earlyOutMinutes %></td>
                                 <td class="text-end">
                                   <% if(data.checkOut)  { %>                                 
                                     <button class="btn btn-outline-prim.ary ms-auto edit" data-bs-toggle="modal" data-bs-target="#modal-edit" data-id="<%= data.id %>" data-employee_id="<%= data.employeeId %>" data-work_date="<%= data.workDate %>" data-status="<%= data.status %>" data-reason="<%= data.reason %>" data-checkin="<%=moment.utc(data.checkIn).format('hh:mm:ss') %>" data-checkout="<%=moment.utc(data.checkOut).format('hh:mm:ss') %>">Show Details</button>

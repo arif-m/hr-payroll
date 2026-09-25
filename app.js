@@ -22,8 +22,8 @@ const winston = require('./libs/logger');
 var SQLiteStore = require('connect-sqlite3')(session);
 
 var indexRouter = require('./routes/index');
-var authRouter = require('./routes/auth');
-var divisionRouter = require('./routes/division');
+var authRouter = require('./routes/auth');var divisionRouter = require('./routes/division');var shiftRouter = require('./routes/shift');var businessUnitRouter = require('./routes/business-unit');var employeeShiftRouter = require('./routes/employee-shift');
+var attendanceSetupRouter = require('./routes/attendance-setup');
 var jobtitlesRouter = require('./routes/jobtitles');
 var employeeRouter = require('./routes/employee');
 var adminManagementRouter = require('./routes/admin-management');
@@ -114,8 +114,8 @@ app.use(function(req, res, next) {
 app.use(limiter);
 
 app.use('/', indexRouter);
-app.use('/', authRouter);
-app.use('/', divisionRouter);
+app.use('/', authRouter);app.use('/', divisionRouter);app.use('/', shiftRouter);app.use('/', businessUnitRouter);app.use('/', employeeShiftRouter);
+app.use('/', attendanceSetupRouter);
 app.use('/', jobtitlesRouter);
 app.use('/', employeeRouter);
 app.use('/', adminManagementRouter);
@@ -172,6 +172,14 @@ cron.schedule("0 0 1 * *", function() {
 cron.schedule("0 0 1 1 *", function() {
   resetMedicalReimbursement();
   winston.info("Reset medical reimbursement successfully");
+});
+
+// Derivasi kehadiran harian untuk BU mode PRESENCE (pabrik): 01:00 setiap hari
+const { runDailyDerivation } = require('./libs/attendance/derive');
+cron.schedule("0 1 * * *", function() {
+  runDailyDerivation().catch(function(err) {
+    winston.error("Daily attendance derivation failed: " + err.message);
+  });
 });
 
 //calculate every 10 seconds

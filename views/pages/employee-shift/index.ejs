@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Employee Shift Assignment</h3>
+                  </div>
+                  <div class="card-body border-bottom py-3">
+                    <div class="row g-2 align-items-end">
+                      <div class="col-auto">
+                        <form action="/employee-shift" id="frmSearch" type="GET" class="d-flex gap-2">
+                          <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search employee" value="<% if(locals.search) { %><%= search  %><% } %>">
+                          <button class="btn btn-sm" type="submit">Go</button>
+                          <% if (typeof showAll === 'undefined' || !showAll) { %>
+                            <a class="btn btn-sm btn-outline-secondary" href="/employee-shift?show_all=1">Show all units</a>
+                          <% } else { %>
+                            <a class="btn btn-sm btn-outline-secondary" href="/employee-shift">Presence units only</a>
+                          <% } %>
+                        </form>
+                      </div>
+                      <div class="col-auto ms-auto">
+                        <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-bulk">Bulk Assign by Business Unit</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap">
+                      <thead>
+                      <tr>
+                        <th class="w-1">#</th>
+                        <th>Employee</th>
+                        <th>Business Unit</th>
+                        <th>Division</th>
+                        <th>Current Shift</th>
+                        <th>Effective From</th>
+                        <th>Assign</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% var no = listOfEmployeeShift.meta.currentPage * listOfEmployeeShift.meta.limit + 1; %>
+                        <% listOfEmployeeShift.data.forEach(function(emp) { %>
+                          <tr>
+                              <td><span class="text-muted"><%= no++ %></span></td>
+                              <td><%= emp.fullName %></td>
+                              <td><%= emp.businessUnit ? emp.businessUnit.businessUnitName : '-' %>
+                                  <% if (emp.businessUnit && emp.businessUnit.attendanceMode == 'PRESENCE') { %>
+                                    <span class="badge bg-purple ms-1">PRESENCE</span>
+                                  <% } %>
+                              </td>
+                              <td><%= emp.division ? emp.division.divisionName : '-' %></td>
+                              <td>
+                                <% if (emp.employeeShifts.length > 0) { %>
+                                  <%= emp.employeeShifts[0].shift.shiftName %>
+                                <% } else { %>
+                                  <span class="text-muted">(BU default)</span>
+                                <% } %>
+                              </td>
+                              <td>
+                                <% if (emp.employeeShifts.length > 0) { %>
+                                  <%= moment.utc(emp.employeeShifts[0].effectiveFrom).format('DD-MM-yyyy') %>
+                                <% } else { %>
+                                  -
+                                <% } %>
+                              </td>
+                              <td>
+                                <button class="btn btn-outline-primary btn-sm edit" data-bs-toggle="modal" data-bs-target="#modal-assign"
+                                        data-id="<%= emp.id %>" data-name="<%= emp.fullName %>"
+                                        data-shift="<%= emp.employeeShifts.length > 0 ? emp.employeeShifts[0].shift.id : '' %>">Assign</button>
+                              </td>
+                          </tr>
+                        <% }); %>                       
+                      </tbody>
+                    </table>
+                  </div>
+                                    
+                  <div class="card-footer d-flex align-items-center">
+                    <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfEmployeeShift.meta.totalRecordCurrentPage %></span> of <span><%= listOfEmployeeShift.meta.totalRecords %></span> entries</p>
+                    <% if (listOfEmployeeShift.meta.totalPage > 1) { %>
+                    <ul class="pagination m-0 ms-auto">
+                      <% if (listOfEmployeeShift.meta.currentPage == 0) { %>
+                        <li class="page-item disabled"><a class="btn btn-outline-primary disabled btn-sm"><< First</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary btn-sm" href="/employee-shift?page=0&limit=<%= listOfEmployeeShift.meta.limit %>&search=<%= search || '' %>"><< First</a></li>&nbsp;
+                      <% } %>
+                      
+                      <% if (listOfEmployeeShift.meta.currentPage == 0) { %>
+                        <li class="page-item disabled"><a class="btn btn-outline-primary disabled btn-sm">< Prev</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary btn-sm" href="/employee-shift?page=<%= listOfEmployeeShift.meta.currentPage-1 %>&limit=<%= listOfEmployeeShift.meta.limit %>&search=<%= search || '' %>">< Previous</a></li>&nbsp;
+                      <% } %>
+
+                      <% if ((listOfEmployeeShift.meta.currentPage + 1) == listOfEmployeeShift.meta.totalPage) { %>
+                        <li class="page-item disabled"><a class="btn btn-outline-primary disabled btn-sm">Next ></a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary btn-sm" href="/employee-shift?page=<%= listOfEmployeeShift.meta.currentPage+1 %>&limit=<%= listOfEmployeeShift.meta.limit %>&search=<%= search || '' %>"> Next ></a></li>&nbsp;
+                      <% } %>
+
+                      <% if (listOfEmployeeShift.meta.currentPage == (listOfEmployeeShift.meta.totalPage-1)) { %>
+                        <li class="disabled"><a class="btn btn-outline-primary disabled btn-sm">Last >></a></li>&nbsp;
+                      <% } else { %>
+                          <li><a class="btn btn-outline-primary btn-sm" href="/employee-shift?page=<%= listOfEmployeeShift.meta.totalPage - 1 %>&limit=<%= listOfEmployeeShift.meta.limit %>&search=<%= search || '' %>">Last >></a></li>
+                      <% } %>
+                    </ul>
+                    <% } %>
+                  </div> 
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Modal assign per karyawan -->
+  <div class="modal modal-blur fade" id="modal-assign" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Assign Shift — <span class="assign-name"></span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/employee-shift/assign" autocomplete="off">
+          <div class="modal-body">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="employee_id" id="assign_employee_id" class="assign-id">
+            <div class="mb-3">
+              <label class="form-label">Shift</label>
+              <select name="shift_id" class="form-select assign-shift" required>
+                <option value="">— select shift —</option>
+                <% listOfShift.forEach(function(s) { %>
+                  <option value="<%= s.id %>"><%= s.shiftName %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Effective From</label>
+              <input type="date" class="form-control" name="effective_from" value="<%= moment.utc().format('YYYY-MM-DD') %>">
+              <div class="form-hint">Penugasan baru berlaku mulai tanggal ini; riwayat lama tetap tersimpan.</div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">Assign</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal bulk assign -->
+  <div class="modal modal-blur fade" id="modal-bulk" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Bulk Assign by Business Unit</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/employee-shift/assign-bulk" autocomplete="off">
+          <div class="modal-body">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="mb-3">
+              <label class="form-label">Business Unit</label>
+              <select name="business_unit_id" class="form-select" required>
+                <option value="">— select business unit —</option>
+                <% listOfBUForBulk.forEach(function(bu) { %>
+                  <option value="<%= bu.id %>"><%= bu.businessUnitName %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Shift</label>
+              <select name="shift_id" class="form-select" required>
+                <option value="">— select shift —</option>
+                <% listOfShift.forEach(function(s) { %>
+                  <option value="<%= s.id %>"><%= s.shiftName %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Effective From</label>
+              <input type="date" class="form-control" name="effective_from" value="<%= moment.utc().format('YYYY-MM-DD') %>">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">Assign to All</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var assignModal = document.getElementById('modal-assign');
+      assignModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        assignModal.querySelector('.assign-id').value = button.getAttribute('data-id');
+        assignModal.querySelector('.assign-name').textContent = button.getAttribute('data-name');
+        var current = button.getAttribute('data-shift');
+        var sel = assignModal.querySelector('.assign-shift');
+        if (current) sel.value = current;
+      });
+    });
+  </script>
+</body>
+</html>

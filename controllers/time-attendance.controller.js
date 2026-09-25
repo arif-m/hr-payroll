@@ -546,8 +546,39 @@ const timeAttendanceReportByEmployee = async(req, res) => {
     res.render('pages/time-attendance/report-employee', param);
 }
 
+// Jalankan derivasi kehadiran (mode PRESENCE) untuk rentang tanggal.
+// Dipakai admin untuk backfill/koreksi; cron harian memakai libs/attendance/derive langsung.
+const runAttendanceDerivation = async (req, res) => {
+    const { runDerivation } = require('../libs/attendance/derive');
+    try {
+        const dateFrom = req.body.date_from;
+        const dateTo = req.body.date_to;
+        if (!dateFrom || !dateTo || !moment.utc(dateFrom, 'YYYY-MM-DD', true).isValid() || !moment.utc(dateTo, 'YYYY-MM-DD', true).isValid()) {
+            req.flash('error', 'Tanggal tidak valid (format YYYY-MM-DD)');
+            return res.redirect('/time-attendance-admin');
+        }
+        const stats = await runDerivation({
+            startDate: dateFrom,
+            endDate: dateTo,
+            actor: (req.user && req.user.fullName) || 'ADMIN-DERIVE',
+        });
+        req.flash('success',
+            'Derivation selesai — created: ' + stats.created +
+            ', updated: ' + stats.updated +
+            ', skippedManual: ' + stats.skippedManual +
+            ', skippedClosed: ' + stats.skippedClosed +
+            ', skippedLeave: ' + stats.skippedLeave +
+            (stats.warnings.length > 0 ? ', warnings: ' + stats.warnings.slice(0, 5).join('; ') : ''));
+        return res.redirect('/time-attendance-admin?date_from=' + encodeURIComponent(dateFrom) + '&date_to=' + encodeURIComponent(dateTo));
+    } catch (err) {
+        req.flash('error', err.message);
+        return res.redirect('/time-attendance-admin');
+    }
+};
+
 module.exports = {
     listingAllDataTimeAttendance,
+    runAttendanceDerivation,
     timeAttendanceReportByAdmin,
     createDataTimeAttendance,
     updateDataTimeAttendance,

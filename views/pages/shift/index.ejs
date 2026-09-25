@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Data Listing</h3>
+                  </div>
+                  <div class="card-body border-bottom py-3">
+                    <div class="col-12 mb-3">
+                      <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-add">Add</button><br />
+                    </div>
+                    <form action="/shift" id="frmSearch" type="GET">
+                      <div class="d-flex">
+                        <div class="text-muted">
+                        Show
+                        <div class="mx-2 d-inline-block">
+                            <input type="text" class="form-control form-control-sm" value="<%= listOfShift.meta.limit %>" size="3" aria-label="data count">
+                        </div>
+                        entries
+                        </div>
+                        <div class="ms-auto text-muted">
+                          <div class="input-group mb-2">
+                            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="search data" value="<% if(locals.search) { %><%= search  %><% } %>">
+                            <button class="btn" type="submit">Go</button>
+                          </div>
+                        </div>
+                    </form>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
+                      <thead>
+                      <tr>
+                        <th class="w-1">Id.</th>
+                        <th>Shift Name</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Crosses Midnight</th>
+                        <th>Grace (min)</th>
+                        <th></th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% listOfShift.data.forEach(function(shift) { %>
+                          <tr>
+                              <td><span class="text-muted"><%= shift.id %></span></td>
+                              <td><%= shift.shiftName %></td>
+                              <td><%= moment.utc(shift.startTime).format('HH:mm') %></td>
+                              <td><%= moment.utc(shift.endTime).format('HH:mm') %></td>
+                              <td><%= shift.crossesMidnight == 1 ? 'Yes' : 'No' %></td>
+                              <td><%= shift.graceMinutes %></td>
+                              <td class="text-end">
+                                <button class="btn btn-outline-primary ms-auto edit" data-bs-toggle="modal" data-bs-target="#modal-edit" data-id="<%= shift.id %>" data-shift_name="<%= shift.shiftName %>" data-start_time="<%= moment.utc(shift.startTime).format('HH:mm') %>" data-end_time="<%= moment.utc(shift.endTime).format('HH:mm') %>" data-crosses_midnight="<%= shift.crossesMidnight %>" data-grace_minutes="<%= shift.graceMinutes %>">Edit</button>
+                                <button class="btn btn-outline-danger ms-auto delete" data-bs-toggle="modal" data-bs-target="#modal-danger" data-id="<%= shift.id %>">Delete</button>
+                              </td>
+                          </tr>
+                          <% }); %>                       
+                      </tbody>
+                    </table>
+                  </div>
+                                    
+                  <div class="card-footer d-flex align-items-center">
+                    <p class="m-0 text-muted">Showing <span>1</span> to <span><%= listOfShift.meta.totalRecordCurrentPage %></span> of <span><%= listOfShift.meta.totalRecords %></span> entries</p>
+                    <% if (listOfShift.meta.totalPage > 1) { %>
+                    <ul class="pagination m-0 ms-auto">
+                      <% if (listOfShift.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm"><< First</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/shift?page=0&limit=<%= listOfShift.meta.limit %>"><< First</a></li>&nbsp;
+                      <% } %>
+                      
+                      <% if (listOfShift.meta.currentPage == 0) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">< Prev</a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/shift?page=<%= listOfShift.meta.currentPage-1 %>&limit=<%= listOfShift.meta.limit %>">< Previous</a></li>&nbsp;
+                      <% } %>
+
+                      <% if ((listOfShift.meta.currentPage + 1) == listOfShift.meta.totalPage) { %>
+                        <li class="page-item  disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Next ></a></li>&nbsp;
+                      <% } else { %>
+                          <li class="page-item"><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/shift?page=<%= listOfShift.meta.currentPage+1 %>&limit=<%= listOfShift.meta.limit %>"> Next ></a></li>&nbsp;
+                      <% } %>
+
+                      <% if (listOfShift.meta.currentPage == (listOfShift.meta.totalPage-1)) { %>
+                        <li class="disabled"><a class="btn btn-outline-primary ms-auto disabled btn-sm">Last >></a></li>&nbsp;
+                      <% } else { %>
+                          <li><a class="btn btn-outline-primary ms-auto inactive btn-sm" href="/shift?page=<%= listOfShift.meta.totalPage - 1 %>&limit=<%= listOfShift.meta.limit %>">Last >></a></li>
+                      <% } %>
+                    </ul>
+                    <% } %>
+                  </div> 
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+  
+  <div class="modal modal-blur fade" id="modal-add" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New Shift</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form class="card card-md" method="POST" action="/shift" autocomplete="off">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Shift Name</label>
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="text" class="form-control" name="shift_name" id="shift_name" placeholder="Name of Shift" required>
+            </div>
+            <div class="mb-3 row">
+              <div class="col-6">
+                <label class="form-label">Start Time</label>
+                <input type="time" class="form-control" name="start_time" id="start_time" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label">End Time</label>
+                <input type="time" class="form-control" name="end_time" id="end_time" required>
+              </div>
+            </div>
+            <div class="mb-3 row">
+              <div class="col-6">
+                <label class="form-check">
+                  <input type="checkbox" name="crosses_midnight" id="crosses_midnight" value="1" class="form-check-input">
+                  <span class="form-check-label">Crosses Midnight (night shift)</span>
+                </label>
+              </div>
+              <div class="col-6">
+                <label class="form-label">Grace Minutes (late tolerance)</label>
+                <input type="number" class="form-control" name="grace_minutes" id="grace_minutes" min="0" max="120" value="10">
+              </div>
+            </div>          
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary ms-auto" type="submit">
+              Insert Data
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Shift</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="frmEdit" class="card card-md" method="POST" action="/shift/update" autocomplete="off">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Shift Name</label>
+              <input type="hidden" name="shift_id" id="shift_id" class="shift-id">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="text" class="form-control shift-name" name="shift_name" id="shift_name_edit" placeholder="Name of Shift" required>
+            </div>
+            <div class="mb-3 row">
+              <div class="col-6">
+                <label class="form-label">Start Time</label>
+                <input type="time" class="form-control start-time" name="start_time" id="start_time_edit" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label">End Time</label>
+                <input type="time" class="form-control end-time" name="end_time" id="end_time_edit" required>
+              </div>
+            </div>
+            <div class="mb-3 row">
+              <div class="col-6">
+                <label class="form-check">
+                  <input type="checkbox" name="crosses_midnight" id="crosses_midnight_edit" value="1" class="form-check-input crosses-midnight">
+                  <span class="form-check-label">Crosses Midnight (night shift)</span>
+                </label>
+              </div>
+              <div class="col-6">
+                <label class="form-label">Grace Minutes (late tolerance)</label>
+                <input type="number" class="form-control grace-minutes" name="grace_minutes" id="grace_minutes_edit" min="0" max="120" value="10">
+              </div>
+            </div>          
+          </div>
+        
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button id="updateBtn" class="btn btn-primary ms-auto" type="submit">
+              Update Data
+            </button>
+          </div>
+        </form>
+    </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-danger" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <form class="card card-md" method="POST" action="/shift/delete" autocomplete="off">
+          <div class="modal-body text-center py-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+            <h3>Are you sure?</h3>
+            <div class="text-muted">Do you really want to remove the data? What you've done cannot be undone.</div>
+            <input type="hidden" name="shift_id" id="shift_id_delete" class="shift-id">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">
+                    Cancel
+                  </a>
+                </div>
+                <button id="deleteBtn" class="col btn btn-danger ms-auto" type="submit" data-bs-dismiss="modal">
+                  Delete Data
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal-blur fade" id="modal-error" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-status bg-danger"></div>
+        <div class="modal-body text-center py-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+          <h3><%= message.errorDelete %></h3>
+        </div>
+        <div class="modal-footer">
+          <div class="w-100">
+            <div class="row">
+              <div class="col">
+                <a href="#" class="btn btn-danger w-100" data-bs-dismiss="modal">
+                  Close
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+
+  <script src="/assets/tabler/libs/litepicker/dist/litepicker.js" ></script>
+
+  <% var messageErrorDelete = message.errorDelete; %>
+  <script type = "text/JavaScript">
+    document.addEventListener('DOMContentLoaded', function () {      // Edit modal: isi field dari data-* tombol Edit
+      var editModal = document.getElementById('modal-edit');
+      editModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        document.querySelector('.shift-id').value = button.getAttribute('data-id');
+        document.querySelector('.shift-name').value = button.getAttribute('data-shift_name');
+        document.querySelector('.start-time').value = button.getAttribute('data-start_time');
+        document.querySelector('.end-time').value = button.getAttribute('data-end_time');
+        document.querySelector('.crosses-midnight').checked = button.getAttribute('data-crosses_midnight') == '1';
+        document.querySelector('.grace-minutes').value = button.getAttribute('data-grace_minutes');
+      });
+      // Delete modal: isi id
+      var dangerModal = document.getElementById('modal-danger');
+      dangerModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        document.getElementById('shift_id_delete').value = button.getAttribute('data-id');
+      });
+    });
+  </script>
+</body>
+</html>

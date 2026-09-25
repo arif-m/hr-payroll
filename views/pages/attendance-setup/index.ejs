@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Setup Attendance — Sanksi Keterlambatan</h3>
+                  </div>
+                  <div class="card-body">
+                    <div class="text-muted mb-3">
+                      <p class="mb-1">Berlaku hanya untuk karyawan di Business Unit mode <strong>PRESENCE</strong> (pabrik).</p>
+                      <p class="mb-0">Potongan dihitung dari baris kehadiran berstatus <strong>LATE</strong> hasil derivasi. ABSENT dan MISSING OUT tidak kena sanksi ini (absent sudah menurunkan prorating gaji variabel).</p>
+                    </div>
+                    <form class="card card-md" method="POST" action="/attendance-setup/update" autocomplete="off">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <input type="hidden" name="setup_id" value="<%= setup.id %>">
+                      <div class="card-body">
+                        <div class="form-group mb-3">
+                          <label class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="late_penalty_enabled" id="late_penalty_enabled" <%= setup.latePenaltyEnabled == 1 ? 'checked' : '' %>>
+                            <span class="form-check-label"><strong>Active Late Penalty</strong> — tampilkan baris <code>LD (Late Deduction)</code> di payslip</span>
+                          </label>
+                        </div>
+
+                        <div class="form-group mb-3">
+                          <label class="form-label">Kode Komponen Basis Upah <span class="text-danger">*</span></label>
+                          <input type="text" class="form-control" name="late_penalty_base_codes" value="<%= setup.latePenaltyBaseCodes %>" placeholder="BS" required>
+                          <div class="form-hint">Upah harian = (Σ komponen Fixed berkode ini) ÷ hari kerja periode. Multi-kode pisah koma, mis. <code>BS,TJ</code>.</div>
+                        </div>
+
+                        <div class="form-group mb-2">
+                          <label class="form-label">Tingkatan Sanksi (per kejadian telat) <span class="text-danger">*</span></label>
+                          <table class="table table-sm table-vcenter">
+                            <thead>
+                              <tr>
+                                <th style="width:45%">Telat maksimal (menit) — kosongkan di baris terakhir untuk "tanpa batas"</th>
+                                <th style="width:40%">Sanksi</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <% for (var i = 0; i < 3; i++) { var t = tiers[i] || { maxMinutes: (i === 2 ? null : ''), type: 'NONE' }; %>
+                              <tr>
+                                <td>
+                                  <input type="number" min="1" class="form-control" name="tier_max_minutes[]" value="<%= t.maxMinutes === null || t.maxMinutes === undefined ? '' : t.maxMinutes %>" placeholder="<%= i === 2 ? '(tanpa batas)' : 'menit' %>">
+                                </td>
+                                <td>
+                                  <select class="form-select" name="tier_type[]">
+                                    <% PENALTY_TYPES.forEach(function(pt) { %>
+                                      <option value="<%= pt %>" <%= t.type === pt ? 'selected' : '' %>><%= pt %></option>
+                                    <% }); %>
+                                  </select>
+                                </td>
+                              </tr>
+                              <% } %>
+                            </tbody>
+                          </table>
+                          <div class="form-hint">
+                            <strong>NONE</strong> = bebas · <strong>MINUTES</strong> = potongan proporsional menit (upah harian ÷ 480 × menit telat) ·
+                            <strong>HALF_DAY</strong> = 0,5 × upah harian · <strong>FULL_DAY</strong> = 1 × upah harian.
+                          </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                          <label class="form-label">Sanksi Kumulatif (Escalation)</label>
+                          <div class="row g-2">
+                            <div class="col-auto">
+                              <input type="number" min="0" max="31" class="form-control" name="escalation_every" value="<%= escalationEvery %>" style="width: 110px;">
+                            </div>
+                            <div class="col-auto d-flex align-items-center">kejadian telat per bulan →</div>
+                            <div class="col-auto">
+                              <select class="form-select" name="escalation_type">
+                                <% ESCALATION_TYPES.forEach(function(et) { %>
+                                  <option value="<%= et %>" <%= escalationType === et ? 'selected' : '' %>><%= et %></option>
+                                <% }); %>
+                              </select>
+                            </div>
+                          </div>
+                          <div class="form-hint">Isi 0 untuk mematikan. Contoh: 3 + FULL_DAY = setiap 3× telat dalam satu periode, tambah potongan 1 hari upah.</div>
+                        </div>
+                      </div>
+                      <div class="card-footer text-end">
+                        <button type="submit" class="btn btn-primary">Save Setup</button>
+                      </div>
+                    </form>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+</body>
+</html>

@@ -20,6 +20,7 @@ const tax21 = require('./tax21');
 const bpjs = require('./bpjs');
 const { loadTaxConfig } = require('./config');
 const thr = require('./thr');
+const latePenalty = require('./late-penalty');
 const { getTotalDayOfCalendar } = require('../../helper/get-total-calendar');
 
 const CATEGORY_EARNINGS = 'Earnings';
@@ -30,6 +31,7 @@ const ENGINE_CODES = {
   OVERTIME: 'OC',
   TAX_ALLOWANCE: 'TA',
   PPH21: 'TD',
+  LATE_DEDUCTION: 'LD',
   THR: 'THR',
   BPJS_KESEHATAN_COMPANY: 'BKS',
   BPJS_KESEHATAN_EMPLOYEE: 'BKE',
@@ -107,6 +109,7 @@ async function buildPayslip({ usersId, cutoffPeriod, createdBy, setupSystem: set
       ptkp: { select: { code: true, amount: true } },
       division: { select: { divisionName: true } },
       jobTitle: { select: { jobTitleName: true } },
+      businessUnit: { select: { attendanceMode: true } },
     },
   });
   if (!user) throw new Error(`Karyawan id=${usersId} tidak ditemukan`);
@@ -119,6 +122,8 @@ async function buildPayslip({ usersId, cutoffPeriod, createdBy, setupSystem: set
     select: {
       defaultTaxMethod: true, taxRegime: true, taxCalculationMethod: true,
       thrBudgetBaseCodes: true, thrEligibilityMonths: true, thrProrateRoundDays: true,
+      latePenaltyEnabled: true, latePenaltyBaseCodes: true,
+      latePenaltyTiers: true, latePenaltyEscalation: true,
     },
   }));
   const isGrossUp = setupSystem ? setupSystem.defaultTaxMethod === 'GrossUp' : true;
@@ -131,12 +136,20 @@ async function buildPayslip({ usersId, cutoffPeriod, createdBy, setupSystem: set
   const taxConfigSnapshot = tax21.normalizeConfig(taxConfig);
 
   // --- 1. Kehadiran & cuti -------------------------------------------------
-  const [absentDays, sickDays, sickLetterDays, annualLeaveDays, unpaidLeaveDays] = await Promise.all([
+  // Baris 'L' (telat, mode PRESENCE) untuk sanksi LD — hanya jika enabled.
+  const needLateEvents = setupSystem && Number(setupSystem.latePenaltyEnabled) === 1;
+  const [absentDays, sickDays, sickLetterDays, annualLeaveDays, unpaidLeaveDays, lateEventRows] = await Promise.all([
     countAbsentDays(usersId, startPeriod, endPeriod),
     collectLeaves(usersId, 2, startPeriod, endPeriod),
     collectLeaves(usersId, 3, startPeriod, endPeriod),
     collectLeaves(usersId, 1, startPeriod, endPeriod),
     collectLeaves(usersId, 4, startPeriod, endPeriod),
+    needLateEvents
+      ? prisma.timeAttendance.findMany({
+          where: { employeeId: usersId, status: 'L', workDate: { lte: endPeriod, gte: startPeriod } },
+          select: { lateMinutes: true },
+        })
+      : Promise.resolve([]),
   ]);
   const presentDays = Math.max(
     workDays - absentDays - sickDays - sickLetterDays - annualLeaveDays - unpaidLeaveDays, 0
@@ -362,6 +375,44 @@ async function buildPayslip({ usersId, cutoffPeriod, createdBy, setupSystem: set
       category: CATEGORY_DEDUCTIONS, isTakeHomePay: 1, isTaxBase: 1,
       amount: pph.toNumber(), sequence: 4000,
     });
+  }
+
+  // --- 5b. Sanksi telat (LD) — hanya BU PRESENCE + latePenaltyEnabled ------
+  // Potongan THP saja (isTaxBase 0): penalti bukan penghasilan, tidak masuk
+  // basis PPh 21. ABSENT/'M' tidak dikenai LD (anti double-penalty).
+  if (
+    needLateEvents &&
+    lateEventRows.length > 0 &&
+    user.businessUnit && user.businessUnit.attendanceMode === 'PRESENCE'
+  ) {
+    const baseCodes = String(setupSystem.latePenaltyBaseCodes || 'BS')
+      .split(',').map((c) => c.trim()).filter(Boolean);
+    const monthlyBase = salaryComponents.reduce((acc, comp) => {
+      if (comp.salaryComponentTypeName === 'Fixed' && baseCodes.includes(comp.componentCode) && comp.amount != null) {
+        return acc.plus(D(comp.amount));
+      }
+      return acc;
+    }, D(0));
+    const dailyBaseAmount = workDays > 0 ? monthlyBase.div(workDays).toNumber() : 0;
+    let penaltyTiers = setupSystem.latePenaltyTiers;
+    let penaltyEscalation = setupSystem.latePenaltyEscalation;
+    if (typeof penaltyTiers === 'string') { try { penaltyTiers = JSON.parse(penaltyTiers); } catch (e) { penaltyTiers = null; } }
+    if (typeof penaltyEscalation === 'string') { try { penaltyEscalation = JSON.parse(penaltyEscalation); } catch (e) { penaltyEscalation = null; } }
+
+    const penalty = latePenalty.calculateLatePenalty({
+      lateEvents: lateEventRows,
+      dailyBaseAmount,
+      tiers: penaltyTiers,
+      escalation: penaltyEscalation,
+    });
+    if (penalty.total > 0) {
+      deductionsThp = deductionsThp.plus(penalty.total);
+      pushDetail({
+        code: ENGINE_CODES.LATE_DEDUCTION, name: 'Late Deduction',
+        category: CATEGORY_DEDUCTIONS, isTakeHomePay: 1, isTaxBase: 0,
+        amount: penalty.total, sequence: 4050,
+      });
+    }
   }
 
   // --- 6. Header & hasil ----------------------------------------------------

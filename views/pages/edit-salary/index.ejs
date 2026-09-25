@@ -50,6 +50,7 @@
                         <th>Start Period</th>
                         <th>End Period</th>
                         <th>Is Active</th>
+                        <th>Att. Closed</th>
                         <th></th>
                       </tr>
                       </thead>
@@ -93,8 +94,15 @@
                                   Yes
                                 <% } %>
                               </td>
+                              <td>
+                                <% if(data.attendanceClosed == 1) { %>
+                                  <span class="badge bg-secondary">Closed</span>
+                                <% } else { %>
+                                  <span class="badge bg-azure-lt">Open</span>
+                                <% } %>
+                              </td>
                               <td class="text-end">
-                                <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-edit" data-uuid="<%= data.uuid %>" data-month_period="<%= data.monthPeriod %>" data-year_period="<%= data.yearPeriod %>" data-start_period="<%= data.startPeriod %>" data-end_period="<%= data.endPeriod %>" data-is_active="<%= data.isActive %>">Edit</button>
+                                <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-edit" data-uuid="<%= data.uuid %>" data-month_period="<%= data.monthPeriod %>" data-year_period="<%= data.yearPeriod %>" data-start_period="<%= data.startPeriod %>" data-end_period="<%= data.endPeriod %>" data-is_active="<%= data.isActive %>" data-attendance_closed="<%= data.attendanceClosed %>">Edit</button>
                                 <button class="btn btn-outline-primary ms-auto edit"><a href="/edit-salary/<%= data.uuid %>">Edit Salary</a></button>
                               </td>
                           </tr>
@@ -279,6 +287,16 @@
                 </div>
               </div>   
             </div>
+            <div class="col-lg-12">
+              <div class="form-group mb-3 row">
+                <label class="form-label col-3 col-form-label" for="attendance_closed">Attendance Closed ?</label>
+                <div class="col-9">
+                  <input type="hidden" class="form-control attendance-closed" name="attendance_closed" id="attendance_closed">
+                  <input type="checkbox" class="chk-attendance-closed" id="chk_attendance_closed" name="chk_attendance_closed">
+                  <div class="form-hint">Setelah ditutup, derivasi kehadiran tidak lagi menulis periode ini (data absensi terkunci).</div>
+                </div>
+              </div>   
+            </div>
           </div>      
           <div class="modal-footer">
             <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
@@ -398,9 +416,8 @@
         var dd = String(endPeriod.getDate()).padStart(2, '0');
         var mm = String(endPeriod.getMonth() + 1).padStart(2, '0'); //January is 0!
         var yyyy = endPeriod.getFullYear();
-        endPeriod = dd + '-' + mm + '-' + yyyy;
-
-        var isActive = button.getAttribute('data-is_active');
+        endPeriod = dd + '-' + mm + '-' + yyyy;        var isActive = button.getAttribute('data-is_active');
+        var attendanceClosed = button.getAttribute('data-attendance_closed');
 
         // If necessary, you could initiate an AJAX request here
         // and then do the updating in a callback.
@@ -418,10 +435,16 @@
         modalMonthPeriod.value = monthPeriod;
         modalYearPeriod.value = yearPeriod;
         modalStartPeriod.value = startPeriod;
-        modalEndPeriod.value = endPeriod;
-
-        var modalIsActive = editModal.querySelector(".is-active");
+        modalEndPeriod.value = endPeriod;        var modalIsActive = editModal.querySelector(".is-active");
         var modalChkIsActive = editModal.querySelector(".chk-is-active");
+        var modalAttClosed = editModal.querySelector(".attendance-closed");
+        var modalChkAttClosed = editModal.querySelector(".chk-attendance-closed");
+        modalAttClosed.value = attendanceClosed == 1 ? 1 : 0;
+        if (attendanceClosed == 1) {
+          modalChkAttClosed.setAttribute('checked', 'checked');
+        } else {
+          modalChkAttClosed.removeAttribute('checked');
+        }
         if (isActive == 1) {
           modalChkIsActive.removeAttribute('checked');
           modalChkIsActive.toggleAttribute('checked');
@@ -443,6 +466,14 @@
           }
         })
       })
+
+      var chkAttClosed = document.querySelectorAll('.chk-attendance-closed');
+      chkAttClosed.forEach((checkbox) => {
+        checkbox.addEventListener('change', (event) => {
+          let txtAtt = editModal.querySelector(".attendance-closed");
+          txtAtt.value = event.target.checked ? 1 : 0;
+        });
+      });
   </script>
 </body>
 </html>

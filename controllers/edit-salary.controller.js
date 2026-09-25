@@ -52,6 +52,7 @@ const showIndex = async (req, res) => {
             monthPeriod: true,
             yearPeriod: true,
             workDays: true,
+            attendanceClosed: true,
         },
         orderBy: [
             {

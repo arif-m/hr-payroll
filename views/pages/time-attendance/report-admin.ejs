@@ -55,6 +55,7 @@
                       <th>Employee</th>
                       <th>Work Date</th>
                       <th>Status</th>
+                      <th>Late/Early</th>
                       <th>Reason</th>
                     </tr>
                     </thead>
@@ -71,9 +72,14 @@
                             <td>ANNUAL LEAVE</td>
                           <% } else if (data.status == 'U') { %>
                             <td>UNPAID LEAVE</td>
+                          <% } else if (data.status == 'L') { %>
+                            <td>LATE</td>
+                          <% } else if (data.status == 'M') { %>
+                            <td>MISSING OUT</td>
                           <% } else if (data.status == 'P') { %>
                           <td>PRESENT</td>
                           <% } %>
+                          <td><%= data.lateMinutes || 0 %> / <%= data.earlyOutMinutes || 0 %></td>
                           <td><%= data.reason %></td>
                         </tr>
                         <% }); %>                       

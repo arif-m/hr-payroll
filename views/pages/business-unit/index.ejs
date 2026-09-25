@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+  
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Business Units — Attendance Mode</h3>
+                  </div>
+                  <div class="card-body border-bottom py-3">
+                    <div class="text-muted">
+                      <p class="mb-1"><strong>EXCEPTION</strong>: karyawan dianggap hadir setiap hari kecuali didaftarkan tidak masuk (mode kantor).</p>
+                      <p class="mb-0"><strong>PRESENCE</strong>: karyawan wajib clock-in setiap hari; tanpa punch akan di-derive menjadi Absent oleh sistem (mode pabrik).</p>
+                    </div>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap">
+                      <thead>
+                      <tr>
+                        <th class="w-1">Id.</th>
+                        <th>Business Unit</th>
+                        <th>Company</th>
+                        <th>Attendance Mode</th>
+                        <th>Default Shift</th>
+                        <th></th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% listOfBU.forEach(function(bu) { %>
+                          <tr>
+                              <form class="row gy-2 gx-2 align-items-end" method="POST" action="/business-unit/update" autocomplete="off">
+                              <td><span class="text-muted"><%= bu.id %></span></td>
+                              <td><%= bu.businessUnitName %></td>
+                              <td><%= bu.companyName || '-' %></td>
+                              <td>
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <input type="hidden" name="business_unit_id" value="<%= bu.id %>">
+                                <select name="attendance_mode" class="form-select form-select-sm" style="min-width: 140px;">
+                                  <option value="EXCEPTION" <%= bu.attendanceMode == 'EXCEPTION' ? 'selected' : '' %>>EXCEPTION</option>
+                                  <option value="PRESENCE" <%= bu.attendanceMode == 'PRESENCE' ? 'selected' : '' %>>PRESENCE</option>
+                                </select>
+                              </td>
+                              <td>
+                                <select name="default_shift_id" class="form-select form-select-sm" style="min-width: 160px;">
+                                  <option value="">— none —</option>
+                                  <% listOfShift.forEach(function(s) { %>
+                                    <option value="<%= s.id %>" <%= bu.defaultShiftId == s.id ? 'selected' : '' %>><%= s.shiftName %></option>
+                                  <% }); %>
+                                </select>
+                              </td>
+                              <td class="text-end">
+                                <button class="btn btn-outline-primary btn-sm" type="submit">Save</button>
+                              </td>
+                              </form>
+                          </tr>
+                        <% }); %>                       
+                      </tbody>
+                    </table>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+</body>
+</html>
