@@ -546,6 +546,172 @@ const timeAttendanceReportByEmployee = async(req, res) => {
     res.render('pages/time-attendance/report-employee', param);
 }
 
+// ======================= FASE 3: IMPORT CSV & REKAP =======================
+
+// Import CSV/Excel-CSV dari mesin absensi: auto-detect format, pairing
+// punch min/max per hari, tulis baris dengan punch, lalu auto-derive.
+const importAttendanceCsv = async (req, res) => {
+    try {
+        if (!req.files || !req.files.csv_file) {
+            req.flash('error', 'Pilih file CSV terlebih dahulu');
+            return res.redirect('/time-attendance-admin');
+        }
+        const file = req.files.csv_file;
+        const { parseAttendanceCsv, minutesToTimeDate } = require('../libs/attendance/import-csv');
+        const parsed = parseAttendanceCsv(file.data.toString('utf8'));
+
+        // Map User ID mesin -> user (employeeId unik)
+        const empIds = [...new Set(parsed.paired.map((p) => p.employeeIdRaw))];
+        const users = await prisma.users.findMany({
+            where: { employeeId: { in: empIds.map((e) => { const n = BigInt(e); return n; }) } },
+            select: { id: true, employeeId: true, fullName: true, businessUnitId: true, businessUnit: { select: { businessUnitName: true } }, divisionId: true, division: { select: { divisionName: true } }, jobTitleId: true, jobTitle: { select: { jobTitleName: true } } },
+        });
+        const userByEmp = new Map(users.map((u) => [String(u.employeeId), u]));
+
+        const warnings = parsed.warnings.slice();
+        let created = 0, updated = 0, skippedManual = 0, unknownUsers = new Set();
+        for (const p of parsed.paired) {
+            const user = userByEmp.get(p.employeeIdRaw);
+            if (!user) { unknownUsers.add(p.employeeIdRaw); continue; }
+            const workDate = new Date(p.dateKey + 'T00:00:00.000Z');
+            const existing = await prisma.timeAttendance.findFirst({
+                where: { employeeId: user.id, workDate },
+            });
+            const hasPunch = Boolean(existing && (existing.checkIn || existing.checkOut));
+            if (existing && !hasPunch && existing.isDerived === 0) { skippedManual += 1; continue; }
+            const data = {
+                checkIn: p.checkIn ? minutesToTimeDate(parseHm(p.checkIn)) : null,
+                checkOut: p.checkOut ? minutesToTimeDate(parseHm(p.checkOut)) : null,
+                status: hasPunch ? (existing.status || 'P') : 'P', // diberi stamp oleh derivasi setelah ini
+                updatedBy: 'CSV-IMPORT',
+            };
+            if (existing) {
+                await prisma.timeAttendance.update({ where: { id: existing.id }, data });
+                updated += 1;
+            } else {
+                await prisma.timeAttendance.create({ data: {
+                    createdBy: 'CSV-IMPORT', updatedBy: 'CSV-IMPORT',
+                    employeeId: user.id, fullName: user.fullName,
+                    businessUnitId: user.businessUnitId, businessUnitName: user.businessUnit ? user.businessUnit.businessUnitName : null,
+                    divisionId: user.divisionId, divisionName: user.division ? user.division.divisionName : null,
+                    jobTitleId: user.jobTitleId, jobTitleName: user.jobTitle ? user.jobTitle.jobTitleName : null,
+                    workDate,
+                    checkIn: data.checkIn, checkOut: data.checkOut,
+                    status: 'P', isDerived: 1,
+                }});
+                created += 1;
+            }
+        }
+        if (unknownUsers.size > 0) warnings.push('User ID tidak dikenal (dilewati): ' + [...unknownUsers].join(', '));
+
+        // Auto-derive untuk seluruh rentang tanggal hasil import
+        const dates = parsed.paired.map((p) => p.dateKey).sort();
+        let derived = null;
+        if (dates.length > 0) {
+            const { runDerivation } = require('../libs/attendance/derive');
+            derived = await runDerivation({ startDate: dates[0], endDate: dates[dates.length - 1], actor: 'CSV-IMPORT' });
+        }
+
+        req.flash('success',
+            'Import CSV (' + parsed.format + ', pemisah "' + parsed.separator + '") — punch: ' + parsed.punches.length +
+            ', hari/karyawan: ' + parsed.paired.length +
+            ', baris dibuat: ' + created + ', di-update: ' + updated +
+            ', manual dilewati: ' + skippedManual +
+            (parsed.skipped.length > 0 ? ', baris rusak: ' + parsed.skipped.length : '') +
+            (derived ? ', derivasi (A/L/M/P): created ' + derived.created + ', updated ' + derived.updated : '') +
+            (warnings.length > 0 ? ' || ' + warnings.slice(0, 4).join(' ; ') : ''));
+    } catch (err) {
+        req.flash('error', 'Import gagal: ' + err.message);
+    }
+    return res.redirect('/time-attendance-admin');
+}
+
+/** '08:05' -> 485 menit */
+function parseHm(hm) {
+    const m = String(hm).match(/^(\d{1,2}):(\d{2})$/);
+    return Number(m[1]) * 60 + Number(m[2]);
+}
+
+// Rekap kehadiran per divisi (agregasi dari timeAttendance).
+async function buildRecap(dateFrom, dateTo, businessUnitId) {
+    const where = { workDate: { gte: new Date(dateFrom + 'T00:00:00.000Z'), lte: new Date(dateTo + 'T00:00:00.000Z') } };
+    if (businessUnitId) where.businessUnitId = Number(businessUnitId);
+    const rows = await prisma.timeAttendance.findMany({
+        where,
+        select: { employeeId: true, fullName: true, divisionId: true, divisionName: true, status: true, lateMinutes: true, earlyOutMinutes: true },
+        orderBy: [{ divisionId: 'asc' }, { fullName: 'asc' }],
+    });
+    // status cuti tetap di requestLeave (baris 'S'/'N'/'U' lama berbasis baris);
+    // rekap menghitung dari TimeAttendance agar konsisten dengan payroll.
+    const byEmp = new Map();
+    for (const r of rows) {
+        if (!byEmp.has(r.employeeId)) {
+            byEmp.set(r.employeeId, {
+                employeeId: r.employeeId, fullName: r.fullName, divisionId: r.divisionId, divisionName: r.divisionName || '-',
+                present: 0, late: 0, lateMinutes: 0, absent: 0, missing: 0, other: {},
+            });
+        }
+        const e = byEmp.get(r.employeeId);
+        if (r.status === 'P') e.present += 1;
+        else if (r.status === 'L') { e.late += 1; e.lateMinutes += r.lateMinutes || 0; }
+        else if (r.status === 'A') e.absent += 1;
+        else if (r.status === 'M') e.missing += 1;
+        else e.other[r.status] = (e.other[r.status] || 0) + 1;
+    }
+    const employees = [...byEmp.values()].map((e) => {
+        const days = e.present + e.late + e.absent + e.missing + Object.values(e.other).reduce((a, b) => a + b, 0);
+        e.days = days;
+        e.attendancePct = days > 0 ? Math.round(((e.present + e.late) / days) * 100) : 0;
+        return e;
+    });
+    const byDivision = new Map();
+    for (const e of employees) {
+        if (!byDivision.has(e.divisionId)) byDivision.set(e.divisionId, { divisionName: e.divisionName, employees: [] });
+        byDivision.get(e.divisionId).employees.push(e);
+    }
+    return [...byDivision.values()];
+}
+
+const timeAttendanceRecap = async (req, res) => {
+    const query = req.query;
+    const dateFrom = query.date_from || moment.utc().startOf('month').format('YYYY-MM-DD');
+    const dateTo = query.date_to || moment.utc().format('YYYY-MM-DD');
+    const businessUnitId = query.business_unit || null;
+
+    const divisions = await buildRecap(dateFrom, dateTo, businessUnitId);
+    const listOfBU = await prisma.businessUnit.findMany({ select: { id: true, businessUnitName: true }, orderBy: { businessUnitName: 'asc' } });
+    const userInfo = req.user;
+    const getRoles = await listRolesPermission(userInfo.roleUuid);
+
+    res.render('pages/time-attendance/recap-admin', {
+        user: userInfo, getRoles, pageTitle: 'Attendance Recap',
+        dateFrom, dateTo, businessUnitId, listOfBU, divisions, moment,
+    });
+}
+
+const timeAttendanceRecapCsv = async (req, res) => {
+    const { csvField } = require('../libs/payroll/payment-file');
+    const query = req.query;
+    const dateFrom = query.date_from || moment.utc().startOf('month').format('YYYY-MM-DD');
+    const dateTo = query.date_to || moment.utc().format('YYYY-MM-DD');
+    const divisions = await buildRecap(dateFrom, dateTo, query.business_unit || null);
+
+    const lines = ['Divisi,Nama,Hari Terdata,Hadir,Telat,Total Menit Telat,Absent,Missing Out,Lainnya,% Hadir'];
+    for (const div of divisions) {
+        for (const e of div.employees) {
+            const other = Object.entries(e.other).map(([k, v]) => k + '=' + v).join(' ') || '-';
+            lines.push([
+                csvField(div.divisionName), csvField(e.fullName), e.days, e.present, e.late,
+                e.lateMinutes, e.absent, e.missing, csvField(other), e.attendancePct + '%',
+            ].join(','));
+        }
+    }
+    const filename = 'recap-kehadiran-' + dateFrom + '_' + dateTo + '.csv';
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="' + filename + '"');
+    return res.send('\uFEFF' + lines.join('\r\n'));
+}
+
 // Jalankan derivasi kehadiran (mode PRESENCE) untuk rentang tanggal.
 // Dipakai admin untuk backfill/koreksi; cron harian memakai libs/attendance/derive langsung.
 const runAttendanceDerivation = async (req, res) => {
@@ -579,6 +745,9 @@ const runAttendanceDerivation = async (req, res) => {
 module.exports = {
     listingAllDataTimeAttendance,
     runAttendanceDerivation,
+    importAttendanceCsv,
+    timeAttendanceRecap,
+    timeAttendanceRecapCsv,
     timeAttendanceReportByAdmin,
     createDataTimeAttendance,
     updateDataTimeAttendance,

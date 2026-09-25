@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Rekap Kehadiran per Divisi</h3>
+                  </div>
+                  <div class="card-body border-bottom py-3">
+                    <form action="/time-attendance-admin/recap" type="GET" autocomplete="off" class="row g-2 align-items-end">
+                      <div class="col-auto">
+                        <label class="form-label mb-0">Date From</label>
+                        <input type="date" class="form-control form-control-sm" name="date_from" value="<%= dateFrom %>">
+                      </div>
+                      <div class="col-auto">
+                        <label class="form-label mb-0">Date To</label>
+                        <input type="date" class="form-control form-control-sm" name="date_to" value="<%= dateTo %>">
+                      </div>
+                      <div class="col-auto">
+                        <label class="form-label mb-0">Business Unit</label>
+                        <select name="business_unit" class="form-select form-select-sm">
+                          <option value="">Semua</option>
+                          <% listOfBU.forEach(function(bu) { %>
+                            <option value="<%= bu.id %>" <%= businessUnitId == bu.id ? 'selected' : '' %>><%= bu.businessUnitName %></option>
+                          <% }); %>
+                        </select>
+                      </div>
+                      <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-primary btn-sm">Apply &nbsp;<i class="ti ti-zoom-in"></i></button>
+                      </div>
+                      <div class="col-auto ms-auto">
+                        <a class="btn btn-outline-success btn-sm" href="/time-attendance-admin/recap/csv?date_from=<%= dateFrom %>&date_to=<%= dateTo %>&business_unit=<%= businessUnitId || '' %>">Download CSV &nbsp;<i class="ti ti-download"></i></a>
+                      </div>
+                    </form>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table card-table table-vcenter text-nowrap">
+                      <thead>
+                      <tr>
+                        <th>Divisi</th>
+                        <th>Nama</th>
+                        <th>Hari Terdata</th>
+                        <th>Hadir</th>
+                        <th>Telat</th>
+                        <th>Total Menit Telat</th>
+                        <th>Absent</th>
+                        <th>Missing Out</th>
+                        <th>% Hadir</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        <% divisions.forEach(function(div) { %>
+                          <% div.employees.forEach(function(e, idx) { %>
+                            <tr>
+                              <td><%= idx === 0 ? div.divisionName : '' %></td>
+                              <td><%= e.fullName %></td>
+                              <td><%= e.days %></td>
+                              <td><%= e.present %></td>
+                              <td><span class="badge bg-orange"><%= e.late %></span></td>
+                              <td><%= e.lateMinutes %></td>
+                              <td><%= e.absent > 0 ? '<span class=\"badge bg-red\">' + e.absent + '</span>' : 0 %></td>
+                              <td><%= e.missing %></td>
+                              <td><%= e.attendancePct %>%</td>
+                            </tr>
+                          <% }); %>
+                        <% }); %>
+                        <% if (divisions.length === 0) { %>
+                          <tr><td colspan="9" class="text-center text-muted">Tidak ada data kehadiran pada rentang ini.</td></tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+</body>
+</html>

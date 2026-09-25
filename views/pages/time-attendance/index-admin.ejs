@@ -64,6 +64,26 @@
                       </div><br />                    
                     </form>
 
+                    <form action="/time-attendance-admin/import-csv" method="POST" enctype="multipart/form-data" class="row g-2 align-items-end mt-2" autocomplete="off">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <div class="col-auto">
+                        <label class="form-label mb-0">Import CSV Mesin Absensi</label>
+                        <input type="file" class="form-control form-control-sm" name="csv_file" accept=".csv,text/csv,.txt" required>
+                      </div>
+                      <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-info btn-sm" onclick="return confirm('Import punch dari CSV mesin absensi? Format auto-detect (koma/titik-koma), punch dipasangkan min/max per hari.');">Upload & Import &nbsp;<i class="ti ti-upload"></i></button>
+                      </div>
+                      <div class="col-auto">
+                        <a class="btn btn-outline-secondary btn-sm" href="/templates/template-import-absensi.csv">Template &nbsp;<i class="ti ti-download"></i></a>
+                        <a class="btn btn-outline-secondary btn-sm" href="/templates/template-import-absensi-zkteco.csv">Contoh ZKTeco</a>
+                      </div>
+                    </form>
+                    <div class="text-muted small mt-1">
+                      Kolom yang diterima: <code>User ID/PIN/NIK</code> + <code>Date/Tanggal</code> + <code>Time/Jam</code>, atau <code>User ID</code> + <code>DateTime</code> gabungan.
+                      Tanggal <code>DD/MM/YYYY</code> juga didukung; punch berulang di hari yang sama otomatis dipasangkan (terpagi = masuk, terakhir = pulang).
+                      <code>User ID</code> = Employee ID karyawan di aplikasi.
+                    </div>
+
                     <form action="/time-attendance-admin/derive" method="POST" class="row g-2 align-items-end mt-2" autocomplete="off">
                       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                       <div class="col-auto">
@@ -76,6 +96,9 @@
                       </div>
                       <div class="col-auto">
                         <button type="submit" class="btn btn-outline-warning btn-sm" onclick="return confirm('Run attendance derivation for this date range? Only PRESENCE business units, manual rows are never overwritten.');">Run Derivation &nbsp;<i class="ti ti-wand"></i></button>
+                      </div>
+                      <div class="col-auto ms-auto">
+                        <a class="btn btn-outline-secondary btn-sm" href="/time-attendance-admin/recap?date_from=<%= dateFrom %>&date_to=<%= dateTo %>">Recap per Divisi &nbsp;<i class="ti ti-chart-bar"></i></a>
                       </div>
                     </form>
 

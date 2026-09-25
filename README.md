@@ -224,10 +224,12 @@ kehadiran dibuktikan via punch.
   payroll (engine sudah menghitung `TimeAttendance` status `A`). Periode
   cut-off dengan `attendanceClosed = 1` tidak ditulis ulang.
 - Unit test: `test/attendance-derive.test.js` (bagian dari `npm test`).
-- Menu samping: jalankan `node scripts/seed-attendance-menu.js` (idempotent)
-  untuk mendaftarkan **Master Shift**, **Employee Shift**, dan **Business
-  Unit** sebagai anak menu *Payroll Management* (Admin/Super Admin: CRUD,
-  HR: lihat).
+- Menu samping: terdaftar di `prisma/seed.ts` (ikut `prisma db seed`);
+  untuk database yang sudah berjalan, jalankan `node
+  scripts/seed-attendance-menu.js` (idempotent) untuk mendaftarkan
+  **Master Shift**, **Employee Shift**, **Business Unit**, dan **Setup
+  Attendance** sebagai anak menu *Payroll Management* (Admin/Super Admin:
+  CRUD, HR: lihat).
 
 ### Sanksi Keterlambatan (LD) — Fase 2
 
@@ -248,6 +250,26 @@ Tingkatan default: ≤30 mnt = bebas, 31–120 mnt = proporsional menit,
 (missing check-out) tidak dikenai LD — absent sudah menurunkan prorating
 komponen Variable. Unit test `test/late-penalty.test.js`; smoke terarah
 (reversible): `node scripts/smoke-test-late-penalty.js`.
+
+### Import CSV Mesin Absensi & Rekap Kehadiran — Fase 3
+
+**Import CSV**: di halaman *Time Attendance Admin* tersedia form **Import CSV
+Mesin Absensi** (`libs/attendance/import-csv.js`) — auto-detect format:
+pemisah koma/titik-koma (ZKTeco), alias kolom (User ID/PIN/NIK, Date/Tanggal,
+Time/Jam, atau kolom gabungan DateTime), tanggal `YYYY-MM-DD` maupun
+`DD/MM/YYYY`. Punch bolak-balik dipasangkan **min/max per hari** (punch
+terpagi = check-in, terakhir = check-out). Matching via `User ID` mesin →
+`employeeId`; ID tak dikenal dilaporkan. Baris manual tanpa punch tidak
+ditimpa; setelah import **auto-derive** menstempel P/L/A/M dari shift.
+
+**Template**: di form import tersedia **Template** (format sederhana
+`User ID,Date,Time`) dan **Contoh ZKTeco** (titik-koma) —
+`public/templates/template-import-absensi*.csv`.
+
+**Rekap per divisi**: tombol **Recap per Divisi** →
+`/time-attendance-admin/recap` — Hadir, Telat (× kejadian + total menit),
+Absent, Missing Out, % Hadir per karyawan per divisi; tersedia
+**Download CSV**.
 
 ### Testing & verifikasi
 

@@ -404,6 +404,11 @@ async function main() {
     skipDuplicates: true,
   });
 
+  // --- Menu absensi Fase 1/2 (Master Shift, Employee Shift, Business Unit,
+  //     Setup Attendance) + permission. Sumber data tunggal di
+  //     scripts/attendance-menu-data.js; idempotent, aman untuk re-seed.
+  await require('../scripts/attendance-menu-data').seedAttendanceMenu(prisma);
+
 }
 
 main()

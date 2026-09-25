@@ -2,13 +2,16 @@ var express = require('express');
 var ah = require('../helper/async-handler');
 var ensureLogIn = require('connect-ensure-login').ensureLoggedIn;
 var ensureLoggedIn = ensureLogIn();
-const { createDataTimeAttendance, listingAllDataTimeAttendance, listingAllDataTimeAttendance2, timeAttendanceReportByAdmin, timeAttendanceReportByEmployee, runAttendanceDerivation } = require('../controllers/time-attendance.controller');
+const { createDataTimeAttendance, listingAllDataTimeAttendance, listingAllDataTimeAttendance2, timeAttendanceReportByAdmin, timeAttendanceReportByEmployee, runAttendanceDerivation, importAttendanceCsv, timeAttendanceRecap, timeAttendanceRecapCsv } = require('../controllers/time-attendance.controller');
 var router = express.Router();
 
 router.get('/time-attendance-admin', ensureLoggedIn, ah(listingAllDataTimeAttendance));
 router.post('/time-attendance-admin', ensureLoggedIn, ah(createDataTimeAttendance));
 router.get('/time-attendance-admin/report', ensureLoggedIn, ah(timeAttendanceReportByAdmin));
 router.post('/time-attendance-admin/derive', ensureLoggedIn, ah(runAttendanceDerivation));
+router.post('/time-attendance-admin/import-csv', ensureLoggedIn, ah(importAttendanceCsv));
+router.get('/time-attendance-admin/recap', ensureLoggedIn, ah(timeAttendanceRecap));
+router.get('/time-attendance-admin/recap/csv', ensureLoggedIn, ah(timeAttendanceRecapCsv));
 
 router.get('/time-attendance-employee', ensureLoggedIn, ah(listingAllDataTimeAttendance2));
 router.get('/time-attendance-employee/report', ensureLoggedIn, ah(timeAttendanceReportByEmployee));
