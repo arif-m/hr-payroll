@@ -5,6 +5,7 @@ var logger = require('../libs/logger'),
     });
 
 var bcrypt = require('bcrypt');
+const { findOverlaps, buildOverlapMessage } = require('../libs/leave/overlap');
 
 const prisma = require('../libs/prisma');
 
@@ -1278,6 +1279,13 @@ const processRequestAnnualLeave = async (req, res) => {
             return
         }
     
+        const overlapRequests = await findOverlaps(prisma, { employeeId: Number(userInfo.id), start: moment.utc(startDuration).toDate(), end: moment.utc(endDuration).toDate() });
+        if (overlapRequests.length > 0) {
+            req.flash('error', buildOverlapMessage(overlapRequests));
+            res.redirect('back');
+            return
+        }
+
         const insertRequestLeave = await prisma.requestLeave.create({
             data: {
                 leaveDescription: leave_description,
@@ -1414,6 +1422,13 @@ const processRequestSickLeave = async (req, res) => {
         const createdBy = req.user.fullName;
         const updatedBy = req.user.fullName;
     
+        const overlapRequests = await findOverlaps(prisma, { employeeId: Number(employee_id), start: moment.utc(startDuration).toDate(), end: moment.utc(endDuration).toDate() });
+        if (overlapRequests.length > 0) {
+            req.flash('error', buildOverlapMessage(overlapRequests));
+            res.redirect('back');
+            return
+        }
+
         const insertRequestLeave = await prisma.requestLeave.create({
             data: {
                 leaveDescription: leave_description,
@@ -1670,6 +1685,13 @@ const processRequestSickLeave2 = async (req, res) => {
                 const createdBy = req.user.fullName;
                 const updatedBy = req.user.fullName;
             
+                const overlapRequests = await findOverlaps(prisma, { employeeId: Number(employee_id), start: moment.utc(startDuration).toDate(), end: moment.utc(endDuration).toDate() });
+                if (overlapRequests.length > 0) {
+                    req.flash('error', buildOverlapMessage(overlapRequests));
+                    res.redirect('back');
+                    return
+                }
+
                 const insertRequestLeave = await prisma.requestLeave.create({
                     data: {
                         leaveDescription: leave_description,
@@ -1793,6 +1815,13 @@ const processRequestUnpaidLeave = async (req, res) => {
         const createdBy = req.user.fullName;
         const updatedBy = req.user.fullName;
     
+        const overlapRequests = await findOverlaps(prisma, { employeeId: Number(id), start: moment.utc(startDuration).toDate(), end: moment.utc(endDuration).toDate() });
+        if (overlapRequests.length > 0) {
+            req.flash('error', buildOverlapMessage(overlapRequests));
+            res.redirect('back');
+            return
+        }
+
         const insertRequestLeave = await prisma.requestLeave.create({
             data: {
                 leaveDescription: leave_description,

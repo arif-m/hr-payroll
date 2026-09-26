@@ -154,6 +154,17 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
+  // POST approval (leave/medreimb) dll: error tak tertangani handler tanpa try/catch
+  // diubah menjadi flash + redirect kembali ke halaman asal, sehingga user selalu
+  // melihat PESAN gagal (bukan halaman 500 kosong). Pesan sukses/gagal bisnis
+  // tetap dari req.flash legacy di masing-masing handler.
+  // Guard: middleware csrf berjalan SEBELUM flash, jadi error CSRF datang saat
+  // req.flash belum ada — biarkan jatuh ke halaman error (perilaku lama).
+  if (req.method === 'POST' && req.headers.referer && !res.headersSent && typeof req.flash === 'function') {
+    req.flash('error', 'Gagal memproses: ' + err.message);
+    return res.redirect(req.headers.referer);
+  }
+
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

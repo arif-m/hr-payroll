@@ -16,6 +16,24 @@
       </div>
       <div class="page-body">
         <div class="container-xl">
+<div class="page-body">
+        <div class="container-xl">
+          <% if (locals.message && locals.message.success) { %>
+            <div class="alert alert-success alert-dismissible" role="alert">
+              <div class="d-flex">
+                <div><%= locals.message.success %></div>
+              </div>
+              <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+            </div>
+          <% } %>
+          <% if (locals.message && locals.message.error) { %>
+            <div class="alert alert-danger alert-dismissible" role="alert">
+              <div class="d-flex">
+                <div><%= locals.message.error %></div>
+              </div>
+              <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+            </div>
+          <% } %>
           <div class="row row-deck row-cards">
             <div class="col-12">
               <div class="card">

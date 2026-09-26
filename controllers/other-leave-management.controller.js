@@ -2,6 +2,7 @@ const prisma = require('../libs/prisma');
 
 const moment = require('moment');
 const { isExistTimeAttendanceEmployee } = require('../helper/general');
+const { findOverlaps, buildOverlapMessage } = require('../libs/leave/overlap');
 const { listRolesPermission } = require('../helper/roles-permission');
 
 const showIndex = async (req, res) => {
@@ -175,6 +176,13 @@ const processRequestOtherLeave = async (req, res) => {
             return
         }
     
+        const overlapRequests = await findOverlaps(prisma, { employeeId: Number(id), start: moment.utc(startDuration).toDate(), end: moment.utc(endDuration).toDate() });
+        if (overlapRequests.length > 0) {
+            req.flash('error', buildOverlapMessage(overlapRequests));
+            res.redirect('back');
+            return
+        }
+
         const insertRequestOtherLeave = await prisma.requestOtherLeave.create({
             data: {
                 leaveDescription: leave_description,
@@ -337,7 +345,7 @@ const processApprovedRequestOtherLeaveBySupervisor = async (req, res) => {
         
         if (Boolean(isExistTimeAttendance)) {
             req.flash('uuid', uuid);
-            req.flash('error', 'The Data of time attendance already exist !!!');
+            req.flash('error', 'Tanggal ' + moment.utc(workDate).format('DD-MM-YYYY') + ' sudah punya data absensi (kemungkinan ada cuti lain yang sudah disetujui pada tanggal tersebut). Tolak pengajuan ini bila periode-nya tumpang tindih, atau konsultasikan ke HR.');
             res.redirect('back');
             return 'data exists';
         }
@@ -518,7 +526,7 @@ const processApprovedRequestOtherLeaveByHR = async (req, res) => {
         
         if (Boolean(isExistTimeAttendance)) {
             req.flash('uuid', uuid);
-            req.flash('error', 'The Data of time attendance already exist !!!');
+            req.flash('error', 'Tanggal ' + moment.utc(workDate).format('DD-MM-YYYY') + ' sudah punya data absensi (kemungkinan ada cuti lain yang sudah disetujui pada tanggal tersebut). Tolak pengajuan ini bila periode-nya tumpang tindih, atau konsultasikan ke HR.');
             res.redirect('back');
             return 'data exists';
         }

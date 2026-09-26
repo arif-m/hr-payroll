@@ -23,11 +23,6 @@
             <div class="alert alert-success"><%= locals.message.success %></div>
           <% } %>
 
-          <%
-            // helper lokal (moment tidak di-locals app):
-            const momentFmt = function(dt) { return require('moment')(dt).format('DD-MM-YYYY HH:mm'); };
-            const momentFmtD = function(dt) { return require('moment')(dt).format('DD-MM-YYYY'); };
-          %>
           <div class="row row-deck row-cards">
             <div class="col-12">
               <div class="card">
@@ -70,7 +65,7 @@
                       <span class="badge bg-danger">belum ditetapkan — siklus reset akan menolak jalan</span>
                     <% } %>
                     <% if (setup && setup.lastCycleRunAt) { %>
-                      &nbsp;|&nbsp; Terakhir dijalankan: <strong><%= momentFmt(setup.lastCycleRunAt) %></strong> oleh <strong><%= setup.lastCycleRunBy %></strong>
+                      &nbsp;|&nbsp; Terakhir dijalankan: <strong><%= moment(setup.lastCycleRunAt).format('DD-MM-YYYY HH:mm') %></strong> oleh <strong><%= setup.lastCycleRunBy %></strong>
                     <% } else { %>
                       &nbsp;|&nbsp; Belum pernah dijalankan.
                     <% } %>
@@ -127,7 +122,7 @@
                               <% result.resets.forEach(function(r) { %>
                                 <tr>
                                   <td><%= r.fullName %></td>
-                                  <td><%= momentFmtD(r.joinDate) %></td>
+                                  <td><%= moment(r.joinDate).format('DD-MM-YYYY') %></td>
                                   <td><%= r.yearsOfService %> th</td>
                                   <td><%= r.currentBalance %> hari</td>
                                   <td><span class="badge bg-danger">0</span></td>

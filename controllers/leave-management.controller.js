@@ -248,7 +248,7 @@ const processApprovedRequestAnnualLeaveBySupervisor = async (req, res) => {
 
             if (Boolean(isExistTimeAttendance)) {
                 req.flash('uuid', uuid);
-                req.flash('error', 'The Data of time attendance already exist !!!');
+                req.flash('error', 'Tanggal ' + moment.utc(workDate).format('DD-MM-YYYY') + ' sudah punya data absensi (kemungkinan ada cuti lain yang sudah disetujui pada tanggal tersebut). Tolak pengajuan ini bila periode-nya tumpang tindih, atau konsultasikan ke HR.');
                 res.redirect('back');
                 return 'data exists';
             }
@@ -446,7 +446,7 @@ const processApprovedRequestAnnualLeaveByHR = async (req, res) => {
 
             if (Boolean(isExistTimeAttendance)) {
                 req.flash('uuid', uuid);
-                req.flash('error', 'The Data of time attendance already exist !!!');
+                req.flash('error', 'Tanggal ' + moment.utc(workDate).format('DD-MM-YYYY') + ' sudah punya data absensi (kemungkinan ada cuti lain yang sudah disetujui pada tanggal tersebut). Tolak pengajuan ini bila periode-nya tumpang tindih, atau konsultasikan ke HR.');
                 res.redirect('back');
                 return 'data exists';
             }
@@ -629,7 +629,7 @@ const processApprovedRequestSickLeaveBySupervisor = async (req, res) => {
             let isDataExist = await isExistTimeAttendanceEmployee(Number(employee_id), workDate);            
             if (isDataExist == true) {
                 req.flash('uuid', uuid);
-                req.flash('error', 'The Data of time attendance is already exist !!');
+                req.flash('error', 'Tanggal mulai ' + work_date + ' sudah punya data absensi (kemungkinan ada cuti lain yang sudah disetujui). Tolak pengajuan ini bila tumpang tindih, atau konsultasikan ke HR.');
                 res.redirect('back');
                 return 'already exist';
             }
@@ -773,7 +773,7 @@ const processApprovedRequestSickLeaveByHR = async (req, res) => {
             let isDataExist = await isExistTimeAttendanceEmployee(Number(employee_id), workDate);            
             if (isDataExist == true) {
                 req.flash('uuid', uuid);
-                req.flash('error', 'The Data of time attendance is already exist !!');
+                req.flash('error', 'Tanggal mulai ' + work_date + ' sudah punya data absensi (kemungkinan ada cuti lain yang sudah disetujui). Tolak pengajuan ini bila tumpang tindih, atau konsultasikan ke HR.');
                 res.redirect('back');
                 return 'already exist';
             }
@@ -1143,7 +1143,7 @@ const processApprovedRequestSickLeave2BySupervisor = async (req, res) => {
             if (Boolean(isExistTimeAttendance)) {
                 console.log('sukses')
                 req.flash('uuid', uuid);
-                req.flash('error', 'The Data of time attendance already exist !!!');
+                req.flash('error', 'Tanggal ' + moment.utc(workDate).format('DD-MM-YYYY') + ' sudah punya data absensi (kemungkinan ada cuti lain yang sudah disetujui pada tanggal tersebut). Tolak pengajuan ini bila periode-nya tumpang tindih, atau konsultasikan ke HR.');
                 res.redirect('back');
                 return 'data exists';
             }
@@ -1331,7 +1331,7 @@ const processApprovedRequestSickLeave2ByHR = async (req, res) => {
             if (Boolean(isExistTimeAttendance)) {
                 console.log('sukses')
                 req.flash('uuid', uuid);
-                req.flash('error', 'The Data of time attendance already exist !!!');
+                req.flash('error', 'Tanggal ' + moment.utc(workDate).format('DD-MM-YYYY') + ' sudah punya data absensi (kemungkinan ada cuti lain yang sudah disetujui pada tanggal tersebut). Tolak pengajuan ini bila periode-nya tumpang tindih, atau konsultasikan ke HR.');
                 res.redirect('back');
                 return 'data exists';
             }
@@ -1558,7 +1558,7 @@ const processApprovedRequestUnpaidLeaveBySupervisor = async (req, res) => {
         
         if (Boolean(isExistTimeAttendance)) {
             req.flash('uuid', uuid);
-            req.flash('error', 'The Data of time attendance already exist !!!');
+            req.flash('error', 'Tanggal ' + moment.utc(workDate).format('DD-MM-YYYY') + ' sudah punya data absensi (kemungkinan ada cuti lain yang sudah disetujui pada tanggal tersebut). Tolak pengajuan ini bila periode-nya tumpang tindih, atau konsultasikan ke HR.');
             res.redirect('back');
             return 'data exists';
         }
@@ -1739,7 +1739,7 @@ const processApprovedRequestUnpaidLeaveByHR = async (req, res) => {
         
         if (Boolean(isExistTimeAttendance)) {
             req.flash('uuid', uuid);
-            req.flash('error', 'The Data of time attendance already exist !!!');
+            req.flash('error', 'Tanggal ' + moment.utc(workDate).format('DD-MM-YYYY') + ' sudah punya data absensi (kemungkinan ada cuti lain yang sudah disetujui pada tanggal tersebut). Tolak pengajuan ini bila periode-nya tumpang tindih, atau konsultasikan ke HR.');
             res.redirect('back');
             return 'data exists';
         }

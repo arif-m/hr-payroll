@@ -16,6 +16,22 @@
       </div>
       <div class="page-body">
         <div class="container-xl">
+          <% if (locals.message && locals.message.success) { %>
+            <div class="alert alert-success alert-dismissible" role="alert">
+              <div class="d-flex">
+                <div><%= locals.message.success %></div>
+              </div>
+              <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+            </div>
+          <% } %>
+          <% if (locals.message && locals.message.error) { %>
+            <div class="alert alert-danger alert-dismissible" role="alert">
+              <div class="d-flex">
+                <div><%= locals.message.error %></div>
+              </div>
+              <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+            </div>
+          <% } %>
           <div class="card">
             <div class="card-header">
               <ul class="nav nav-tabs card-header-tabs" role="tablist">
@@ -57,7 +73,8 @@
                                 <td><%= row.period %></td>
                                 <td><%= row.amount %></td>
                                 <td class="text-end">
-                                  <form method="POST" action="<%= block.postAction %>" class="d-inline" autocomplete="off">
+                                  <form method="POST" action="<%= block.postAction %>" class="d-inline" autocomplete="off" onsubmit="return confirm(this.getAttribute('data-confirm'))" data-confirm="<%= 'APPROVE (' + block.stage + ') ' + row.employeeName + ' — ' + row.title + ' | ' + row.period %>">
+                                    
                                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <input type="hidden" name="uuid" value="<%= row.uuid %>">
                                     <input type="hidden" name="employee_id" value="<%= row.userId || '' %>">
@@ -72,7 +89,8 @@
                                     <% } %>
                                     <button class="btn btn-success btn-sm" type="submit">Approve</button>
                                   </form>
-                                  <form method="POST" action="<%= block.postAction %>" class="d-inline ms-1" autocomplete="off">
+                                  <form method="POST" action="<%= block.postAction %>" class="d-inline ms-1" autocomplete="off" onsubmit="return confirm(this.getAttribute('data-confirm'))" data-confirm="<%= 'TOLAK (' + block.stage + ') ' + row.employeeName + ' — ' + row.title + ' | ' + row.period %>">
+                                    
                                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <input type="hidden" name="uuid" value="<%= row.uuid %>">
                                     <input type="hidden" name="employee_id" value="<%= row.userId || '' %>">
