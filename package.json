@@ -29,7 +29,7 @@
   "license": "Unlicense",
   "scripts": {
     "start": "nodemon ./bin/www",
-    "test": "node --test test/payroll.test.js test/spt-masa.test.js test/attendance-derive.test.js test/late-penalty.test.js test/import-csv.test.js test/approval-inbox.test.js"
+    "test": "node --test test/payroll.test.js test/spt-masa.test.js test/attendance-derive.test.js test/late-penalty.test.js test/import-csv.test.js test/approval-inbox.test.js test/annual-leave-reset.test.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

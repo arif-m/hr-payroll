@@ -304,9 +304,24 @@ Tax** (sidebar kini mendukung menu bertingkat). Restrukturisasi menu ikut
 `prisma db seed` (via `scripts/side-menu-inbox-data.js`) atau standalone:
 `node scripts/seed-side-menu-restructure.js` (idempotent).
 
+### Annual Leave Reset — penghangusan manual terkontrol
+
+Accrual bulanan **tetap otomatis** dari scheduler existing (cron tanggal 1).
+Penghangusan saldo annual leave kini **manual** lewat menu **Annual Leave
+Reset** (Employee Leave Setting): pilih kebijakan `JOIN_DATE` (hangus setelah
+1 tahun penuh sejak gabung) atau `CALENDAR_YEAR` (hangus di tahun berjalan
+bagi yang join tahun sebelumnya), lalu **Preview** (dry-run per karyawan:
+saldo saat ini → 0, tahun kerja, alasan) dan **Execute** — semua zeroing +
+ledger `employeeAnnualLeave` (remarks `reset-*`) + audit `lastCycleRunAt/By`
+dalam satu transaksi atomik. Fail-safe: siklus menolak jalan selama
+kebijakan belum ditetapkan (`resetMode` NULL).
+
+Saat approve annual leave oleh HR, saldo karyawan berkurang sesuai hari
+(`annualLeaveBalance` dikurangi, `annualLeave` sebagai akumulasi terpakai).
+
 ### Testing & verifikasi
 
-    npm test                          # 94 unit test (payroll, SPT Masa, absensi, sanksi telat, import CSV, approval inbox)
+    npm test                          # 103 unit test (payroll, SPT Masa, absensi, sanksi telat, import CSV, approval inbox, annual leave reset)
     node scripts/smoke-test-payroll.js # end-to-end engine (reversible)
     node scripts/smoke-test-thr-email.js # THR + email payslip end-to-end (mock SMTP, reversible)
 

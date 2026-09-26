@@ -286,6 +286,9 @@ model SetupAnnualLeave {
   timeOffPerYear     Int?
   additionalTimeOff  Int
   defaultCalculation GenerateType @default(Monthly)
+  resetMode          AnnualResetMode?
+  lastCycleRunAt     DateTime?
+  lastCycleRunBy     String?      @db.VarChar(100)
 
   @@map("setupAnnualLeave")
 }
@@ -1041,6 +1044,11 @@ enum TaxCalculationMethod {
 enum GenerateType {
   Monthly
   Yearly
+}
+
+enum AnnualResetMode {
+  JOIN_DATE
+  CALENDAR_YEAR
 }
 
 enum setupSickLeave_defaultCalculation {

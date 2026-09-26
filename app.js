@@ -53,6 +53,7 @@ const pkpRoutes = require('./routes/pkp');
 const terRateRoutes = require('./routes/ter-rate');
 const payrollRunRoutes = require('./routes/payroll-run');
 const employmentHistoryRoutes = require('./routes/employment-history');
+const annualLeaveResetRouter = require('./routes/annual-leave-reset');
 
 const { calculateAnnualLeave, calculateSickLeave } = require('./helper/calculate-leave');
 const { resetMedicalReimbursement } = require('./helper/reset-medical-reimbursement');
@@ -115,7 +116,7 @@ app.use(limiter);
 
 app.use('/', indexRouter);
 app.use('/', authRouter);app.use('/', divisionRouter);app.use('/', shiftRouter);app.use('/', businessUnitRouter);app.use('/', employeeShiftRouter);app.use('/', attendanceSetupRouter);
-app.use('/', approvalInboxRouter);
+app.use('/', approvalInboxRouter);
 app.use('/', jobtitlesRouter);
 app.use('/', employeeRouter);
 app.use('/', adminManagementRouter);
@@ -142,6 +143,7 @@ app.use('/', pkpRoutes);
 app.use('/', terRateRoutes);
 app.use('/', payrollRunRoutes);
 app.use('/', employmentHistoryRoutes);
+app.use('/', annualLeaveResetRouter);
 
 // catch 404 and forward to error handler
 /*

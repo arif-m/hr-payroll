@@ -413,6 +413,10 @@ async function main() {
   //     4 sub-grup Payroll Management. Idempotent.
   await require('../scripts/side-menu-inbox-data').seedSideMenuRestructure(prisma);
 
+  // --- Menu Annual Leave Reset (penghangusan manual saldo annual leave).
+  //     Idempotent; permission = union pemegang parent Employee Leave Setting.
+  await require('../scripts/annual-leave-reset-menu').seedAnnualLeaveResetMenu(prisma);
+
 }
 
 main()

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <% if (locals.message && locals.message.error) { %>
+            <div class="alert alert-danger"><%= locals.message.error %></div>
+          <% } %>
+          <% if (locals.message && locals.message.success) { %>
+            <div class="alert alert-success"><%= locals.message.success %></div>
+          <% } %>
+
+          <%
+            // helper lokal (moment tidak di-locals app):
+            const momentFmt = function(dt) { return require('moment')(dt).format('DD-MM-YYYY HH:mm'); };
+            const momentFmtD = function(dt) { return require('moment')(dt).format('DD-MM-YYYY'); };
+          %>
+          <div class="row row-deck row-cards">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Kebijakan Penghangusan Annual Leave</h3>
+                  <div class="card-actions">
+                    <span class="badge bg-success">Accrual bulanan: otomatis (scheduler ON)</span>
+                    <span class="badge bg-warning">Penghangusan: manual</span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <p class="text-muted">
+                    Accrual bulanan tetap berjalan otomatis dari scheduler. Penghangusan saldo
+                    <strong>tidak otomatis</strong>: jalankan lewat <strong>Preview</strong> lalu
+                    <strong>Execute</strong> di bawah — semua perubahan dalam satu transaksi dan
+                    tercatat di ledger serta riwayat run.
+                  </p>
+                  <form action="/annual-leave-reset/policy" method="POST" class="row g-2 align-items-end" autocomplete="off">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <div class="col-auto">
+                      <label class="form-label">Reset annual leave by</label>
+                      <select name="reset_mode" class="form-select" required>
+                        <option value="">— pilih kebijakan —</option>
+                        <% resetModes.forEach(function(m) { %>
+                          <option value="<%= m %>" <%= setup && setup.resetMode === m ? 'selected' : '' %>>
+                            <%= m === 'JOIN_DATE' ? 'Join Date (hangus setelah 1 tahun sejak gabung)' : 'Calendar Year (hangus di awal tahun berjalan)' %>
+                          </option>
+                        <% }); %>
+                      </select>
+                    </div>
+                    <div class="col-auto">
+                      <button type="submit" class="btn btn-primary">Simpan Kebijakan</button>
+                    </div>
+                  </form>
+                  <div class="mt-2 text-muted small">
+                    Status kebijakan:
+                    <% if (setup && setup.resetMode) { %>
+                      <strong><%= setup.resetMode === 'JOIN_DATE' ? 'Join Date' : 'Calendar Year' %></strong>
+                    <% } else { %>
+                      <span class="badge bg-danger">belum ditetapkan — siklus reset akan menolak jalan</span>
+                    <% } %>
+                    <% if (setup && setup.lastCycleRunAt) { %>
+                      &nbsp;|&nbsp; Terakhir dijalankan: <strong><%= momentFmt(setup.lastCycleRunAt) %></strong> oleh <strong><%= setup.lastCycleRunBy %></strong>
+                    <% } else { %>
+                      &nbsp;|&nbsp; Belum pernah dijalankan.
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Jalankan Penghangusan</h3>
+                </div>
+                <div class="card-body">
+                  <div class="d-flex">
+                    <form action="/annual-leave-reset/preview" method="POST" class="me-2" autocomplete="off">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button type="submit" class="btn btn-outline-primary">Preview (tanpa perubahan)</button>
+                    </form>
+                    <form action="/annual-leave-reset/execute" method="POST" autocomplete="off"
+                          onsubmit="return confirm('HANGUSKAN saldo annual leave karyawan terpilih? Tindakan ini zeroing saldo & tercatat di ledger.');">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button type="submit" class="btn btn-danger">Execute Penghangusan</button>
+                    </form>
+                  </div>
+
+                  <% if (result) { %>
+                    <div class="mt-3">
+                      <div class="mb-2">
+                        <span class="badge <%= execute ? 'bg-danger' : 'bg-info' %>"><%= execute ? 'HASIL EXECUTE' : 'PREVIEW (dry-run)' %></span>
+                        <span class="ms-2 text-muted">Mode: <strong><%= result.mode %></strong></span>
+                        <span class="ms-2 text-muted">Karyawan dipindai: <strong><%= result.scanned %></strong></span>
+                        <span class="ms-2 text-muted">Tidak eligible/saldo 0: <strong><%= result.skipped %></strong></span>
+                        <% if (execute) { %>
+                          <span class="ms-2 text-muted">Zeroed: <strong><%= result.zeroed %></strong></span>
+                        <% } %>
+                      </div>
+                      <% if (result.resets.length === 0) { %>
+                        <div class="empty"><p class="empty-title">Tidak ada saldo yang hangus</p></div>
+                      <% } else { %>
+                        <div class="table-responsive">
+                          <table class="table table-vcenter card-table">
+                            <thead>
+                              <tr>
+                                <th>Karyawan</th>
+                                <th>Join Date</th>
+                                <th>Tahun Kerja</th>
+                                <th>Saldo Saat Ini</th>
+                                <th>Saldo Baru</th>
+                                <th>Alasan</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <% result.resets.forEach(function(r) { %>
+                                <tr>
+                                  <td><%= r.fullName %></td>
+                                  <td><%= momentFmtD(r.joinDate) %></td>
+                                  <td><%= r.yearsOfService %> th</td>
+                                  <td><%= r.currentBalance %> hari</td>
+                                  <td><span class="badge bg-danger">0</span></td>
+                                  <td class="text-muted small"><%= r.reason %></td>
+                                </tr>
+                              <% }); %>
+                            </tbody>
+                          </table>
+                        </div>
+                      <% } %>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+</body>
+</html>
