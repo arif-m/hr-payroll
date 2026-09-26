@@ -1,4 +1,5 @@
 const prisma = require('../libs/prisma');
+const moment = require('moment');
 const { listRolesPermission } = require('../helper/roles-permission');
 const { runAnnualLeaveReset, RESET_MODES } = require('../libs/leave/annual-cycle');
 
@@ -15,6 +16,7 @@ const showAnnualLeaveReset = async (req, res) => {
         resetModes: RESET_MODES,
         result: null,
         execute: false,
+        moment,
     });
 }
 
@@ -23,19 +25,19 @@ const updateAnnualLeaveResetPolicy = async (req, res) => {
     const { reset_mode } = req.body;
     if (!RESET_MODES.includes(reset_mode)) {
         req.flash('error', 'Kebijakan reset tidak valid !!');
-        return res.redirect('back');
+        return res.redirect('/annual-leave-reset');
     }
     const setup = await prisma.setupAnnualLeave.findFirst();
     if (!setup) {
         req.flash('error', 'Setup annual leave belum ada !!');
-        return res.redirect('back');
+        return res.redirect('/annual-leave-reset');
     }
     await prisma.setupAnnualLeave.update({
         where: { id: setup.id },
         data: { resetMode: reset_mode, updatedBy: req.user.fullName },
     });
     req.flash('success', 'Kebijakan penghangusan annual leave tersimpan !!');
-    res.redirect('back');
+    res.redirect('/annual-leave-reset');
 }
 
 /** POST preview: hitung penghangusan tanpa mengubah data (dry-run). */
@@ -58,6 +60,7 @@ const previewAnnualLeaveReset = async (req, res) => {
         resetModes: RESET_MODES,
         result,
         execute,
+        moment,
     });
 }
 
@@ -83,6 +86,7 @@ const executeAnnualLeaveReset = async (req, res) => {
         resetModes: RESET_MODES,
         result,
         execute,
+        moment,
     });
 }
 
