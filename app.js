@@ -22,8 +22,8 @@ const winston = require('./libs/logger');
 var SQLiteStore = require('connect-sqlite3')(session);
 
 var indexRouter = require('./routes/index');
-var authRouter = require('./routes/auth');var divisionRouter = require('./routes/division');var shiftRouter = require('./routes/shift');var businessUnitRouter = require('./routes/business-unit');var employeeShiftRouter = require('./routes/employee-shift');
-var attendanceSetupRouter = require('./routes/attendance-setup');
+var authRouter = require('./routes/auth');var divisionRouter = require('./routes/division');var shiftRouter = require('./routes/shift');var businessUnitRouter = require('./routes/business-unit');var employeeShiftRouter = require('./routes/employee-shift');var attendanceSetupRouter = require('./routes/attendance-setup');
+var approvalInboxRouter = require('./routes/approval-inbox');
 var jobtitlesRouter = require('./routes/jobtitles');
 var employeeRouter = require('./routes/employee');
 var adminManagementRouter = require('./routes/admin-management');
@@ -114,8 +114,8 @@ app.use(function(req, res, next) {
 app.use(limiter);
 
 app.use('/', indexRouter);
-app.use('/', authRouter);app.use('/', divisionRouter);app.use('/', shiftRouter);app.use('/', businessUnitRouter);app.use('/', employeeShiftRouter);
-app.use('/', attendanceSetupRouter);
+app.use('/', authRouter);app.use('/', divisionRouter);app.use('/', shiftRouter);app.use('/', businessUnitRouter);app.use('/', employeeShiftRouter);app.use('/', attendanceSetupRouter);
+app.use('/', approvalInboxRouter);
 app.use('/', jobtitlesRouter);
 app.use('/', employeeRouter);
 app.use('/', adminManagementRouter);

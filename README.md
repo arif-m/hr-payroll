@@ -271,9 +271,42 @@ ditimpa; setelah import **auto-derive** menstempel P/L/A/M dari shift.
 Absent, Missing Out, % Hadir per karyawan per divisi; tersedia
 **Download CSV**.
 
+### My Approvals — Inbox Approval & Restrukturisasi Menu
+
+13 menu approval yang duplikatif (jenis cuti × jenjang SPV/HR/FA) digantikan
+satu halaman **My Approvals** (`/approval-inbox`): tab per jenis
+(Annual, Sick, Sick 2, Other, Unpaid, Medical Reimbursement) — tiap tab
+menampilkan blok jenjang (Waiting Supervisor / Waiting HR / Waiting Finance)
+dengan tombol Approve/Reject yang submit ke endpoint approval existing.
+Menu legacy disembunyikan (`isVisible=0`, tidak dihapus — bisa diaktifkan
+ulang).
+
+**Akses & tab**: akses halaman ditentukan readRight pada modul My Approvals
+itu sendiri; jenjang (dan tab yang muncul) ditentukan dari **nama role**
+(`libs/approval/stages.js`): Supervisor/SPV/Kepala/Head → jenjang SPV,
+HR/HRD/SDM → HR, FA/Finance/Keuangan → FA, Admin/Super Admin → semua
+jenjang; nama lain fail-closed (tanpa tab). Permission menu legacy tetap
+dihormati sebagai fallback union untuk role lama, dan seed
+(`scripts/side-menu-inbox-data.js`) memberi permission inbox ke role
+bernama jenjang tersebut serta membersihkan grant seed yang stale.
+
+**Flow & kontrak form**: semua jenis approval mengikuti SPV → HR,
+kecuali medical reimbursement = SPV → FA saja (HR tidak terlibat). Queue
+jenjang SPV hanya menampilkan request bawahan langsung
+(`supervisor = req.user.id`, menyamakan listing legacy). Form inbox
+kompatibel handler legacy: Approve `is_approved=1`, **Reject
+`is_approved=2`**, leave mengirim `work_date` (tanggal mulai), medreimb
+mengirim `approved_date` + `total_approved` (FA).
+
+Payroll Management dikelompokkan menjadi 4 sub-menu: **My Payroll**,
+**Payroll Transactions**, **Payroll Attendance**, dan **Payroll Master &
+Tax** (sidebar kini mendukung menu bertingkat). Restrukturisasi menu ikut
+`prisma db seed` (via `scripts/side-menu-inbox-data.js`) atau standalone:
+`node scripts/seed-side-menu-restructure.js` (idempotent).
+
 ### Testing & verifikasi
 
-    npm test                          # 43 unit test kalkulasi (PPh, BPJS, run state, riwayat, THR)
+    npm test                          # 94 unit test (payroll, SPT Masa, absensi, sanksi telat, import CSV, approval inbox)
     node scripts/smoke-test-payroll.js # end-to-end engine (reversible)
     node scripts/smoke-test-thr-email.js # THR + email payslip end-to-end (mock SMTP, reversible)
 

@@ -5,8 +5,8 @@
     </button>
     <h1 class="navbar-brand navbar-brand-autodark">
       <!--<a href=".">
-        <img src="/images/meme.png" width="210" height="32" alt="Meme" class="navbar-brand-image">
-      </a>--> MEME PLATFORM
+        <img src="/images/meme.png" width="210" height="32" alt="Payroll" class="navbar-brand-image">
+      </a>--> HR Payroll
     </h1>
     
     <div class="collapse navbar-collapse" id="navbar-menu">
@@ -28,9 +28,22 @@
                     <div class="dropdown-menu-columns">
                       <div class="dropdown-menu-column">
                         <% data.children.forEach(function(dataChildren) { %>
-                          <a class="dropdown-item" href="<%= dataChildren.uri %>" >
-                            <%= dataChildren.feature %>
-                          </a>
+                          <% if (dataChildren.uri == '#' && dataChildren.children && dataChildren.children.length > 0) { %>
+                            <div class="dropend">
+                              <a class="dropdown-item dropdown-toggle" href="#sub-<%= dataChildren.id %>" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                                <%= dataChildren.feature %>
+                              </a>
+                              <div class="dropdown-menu">
+                                <% dataChildren.children.forEach(function(sub) { %>
+                                  <a class="dropdown-item" href="<%= sub.uri %>"><%= sub.feature %></a>
+                                <% }); %>
+                              </div>
+                            </div>
+                          <% } else { %>
+                            <a class="dropdown-item" href="<%= dataChildren.uri %>" >
+                              <%= dataChildren.feature %>
+                            </a>
+                          <% } %>
                         <% }) %>
                       </div>                    
                     </div>

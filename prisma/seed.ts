@@ -409,6 +409,10 @@ async function main() {
   //     scripts/attendance-menu-data.js; idempotent, aman untuk re-seed.
   await require('../scripts/attendance-menu-data').seedAttendanceMenu(prisma);
 
+  // --- Restrukturisasi side menu: My Approvals (ganti 13 menu approval) +
+  //     4 sub-grup Payroll Management. Idempotent.
+  await require('../scripts/side-menu-inbox-data').seedSideMenuRestructure(prisma);
+
 }
 
 main()

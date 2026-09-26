@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./../layouts/head'); %>
+</head>
+<body>
+  <div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark">
+      <%- include('./../layouts/side'); %>
+    </aside>
+    <%- include('./../layouts/header1'); %>
+
+    <div class="page-wrapper">
+      <div class="container-xl">
+        <%- include('./../layouts/header2'); %>
+      </div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="card">
+            <div class="card-header">
+              <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                <% tabsData.forEach(function(tab, idx) { %>
+                  <li class="nav-item" role="presentation">
+                    <a class="nav-link <%= tab.key === activeTab ? 'active' : '' %>" href="#tab-<%= tab.key %>" data-bs-toggle="tab" role="tab"><%= tab.label %></a>
+                  </li>
+                <% }); %>
+                <% if (tabsData.length === 0) { %>
+                  <li class="nav-item"><span class="nav-link active"><%= hasInboxAccess ? 'Belum ada jenis approval untuk role Anda' : 'No approval access' %></span></li>
+                <% } %>
+              </ul>
+            </div>
+            <div class="card-body">
+              <div class="tab-content">
+                <% tabsData.forEach(function(tab) { %>
+                  <div class="tab-pane fade <%= tab.key === activeTab ? 'show active' : '' %>" id="tab-<%= tab.key %>" role="tabpanel">
+                    <% tab.stages.forEach(function(block, bIdx) { %>
+                      <h4 class="subheader mt-3 mb-2"><%= block.stage === 'SPV' ? 'Waiting Supervisor' : block.stage === 'HR' ? 'Waiting HR' : 'Waiting Finance' %></h4>
+                      <div class="table-responsive">
+                        <table class="table table-vcenter card-table">
+                          <thead>
+                            <tr>
+                              <th>Karyawan</th>
+                              <th>Detail</th>
+                              <th>Periode / Keterangan</th>
+                              <th>Jumlah</th>
+                              <th class="text-end">Keputusan</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <% block.rows.forEach(function(row) { %>
+                              <tr>
+                                <td>
+                                  <div><%= row.employeeName %></div>
+                                  <div class="text-muted small"><%= row.employeeId %></div>
+                                </td>
+                                <td><%= row.title %></td>
+                                <td><%= row.period %></td>
+                                <td><%= row.amount %></td>
+                                <td class="text-end">
+                                  <form method="POST" action="<%= block.postAction %>" class="d-inline" autocomplete="off">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="uuid" value="<%= row.uuid %>">
+                                    <input type="hidden" name="employee_id" value="<%= row.userId || '' %>">
+                                    <input type="hidden" name="is_approved" value="1">
+                                    <input type="hidden" name="comments" value="">
+                                    <input type="hidden" name="days" value="<%= row.daysInput %>">
+                                    <% if (tab.key !== 'medreimb') { %>
+                                      <input type="hidden" name="work_date" value="<%= row.workDate %>">
+                                    <% } else { %>
+                                      <input type="hidden" name="approved_date" value="<%= row.approvedDate %>">
+                                      <input type="hidden" name="total_approved" value="<%= row.totalApproved %>">
+                                    <% } %>
+                                    <button class="btn btn-success btn-sm" type="submit">Approve</button>
+                                  </form>
+                                  <form method="POST" action="<%= block.postAction %>" class="d-inline ms-1" autocomplete="off">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="uuid" value="<%= row.uuid %>">
+                                    <input type="hidden" name="employee_id" value="<%= row.userId || '' %>">
+                                    <input type="hidden" name="is_approved" value="2">
+                                    <input type="hidden" name="comments" value="Rejected via inbox">
+                                    <input type="hidden" name="days" value="<%= row.daysInput %>">
+                                    <% if (tab.key !== 'medreimb') { %>
+                                      <input type="hidden" name="work_date" value="<%= row.workDate %>">
+                                    <% } else { %>
+                                      <input type="hidden" name="approved_date" value="<%= row.approvedDate %>">
+                                      <input type="hidden" name="total_approved" value="<%= row.totalApproved %>">
+                                    <% } %>
+                                    <button class="btn btn-outline-danger btn-sm" type="submit">Reject</button>
+                                  </form>
+                                </td>
+                              </tr>
+                            <% }); %>
+                            <% if (block.rows.length === 0) { %>
+                              <tr><td colspan="5" class="text-center text-muted">Tidak ada antrean pada jenjang ini.</td></tr>
+                            <% } %>
+                          </tbody>
+                        </table>
+                      </div>
+                    <% }); %>
+                  </div>
+                <% }); %>
+                <% if (tabsData.length === 0) { %>
+                  <div class="empty">
+                    <% if (!hasInboxAccess) { %>
+                      <p class="empty-title">Tidak ada akses My Approvals</p>
+                      <p class="empty-subtitle text-muted">Role Anda tidak memiliki permission menu My Approvals. Hubungi administrator.</p>
+                    <% } else { %>
+                      <p class="empty-title">Belum ada jenis approval untuk role Anda</p>
+                      <p class="empty-subtitle text-muted">Akses menu sudah benar, tetapi belum ada jenis approval yang dipetakan ke role ini. Hubungi administrator.</p>
+                    <% } %>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer footer-transparent d-print-none">
+        <%- include('./../layouts/footer'); %>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Tabler Core -->
+  <script src="/assets/tabler/js/tabler.min.js"></script>
+  <script src="/assets/tabler/js/demo.min.js"></script>
+</body>
+</html>
