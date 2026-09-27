@@ -1,5 +1,6 @@
 const prisma = require('../libs/prisma');
 const { listRolesPermission } = require('../helper/roles-permission');
+const rpTree = require('../public/js/roles-permission-tree');
 
 
 const listingRolesPermission = async (req, res) => {
@@ -108,10 +109,20 @@ const editRolesPermission = async (req, res) => {
         }
     }
 
+    // Urutkan depth-first agar anak kontigu di bawah parentnya (data DB
+    // berurutan global by sequence sehingga anak/keponakan bisa berselang).
+    // Depth & jumlah keturunan dihitung dari urutan hasil untuk rendering tree.
+    const treeRows = rpTree.toDepthFirstRows(getDataModule);
+    const rpDepth = rpTree.computeDepth(treeRows);
+    const rpDescendants = {};
+    treeRows.forEach(function (m) {
+        rpDescendants[m.id] = rpTree.countDescendants(treeRows, m.id);
+    });
+
     const userInfo = req.user;
     const getRoles = await listRolesPermission(userInfo.roleUuid);
 
-    let param = { user: userInfo, pageTitle: "Roles Permission", getRoles, roleId, roleName, listOfRolesPermission: getDataModule };
+    let param = { user: userInfo, pageTitle: "Roles Permission", getRoles, roleId, roleName, listOfRolesPermission: treeRows, rpDepth, rpDescendants };
     res.render('pages/roles-permission/edit', param);
 }
 

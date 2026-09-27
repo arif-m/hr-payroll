@@ -106,6 +106,12 @@ const generatePayslip = async (req, res) => {
             organization: true,
             jobTitle: true,
             taxConfigSnapshot: true,
+            payrollRun: {
+                select: {
+                    id: true,
+                    paymentStatus: true,
+                },
+            },
             employee: {
                 select: {
                     businessUnit: {
@@ -172,7 +178,19 @@ const generatePayslip = async (req, res) => {
     const userInfo = req.user;
     const getRoles = await listRolesPermission(userInfo.roleUuid);
 
-    const param = { user: userInfo, moment: moment, getRoles, pageTitle: 'Payslip', getDataPayslipHeader, taxConfigSnapshot: getDataPayslipHeader.taxConfigSnapshot, listOfPayslipTakeHomePayEarnings: getDataPayslipDetailsTakeHomePayEarnings, listOfPayslipTakeHomePayDeductions: getDataPayslipDetailsTakeHomePayDeductions, listOfPayslipBenefits: getDataPayslipDetailsIsNotTakeHomePay, generalHelper }; 
+    // Status pembayaran per karyawan bila payslip terhubung ke payroll run.
+    let paymentInfo = null;
+    if (getDataPayslipHeader.payrollRun && getDataPayslipHeader.payrollRun.id) {
+        const runDetailRow = await prisma.payrollRunDetail.findFirst({
+            where: { payrollRunId: getDataPayslipHeader.payrollRun.id, usersId: getDataPayslipHeader.usersId },
+            select: { paymentStatus: true, paidAt: true },
+        });
+        if (runDetailRow) {
+            paymentInfo = { status: runDetailRow.paymentStatus, paidAt: runDetailRow.paidAt };
+        }
+    }
+
+    const param = { user: userInfo, moment: moment, getRoles, pageTitle: 'Payslip', getDataPayslipHeader, taxConfigSnapshot: getDataPayslipHeader.taxConfigSnapshot, listOfPayslipTakeHomePayEarnings: getDataPayslipDetailsTakeHomePayEarnings, listOfPayslipTakeHomePayDeductions: getDataPayslipDetailsTakeHomePayDeductions, listOfPayslipBenefits: getDataPayslipDetailsIsNotTakeHomePay, paymentInfo, generalHelper }; 
     res.render('pages/payslip/report', param)
 }
 
@@ -369,6 +387,12 @@ const payslipAdminReport = async (req, res) => {
             organization: true,
             jobTitle: true,
             taxConfigSnapshot: true,
+            payrollRun: {
+                select: {
+                    id: true,
+                    paymentStatus: true,
+                },
+            },
             employee: {
                 select: {
                     businessUnit: {
@@ -435,7 +459,19 @@ const payslipAdminReport = async (req, res) => {
     const userInfo = req.user;
     const getRoles = await listRolesPermission(userInfo.roleUuid);
 
-    const param = { user: userInfo, moment: moment, getRoles, pageTitle: 'Payslip', getDataPayslipHeader, taxConfigSnapshot: getDataPayslipHeader.taxConfigSnapshot, listOfPayslipTakeHomePayEarnings: getDataPayslipDetailsTakeHomePayEarnings, listOfPayslipTakeHomePayDeductions: getDataPayslipDetailsTakeHomePayDeductions, listOfPayslipBenefits: getDataPayslipDetailsIsNotTakeHomePay, generalHelper }; 
+    // Status pembayaran per karyawan bila payslip terhubung ke payroll run.
+    let paymentInfo = null;
+    if (getDataPayslipHeader.payrollRun && getDataPayslipHeader.payrollRun.id) {
+        const runDetailRow = await prisma.payrollRunDetail.findFirst({
+            where: { payrollRunId: getDataPayslipHeader.payrollRun.id, usersId: getDataPayslipHeader.usersId },
+            select: { paymentStatus: true, paidAt: true },
+        });
+        if (runDetailRow) {
+            paymentInfo = { status: runDetailRow.paymentStatus, paidAt: runDetailRow.paidAt };
+        }
+    }
+
+    const param = { user: userInfo, moment: moment, getRoles, pageTitle: 'Payslip', getDataPayslipHeader, taxConfigSnapshot: getDataPayslipHeader.taxConfigSnapshot, listOfPayslipTakeHomePayEarnings: getDataPayslipDetailsTakeHomePayEarnings, listOfPayslipTakeHomePayDeductions: getDataPayslipDetailsTakeHomePayDeductions, listOfPayslipBenefits: getDataPayslipDetailsIsNotTakeHomePay, paymentInfo, generalHelper }; 
     res.render('pages/payslip/report', param)
 }
 

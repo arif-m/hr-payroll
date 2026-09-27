@@ -20,9 +20,9 @@
             <div class="col-12">
               <div class="card">
                 <div class="card-header">
-                  <h3 class="card-title">Data Details </h3>
-                </div>                  
-                <form action="/roles-permission/update" method="POST">
+                  <h3 class="card-title">Data Details</h3>
+                </div>
+                <form action="/roles-permission/update" method="POST" id="rpForm">
                   <div class="card-body">
                     <div class="form-group mb-3 row">
                       <label class="form-label col-2 col-form-label">Role Name</label>
@@ -30,55 +30,87 @@
                         <input type="text" class="form-control" value="<%= roleName %>" disabled>
                         <input type="hidden" class="form-control" value="<%= roleId %>" name="roleId">
                       </div>
-                    </div>  
-                    <table class="table card-table table-vcenter text-nowrap datatable" id="mytable">
-                      <thead>
-                      <tr>
-                        <th>Feature Name</th>
-                        <th>Read</th>
-                        <th>Create</th>
-                        <th>Update</th>
-                        <th>Delete</th>
-                        <th>Inactive</th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                        <% listOfRolesPermission.forEach(function(data) { %>
-                          <tr>
+                    </div>
+
+                    <div class="mb-2 small text-muted">
+                      Centang hak pada <strong>modul induk</strong> untuk menerapkannya ke semua submenu di bawahnya
+                      (cabangnya terbuka otomatis). Memberi hak pada submenu otomatis mengaktifkan <strong>Read</strong> pada induknya.
+                      Mematikan <strong>Read</strong> induk menghapus seluruh hak submenu di bawahnya — centang ulang induk untuk membatalkan.
+                      Gunakan ikon ▾ di nama induk untuk membuka/menutup daftar submenu kapan saja.
+                    </div>
+
+                    <div class="table-responsive">
+                      <table class="table card-table table-vcenter text-nowrap" id="rpTable">
+                        <thead>
+                        <tr>
+                          <th style="width: 34%">Feature Name</th>
+                          <th class="text-center">Read</th>
+                          <th class="text-center">Create</th>
+                          <th class="text-center">Update</th>
+                          <th class="text-center">Delete</th>
+                          <th class="text-center">Inactive</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                          <% listOfRolesPermission.forEach(function(data) { %>
+                            <%
+                              var depth = rpDepth[data.id] || 0;
+                              var descCount = rpDescendants[data.id] || 0;
+                              var isParent = descCount > 0;
+                            %>
+                            <tr class="rp-row" data-module-id="<%= data.id %>" data-parent-id="<%= data.parentId || 0 %>" data-feature="<%= data.feature %>">
                               <td>
-                                <% if (data.treeStatus == 'D' && data.parentId != 0) { %>
-                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                  <%= data.feature %>
+                                <% if (isParent) { %>
+                                  <a href="#" class="rp-toggle-tree text-decoration-none" title="Klik untuk buka/tutup submenu"
+                                     style="margin-left: <%= depth * 20 %>px; display: inline-block; padding-left: <%= depth > 0 ? 6 : 0 %>px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm rp-caret" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 9l6 6l6 -6" /></svg>
+                                    <strong><%= data.feature %></strong>
+                                  </a>
                                 <% } else { %>
-                                  <strong><%= data.feature %></strong>
-                                <% }; %>
-                                <input type="hidden" class="form-control" value="<%= data.uuid %>" name="uuid">
-                                <input type="hidden" class="form-control" value="<%= data.id %>" name="moduleId">
-                                <input type="hidden" class="form-control" value="<%= data.treeStatus %>" name="treeStatus">
-                                
-                                <input type="hidden" value="<%= data.createRight %>" class="createRight"  name="createRight" id="createRight_<%= data.id %>" maxlength="1">
-                                <input type="hidden" value="<%= data.readRight %>" class="readRight" name="readRight" id="readRight_<%= data.id %>" maxlength="1">
-                                <input type="hidden" value="<%= data.updateRight %>" class="updateRight" name="updateRight"id="updateRight_<%= data.id %>"  maxlength="1">
-                                <input type="hidden" value="<%= data.deleteRight %>" class="deleteRight" name="deleteRight" id="deleteRight_<%= data.id %>" maxlength="1">
-                                <input type="hidden" value="<%= data.inactiveRight %>" class="inactiveRight" name="inactiveRight" id="inactiveRight_<%= data.id %>" maxlength="1">
+                                  <span style="display: inline-block; margin-left: <%= (depth * 20) + 24 %>px;">
+                                    <%= data.feature %>
+                                  </span>
+                                <% } %>
+                                <input type="hidden" value="<%= data.uuid %>" name="uuid">
+                                <input type="hidden" value="<%= data.id %>" name="moduleId">
+                                <input type="hidden" value="<%= data.treeStatus %>" name="treeStatus">
+
+                                <input type="hidden" value="<%= data.createRight || 0 %>" name="createRight" data-module-id="<%= data.id %>">
+                                <input type="hidden" value="<%= data.readRight || 0 %>" name="readRight" data-module-id="<%= data.id %>">
+                                <input type="hidden" value="<%= data.updateRight || 0 %>" name="updateRight" data-module-id="<%= data.id %>">
+                                <input type="hidden" value="<%= data.deleteRight || 0 %>" name="deleteRight" data-module-id="<%= data.id %>">
+                                <input type="hidden" value="<%= data.inactiveRight || 0 %>" name="inactiveRight" data-module-id="<%= data.id %>">
                               </td>
-                                <td><input type="checkbox" class="read" id="read_<%= data.id %>" name="read" value="<%= data.readRight %>" data-id="<%= data.id %>" data-uuid="<%= data.uuid %>" <% if (data.readRight==1) { %> checked <% }; %> ></td>
-                                <td><input type="checkbox" class="create" id="create_<%= data.id %>" name="create" value="<%= data.createRight %>" data-id="<%= data.id %>" data-uuid="<%= data.uuid %>" <% if (data.createRight==1) { %> checked <% }; %> ></td>
-                                <td><input type="checkbox" class="update" id="update_<%= data.id %>" name="update" value="<%= data.updateRight %>" data-id="<%= data.id %>" data-uuid="<%= data.uuid %>" <% if (data.updateRight==1) { %> checked <% }; %> ></td>
-                                <td><input type="checkbox" class="delete" id="delete_<%= data.id %>" name="delete" value="<%= data.deleteRight %>" data-id="<%= data.id %>" data-uuid="<%= data.uuid %>" <% if (data.deleteRight==1) { %> checked <% }; %> ></td>
-                                <td><input type="checkbox" class="inactive" id ="inactive_<%= data.id %>" name="inactive" value="<%= data.inactiveRight %>" data-id="<%= data.id %>" <% if (data.inactiveRight==1) { %> checked <% }; %> ></td>
-                              </tr>
-                        <% }); %>                       
-                      </tbody>
-                    </table>
+                              <td class="text-center">
+                                <input type="checkbox" class="rp-toggle" data-module-id="<%= data.id %>" data-right="read"
+                                       value="<%= data.readRight || 0 %>" <% if (data.readRight == 1) { %> checked <% }; %>>
+                              </td>
+                              <td class="text-center">
+                                <input type="checkbox" class="rp-toggle" data-module-id="<%= data.id %>" data-right="create"
+                                       value="<%= data.createRight || 0 %>" <% if (data.createRight == 1) { %> checked <% }; %>>
+                              </td>
+                              <td class="text-center">
+                                <input type="checkbox" class="rp-toggle" data-module-id="<%= data.id %>" data-right="update"
+                                       value="<%= data.updateRight || 0 %>" <% if (data.updateRight == 1) { %> checked <% }; %>>
+                              </td>
+                              <td class="text-center">
+                                <input type="checkbox" class="rp-toggle" data-module-id="<%= data.id %>" data-right="delete"
+                                       value="<%= data.deleteRight || 0 %>" <% if (data.deleteRight == 1) { %> checked <% }; %>>
+                              </td>
+                              <td class="text-center">
+                                <input type="checkbox" class="rp-toggle" data-module-id="<%= data.id %>" data-right="inactive"
+                                       value="<%= data.inactiveRight || 0 %>" <% if (data.inactiveRight == 1) { %> checked <% }; %>>
+                              </td>
+                            </tr>
+                          <% }); %>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                   <div class="card-footer">
                     <input type="hidden" name="_csrf" id="_csrf" value="<%= csrfToken %>">
                     <button type="submit" class="btn btn-primary">Save</button>
                     <a href="/roles-permission" class="btn btn-secondary">Close</a>
-                    <!--<button onclick="saveData()" class="btn btn-primary"> 
-                      Submit
-                    </button>-->
                   </div>
                 </form>
               </div>
@@ -96,200 +128,11 @@
   <!-- Tabler Core -->
   <script src="/assets/tabler/js/tabler.min.js"></script>
   <script src="/assets/tabler/js/demo.min.js"></script>
-
-  <script>
-    function saveData() {
-        var chkCreate = 
-            document.getElementsByName('create');
-        var chkRead = 
-            document.getElementsByName('read');
-        var chkUpdate = 
-            document.getElementsByName('update');
-        var chkDelete = 
-            document.getElementsByName('delete');
-        var chkInactive = 
-            document.getElementsByName('inactive');
-        var uuid = 
-            document.getElementsByName('uuid');
-        var csrf = 
-            document.getElementById('_csrf');
-
-        var result = "";
-
-        let payload = {};
-        for (var i = 0; i < chkCreate.length; i++) {
-          if (chkCreate[i].checked) {
-            payload.pCreateRight = 1;
-          }
-          if(chkRead[i].checked) {
-            payload.pReadRight = 1;
-          }
-          
-          if(chkUpdate[i].checked) {
-            payload.pUpdateRight = 1;
-          }
-
-          if(chkDelete[i].checked) {
-            payload.pDeleteRight = 1;
-          }
-
-          if(chkInactive[i].checked) {
-            payload.pInactiveRight = 1;
-          }
-          
-          if(payload != null || payload != empty) {
-            payload.pUuid = uuid[i].value;
-          }
-
-          payload._csrf = csrf.value;
-
-          fetch('/roles-permission/update', {
-            method: 'POST', // or 'PUT'
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-Token': csrf.value,
-            },
-            body: JSON.stringify(payload),
-          })
-          .then(response => {
-            console.log(response.json);
-            response.json()
-          })
-          .then(data => {
-            console.log('Success:', data);
-          })
-          .catch((error) => {
-            console.error('Error:', error);
-          });
-
-          /*
-          var data = new FormData();
-          data.append("json", JSON.stringify( payload ) );
-          data.append("_csrf", csrf);
-
-          console.log(data);
-
-          fetch("/roles-permission/update",
-          {
-              method: "POST",
-              headers: {
-                'Content-Type':'application/json',
-                'Accept':'application/json',
-                'Cache': 'no-cache',
-                'X-CSRF-Token': csrf
-              },
-              body: data
-          })
-          .then(function(res){ 
-            console.log('then1')
-            //console.log(res);
-            return res.json(); 
-          })
-          .then(function(data){ 
-            console.log('then2')
-            alert( JSON.stringify(data) )
-          }) 
-          */
-/*
-          
-          (async () => {
-            const rawResponse = await fetch('/roles-permission/update', {
-              method: 'POST',
-              headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': csrf
-              },
-              body: JSON.stringify(payload)
-            });
-            const content = await rawResponse.json();
-
-            console.log(content);
-          })();
-*/
-          //console.log(i);          
-          //console.log(payload);
-          payload = {};
-          //return false;
-        }
-        alert('Save data');
-        return false;
-    }
-
-    let allChkCreate = document.querySelectorAll('.create')
-
-    allChkCreate.forEach((checkbox) => { 
-      checkbox.addEventListener('change', (event) => {
-        let txtCreate = document.getElementById('createRight_' + checkbox.getAttribute("data-id"));
-        if (event.target.checked) {
-          txtCreate.value = 1;
-          event.target.value = 1;
-        } else {
-          txtCreate.value = 0;
-          event.target.value = 0;
-        }
-      })
-    })
-
-    let allChkRead = document.querySelectorAll('.read')
-
-    allChkRead.forEach((checkbox) => { 
-      checkbox.addEventListener('change', (event) => {
-        let txtRead = document.getElementById('readRight_' + checkbox.getAttribute("data-id"));
-        if (event.target.checked) {
-          txtRead.value = 1;
-          event.target.value = 1;
-        } else {
-          txtRead.value = 0;
-          event.target.value = 0;
-        }
-      })
-    })
-
-    let allChkUpdate = document.querySelectorAll('.update')
-
-    allChkUpdate.forEach((checkbox) => { 
-      checkbox.addEventListener('change', (event) => {
-        let txtUpdate = document.getElementById('updateRight_' + checkbox.getAttribute("data-id"));
-        if (event.target.checked) {
-          txtUpdate.value = 1;
-          event.target.value = 1;
-        } else {
-          txtUpdate.value = 0;
-          event.target.value = 0;
-        }
-      })
-    })
-
-    let allChkDelete = document.querySelectorAll('.delete')
-
-    allChkDelete.forEach((checkbox) => { 
-      checkbox.addEventListener('change', (event) => {
-        let txtDelete = document.getElementById('deleteRight_' + checkbox.getAttribute("data-id"));
-        if (event.target.checked) {
-          txtDelete.value = 1;
-          event.target.value = 1;
-        } else {
-          txtDelete.value= 0;
-          event.target.value = 0;
-        }
-      })
-    })
-
-    let allChkInactive = document.querySelectorAll('.inactive')
-
-    allChkInactive.forEach((checkbox) => { 
-      checkbox.addEventListener('change', (event) => {
-        let txtInactive = document.getElementById('inactiveRight_' + checkbox.getAttribute("data-id"));
-        if (event.target.checked) {
-          txtInactive.value = 1;
-          event.target.value = 1;
-        } else {
-          txtInactive.value = 0;
-          event.target.value = 0;
-        }
-      })
-    })
-  </script>
+  <script src="/js/roles-permission-tree.js"></script>
+  <style>
+    #rpTable .rp-toggle-tree { cursor: pointer; }
+    #rpTable .rp-toggle-tree .rp-caret { transition: transform .15s ease; }
+    #rpTable .rp-toggle-tree.collapsed .rp-caret { transform: rotate(-90deg); }
+  </style>
 </body>
 </html>

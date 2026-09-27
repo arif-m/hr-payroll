@@ -721,8 +721,13 @@ model PayrollRun {
   lockedAt          DateTime?
   taxConfigSnapshot Json?
   note              String?            @db.VarChar(300)
+  paymentStatus     PaymentStatus      @default(UNPAID)
+  paymentMarkedAt   DateTime?
+  paymentMarkedBy   String?            @db.VarChar(100)
+  paymentNote       String?            @db.VarChar(300)
   runDetail         PayrollRunDetail[]
   payslips          PayslipHeader[]
+  payments          PayrollRunPayment[]
 
   @@unique([cutOffPeriodId])
   @@map("payrollRun")
@@ -746,10 +751,39 @@ model PayrollRunDetail {
   deductionAmount Decimal     @default(0) @db.Decimal(15, 2)
   thpAmount       Decimal     @default(0) @db.Decimal(15, 2)
   pph21Amount     Decimal     @default(0) @db.Decimal(15, 2)
+  paymentStatus   PaymentStatus @default(UNPAID)
+  paidAt          DateTime?
+  paymentNote     String?     @db.VarChar(300)
+  payments        PayrollRunPayment[]
 
   @@unique([payrollRunId, usersId])
   @@index([usersId])
   @@map("payrollRunDetail")
+}
+
+/// Pembayaran bertahap (cicilan/termin) per karyawan dalam satu payroll run.
+/// Status PAID/PARTIAL/UNPAID (baris & run) diturunkan dari SUM(amount)
+/// tranche vs thpAmount — kolom paymentStatus adalah cache derived.
+model PayrollRunPayment {
+  id           Int              @id @default(autoincrement())
+  uuid         String           @unique @default(uuid()) @db.VarChar(150)
+  createdBy    String           @db.VarChar(100)
+  updatedBy    String           @db.VarChar(100)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  payrollRunId Int
+  payrollRun   PayrollRun       @relation(fields: [payrollRunId], references: [id])
+  usersId      Int
+  fullName     String           @db.VarChar(150)
+  amount       Decimal          @db.Decimal(15, 2)
+  paidAt       DateTime         @default(now())
+  method       String?          @db.VarChar(50)
+  note         String?          @db.VarChar(300)
+  runDetail    PayrollRunDetail? @relation(fields: [payrollRunId, usersId], references: [payrollRunId, usersId])
+
+  @@index([payrollRunId])
+  @@index([usersId])
+  @@map("payrollRunPayment")
 }
 
 model PayslipHeader {
@@ -1071,6 +1105,15 @@ enum PayrollRunStatus {
   SUBMITTED
   APPROVED
   LOCKED
+}
+
+/// Status pembayaran gaji: UNPAID belum ditransfer; PARTIAL sebagian
+/// karyawan lunas (mis. sebagian rekening ditolak bank); PAID seluruh
+/// karyawan berstatus OK sudah lunas.
+enum PaymentStatus {
+  UNPAID
+  PARTIAL
+  PAID
 }
 
 /// Tarif Efektif Rata-rata bulanan (PP 58/2023 & PMK 168/2023).

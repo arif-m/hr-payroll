@@ -319,9 +319,54 @@ kebijakan belum ditetapkan (`resetMode` NULL).
 Saat approve annual leave oleh HR, saldo karyawan berkurang sesuai hari
 (`annualLeaveBalance` dikurangi, `annualLeave` sebagai akumulasi terpakai).
 
+### Status Pembayaran Gaji (per run + per karyawan)
+
+Alur payroll kini ditutup sampai pembayaran: run APPROVED/LOCKED bisa
+ditandai **LUNAS** (semua) atau per karyawan (untuk kasus sebagian rekening
+gagal transfer). Status run (UNPAID/PARTIAL/PAID) diturunkan otomatis dari
+baris karyawan, dengan audit siapa/kapan/catatan (`paymentMarkedBy/At/Note`).
+Badge status tampil di list & detail Payroll Run; kartu ringkasan menampilkan
+jumlah lunas + total THP dibayar; baris FAILED tidak bisa ditandai; koreksi
+salah tandai tersedia (batalkan). Payslip digital karyawan menampilkan badge
+**LUNAS (tanggal)** saat gaji periode itu sudah ditransfer.
+Migrasi: `prisma/migrations/20260927100000_payment_status`.
+
+### Pembayaran Bertahap (Cicilan/Termin)
+
+Pembayaran gaji bisa dicicil per karyawan: setiap pembayaran sebagian dicatat
+sebagai **tranche** pada tabel `payrollRunPayment` (jumlah, tanggal, metode
+Transfer/Cash/QRIS/Lainnya, catatan, aktor). Status UNPAID/PARTIAL/PAID — level
+baris maupun run — **diturunkan dari akumulasi tranche vs THP** (sumber
+kebenaran tunggal); kolom `paymentStatus` lama menjadi cache derived yang
+di-recompute setiap mutasi, sehingga badge payslip ikut akurat otomatis.
+Di halaman detail run (APPROVED/LOCKED), tombol ≡ pada kolom Pembayaran
+membuka riwayat cicilan per baris + form tambah cicilan; tiap cicilan bisa
+dibatalkan satu-satu (✕). Validasi: nominal > 0 dan tidak melebihi sisa THP
+(parser menerima `1.500.000`, `1500000`, `1,5`). Perilaku lama tetap: **Tandai
+Lunas (Semua)** dan tombol ✓ per baris kini membuat cicilan otomatis sebesar
+sisa THP; **Batalkan Lunas** menghapus seluruh cicilan run (kembali UNPAID).
+Endpoint baru: `POST /payroll-run/:id/payment/tranche` dan
+`POST /payroll-run/:id/payment/tranche/cancel`.
+Migrasi: `prisma/migrations/20260927110000_payroll_run_payment`.
+
+### Roles Permission — editor tree dengan cascade
+
+Form edit hak akses role (`/roles-permission/edit/:uuid`) kini berbentuk
+**tree-table multi-level**: centang hak pada modul induk otomatis menerapkan
+hak yang sama ke semua submenu di bawahnya; memberi hak pada submenu otomatis
+mengaktifkan **Read** induknya (aturan tampil sidebar); mematikan Read induk
+menghapus seluruh hak submenu di bawahnya — tanpa dialog, cukup centang ulang
+induk untuk mengembalikan (cascade-nya deterministik). Ikon ▾ pada nama induk
+membuka/menutup daftar submenu kapan saja (bebas, tidak terikat status Read);
+mencentang induk otomatis membuka cabangnya. Baris diurutkan **depth-first**
+(`toDepthFirstRows`) agar anak selalu kontigu di bawah parentnya — urutan
+`sequence` global di DB bisa membuat anak/keponakan berselang-seli. Logika cascade murni di `public/js/roles-permission-tree.js`
+(bisa di-unit-test), kontrak POST `/roles-permission/update` tidak berubah —
+backend tanpa perubahan perilaku.
+
 ### Testing & verifikasi
 
-    npm test                          # 103 unit test (payroll, SPT Masa, absensi, sanksi telat, import CSV, approval inbox, annual leave reset)
+    npm test                          # 137 unit test (payroll, SPT Masa, absensi, sanksi telat, import CSV, approval inbox, annual leave reset, roles-permission tree, payment status + cicilan)
     node scripts/smoke-test-payroll.js # end-to-end engine (reversible)
     node scripts/smoke-test-thr-email.js # THR + email payslip end-to-end (mock SMTP, reversible)
 

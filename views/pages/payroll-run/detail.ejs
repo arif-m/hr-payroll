@@ -102,6 +102,53 @@
                     </div>
                   </div>
 
+                  <% if (paymentSummary.canMark) { %>
+                  <div class="card card-sm mb-3">
+                    <div class="card-body">
+                      <div class="row align-items-center">
+                        <div class="col">
+                          <div class="subheader">Status Pembayaran</div>
+                          <% var payBadge = { UNPAID: 'bg-lime', PARTIAL: 'bg-yellow', PAID: 'bg-green' }[paymentSummary.status]; %>
+                          <div class="h3 mb-1">
+                            <span class="badge <%= payBadge %>"><%= paymentSummary.status %></span>
+                            <span class="text-muted fs-5 ms-2"><%= paymentSummary.paidCount %> dari <%= paymentSummary.okCount %> karyawan lunas
+                            <% if (paymentSummary.totalThp > 0) { %>· Terbayar Rp <%= generalHelper.formatNumberWithCommas(paymentSummary.paidThp) %> dari Rp <%= generalHelper.formatNumberWithCommas(paymentSummary.totalThp) %>
+                            <% if (paymentSummary.remaining > 0) { %> · sisa Rp <%= generalHelper.formatNumberWithCommas(paymentSummary.remaining) %><% } %><% } %></span>
+                          </div>
+                          <% if (paymentSummary.totalThp > 0) { %>
+                          <div class="progress progress-sm mb-1" style="max-width: 480px;">
+                            <div class="progress-bar <%= paymentSummary.status === 'PAID' ? 'bg-success' : (paymentSummary.status === 'PARTIAL' ? 'bg-warning' : 'bg-lime') %>"
+                                 style="width: <%= paymentSummary.progress %>%" role="progressbar"></div>
+                          </div>
+                          <% } %>
+                          <% if (paymentSummary.markedAt) { %>
+                            <div class="text-muted small">Ditandai <%= moment(paymentSummary.markedAt).format('DD MMM YYYY HH:mm') %> oleh <%= paymentSummary.markedBy || '-' %>
+                            <% if (paymentSummary.note) { %> · Catatan: <%= paymentSummary.note %><% } %></div>
+                          <% } %>
+                        </div>
+                        <div class="col-auto">
+                          <% if (paymentSummary.status !== 'PAID') { %>
+                          <form method="POST" action="/payroll-run/<%= run.id %>/payment" class="d-inline"
+                                onsubmit="var n=prompt('Catatan pembayaran (opsional, bisa kosong):',''); if(n===null) return false; this.querySelector('[name=note]').value=n; return confirm('Tandai SELURUH karyawan OK pada run ini sebagai LUNAS?')">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <input type="hidden" name="paid" value="1">
+                            <input type="hidden" name="note" value="">
+                            <button class="btn btn-success btn-sm" type="submit">Tandai Lunas (Semua)</button>
+                          </form>
+                          <% } else { %>
+                          <form method="POST" action="/payroll-run/<%= run.id %>/payment" class="d-inline"
+                                onsubmit="return confirm('Batalkan status LUNAS seluruh karyawan pada run ini? (untuk koreksi salah tandai)')">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <input type="hidden" name="paid" value="0">
+                            <button class="btn btn-outline-danger btn-sm" type="submit">Batalkan Lunas</button>
+                          </form>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <% } %>
+
                   <div class="mb-2 text-muted">
                     Karyawan OK: <strong><%= counts.ok %></strong> · Gagal: <strong><%= counts.failed %></strong> · Total: <strong><%= counts.total %></strong>
                     <% if (run.submittedAt) { %> · Submit: <%= moment(run.submittedAt).format('DD MMM YYYY HH:mm') %> (<%= run.submittedBy %>)<% } %>
@@ -119,6 +166,7 @@
                         <th style="text-align: right;">PPh 21</th>
                         <th style="text-align: right;">THP</th>
                         <th>Status</th>
+                        <th>Pembayaran</th>
                       </tr>
                       </thead>
                       <tbody>
@@ -136,10 +184,107 @@
                                 <span class="badge bg-danger" title="<%= d.errorMessage || '' %>">GAGAL</span>
                               <% } %>
                             </td>
+                            <td>
+                              <% if (d.status === 'OK') { %>
+                                <% var dPaid = (d.payments || []).reduce(function(a, p) { return a + Number(p.amount); }, 0); %>
+                                <% var dRemaining = Math.max(0, Number(d.thpAmount) - dPaid); %>
+                                <% var dPayBadge = { UNPAID: 'bg-lime', PARTIAL: 'bg-yellow', PAID: 'bg-green' }[d.paymentStatus]; %>
+                                <span class="badge <%= dPayBadge %>" title="<%= d.paidAt ? 'Dibayar ' + moment(d.paidAt).format('DD MMM YYYY HH:mm') : 'Belum dibayar' %><%= d.paymentNote ? ' · ' + d.paymentNote : '' %>"><%= d.paymentStatus %></span>
+                                <% if (dPaid > 0) { %>
+                                  <div class="small text-muted">Rp <%= generalHelper.formatNumberWithCommas(dPaid) %> / Rp <%= generalHelper.formatNumberWithCommas(d.thpAmount) %><% if (dRemaining > 0) { %> (sisa Rp <%= generalHelper.formatNumberWithCommas(dRemaining) %>)<% } %></div>
+                                <% } %>
+                                <% if (paymentSummary.canMark) { %>
+                                  <% if (d.paymentStatus !== 'PAID') { %>
+                                  <form method="POST" action="/payroll-run/<%= run.id %>/payment/detail" class="d-inline"
+                                        onsubmit="return confirm('Tandai <%= d.fullName %> sebagai LUNAS (membuat cicilan penuh sebesar sisa THP<%= dPaid > 0 ? ' Rp ' + generalHelper.formatNumberWithCommas(dRemaining) : '' %>)?')">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="usersId" value="<%= d.usersId %>">
+                                    <input type="hidden" name="paid" value="1">
+                                    <button class="btn btn-outline-success btn-sm btn-icon" type="submit" title="Tandai lunas (cicilan sisa THP)">✓</button>
+                                  </form>
+                                  <% } else { %>
+                                  <form method="POST" action="/payroll-run/<%= run.id %>/payment/detail" class="d-inline"
+                                        onsubmit="return confirm('Batalkan pembayaran <%= d.fullName %> (menghapus SEMUA cicilan baris ini)?')">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="usersId" value="<%= d.usersId %>">
+                                    <input type="hidden" name="paid" value="0">
+                                    <button class="btn btn-outline-secondary btn-sm btn-icon" type="submit" title="Batalkan (hapus cicilan baris ini)">↺</button>
+                                  </form>
+                                  <% } %>
+                                  <button class="btn btn-outline-primary btn-sm btn-icon" type="button" data-bs-toggle="collapse"
+                                          data-bs-target="#tranche-<%= run.id %>-<%= d.usersId %>" title="Riwayat & cicilan">
+                                    ≡<% var dTrancheCount = (d.payments || []).length; %><% if (dTrancheCount > 0) { %><span class="badge bg-blue ms-1"><%= dTrancheCount %></span><% } %>
+                                  </button>
+                                  <% var dTranches = (d.payments || []); %>
+                                  <div class="collapse" id="tranche-<%= run.id %>-<%= d.usersId %>">
+                                    <div class="mt-2 p-2 border rounded bg-light-labeled" style="min-width: 360px;">
+                                      <% if (dTranches.length > 0) { %>
+                                      <table class="table table-sm mb-2">
+                                        <thead><tr><th>Tanggal</th><th>Metode</th><th style="text-align: right;">Jumlah</th><th>Catatan</th><th>Oleh</th><th></th></tr></thead>
+                                        <tbody>
+                                          <% dTranches.forEach(function(p) { %>
+                                          <tr>
+                                            <td class="text-nowrap"><%= moment(p.paidAt).format('DD MMM YYYY HH:mm') %></td>
+                                            <td><%= p.method || '-' %></td>
+                                            <td style="text-align: right;"><%= generalHelper.formatNumberWithCommas(p.amount) %></td>
+                                            <td class="small"><%= p.note || '-' %></td>
+                                            <td class="small"><%= p.createdBy %></td>
+                                            <td>
+                                              <form method="POST" action="/payroll-run/<%= run.id %>/payment/tranche/cancel" class="d-inline"
+                                                    onsubmit="return confirm('Hapus cicilan Rp <%= generalHelper.formatNumberWithCommas(p.amount) %> (<%= p.method || '-' %>)?')">
+                                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                                <input type="hidden" name="trancheId" value="<%= p.id %>">
+                                                <button class="btn btn-outline-danger btn-sm btn-icon" type="submit" title="Batalkan cicilan ini">✕</button>
+                                              </form>
+                                            </td>
+                                          </tr>
+                                          <% }); %>
+                                        </tbody>
+                                      </table>
+                                      <% } else { %>
+                                      <div class="text-muted small mb-2">Belum ada cicilan.</div>
+                                      <% } %>
+                                      <% if (dRemaining > 0) { %>
+                                      <form method="POST" action="/payroll-run/<%= run.id %>/payment/tranche" class="row g-2 align-items-end">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                        <input type="hidden" name="usersId" value="<%= d.usersId %>">
+                                        <div class="col-auto">
+                                          <label class="form-label mb-0 small">Nominal</label>
+                                          <input type="text" name="amount" class="form-control form-control-sm" style="width: 130px;"
+                                                 placeholder="sisa <%= generalHelper.formatNumberWithCommas(dRemaining) %>" required>
+                                        </div>
+                                        <div class="col-auto">
+                                          <label class="form-label mb-0 small">Metode</label>
+                                          <select name="method" class="form-select form-select-sm" style="width: 110px;">
+                                            <option value="Transfer">Transfer</option>
+                                            <option value="Cash">Cash</option>
+                                            <option value="QRIS">QRIS</option>
+                                            <option value="Lainnya">Lainnya</option>
+                                          </select>
+                                        </div>
+                                        <div class="col-auto">
+                                          <label class="form-label mb-0 small">Catatan</label>
+                                          <input type="text" name="note" class="form-control form-control-sm" style="width: 160px;" maxlength="300" placeholder="opsional">
+                                        </div>
+                                        <div class="col-auto">
+                                          <button class="btn btn-primary btn-sm" type="submit"
+                                                  onclick="var v=this.closest('form').querySelector('[name=amount]').value; if(!v) return confirm('Gunakan sisa THP penuh (Rp <%= generalHelper.formatNumberWithCommas(dRemaining) %>)?'); return true;">+ Cicilan</button>
+                                        </div>
+                                      </form>
+                                      <% } else { %>
+                                      <div class="text-success small">✓ Lunas penuh — semua cicilan tercatat.</div>
+                                      <% } %>
+                                    </div>
+                                  </div>
+                                <% } %>
+                              <% } else { %>
+                                <span class="text-muted">—</span>
+                              <% } %>
+                            </td>
                           </tr>
                         <% }); %>
                         <% if (run.runDetail.length === 0) { %>
-                          <tr><td colspan="6" class="text-center text-muted py-4">Belum ada payslip pada run ini. Buka "Generate Salary" untuk generate dalam status DRAFT.</td></tr>
+                          <tr><td colspan="7" class="text-center text-muted py-4">Belum ada payslip pada run ini. Buka "Generate Salary" untuk generate dalam status DRAFT.</td></tr>
                         <% } %>
                       </tbody>
                     </table>

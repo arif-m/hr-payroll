@@ -10,6 +10,7 @@ const moment = require('moment');
 const logger = require('../libs/logger');
 const { getRunSummary, transitionRun, getOrCreateRun } = require('../libs/payroll/run');
 const { buildPaymentFile } = require('../libs/payroll/payment-file');
+const paymentStatusLib = require('../libs/payroll/payment-status');
 const { buildSptMasa } = require('../libs/payroll/spt-masa');
 const { sendPayslipsForRun } = require('../libs/payroll/email-payslip');
 
@@ -85,11 +86,19 @@ const showDetail = async (req, res) => {
     const summary = await getRunSummary(Number(id));
     if (!summary) throw new Error('Payroll run tidak ditemukan');
 
+    // Riwayat tranche (cicilan) seluruh run — tertua dulu untuk expand per baris.
+    const runPayments = await prisma.payrollRunPayment.findMany({
+      where: { payrollRunId: Number(id) },
+      orderBy: [{ paidAt: 'asc' }, { id: 'asc' }],
+    });
+
     const userInfo = req.user;
     const getRoles = await listRolesPermission(userInfo.roleUuid);
     res.render('pages/payroll-run/detail', {
       user: userInfo, getRoles, pageTitle: 'Payroll Run Detail',
       run: summary.run, counts: summary.counts, totals: summary.totals, generalHelper, moment,
+      paymentSummary: buildPaymentSummary(summary.run),
+      runPayments,
     });
   } catch (err) {
     logger.error(`payrollRun showDetail: ${err.message}`);
@@ -155,7 +164,130 @@ const downloadPaymentFile = async (req, res) => {
 };
 
 /**
- * Download CSV SPT Masa PPh 21 (A1 = pegawai tetap, A2 = bukan pegawai) —
+ * Parse nominal dari input bebas: terima "1500000", "1.500.000",
+ * "1,5" (desimal koma), "Rp 1.500.000,50".
+ * Heuristik: titik = pemisah ribuan bila pola 3 digit; koma = desimal
+ * bila diikuti <= 2 digit, selain itu pemisah ribuan.
+ * @returns {Number} NaN bila tidak valid
+ */
+const parseAmount = (raw) => {
+  let s = String(raw == null ? '' : raw).trim().replace(/[^\d.,]/g, '');
+  if (!s) return NaN;
+  const lastComma = s.lastIndexOf(',');
+  const lastDot = s.lastIndexOf('.');
+  const decSep = lastComma > lastDot ? ',' : (lastDot > lastComma ? '.' : null);
+  if (decSep) {
+    const decPart = s.slice(s.lastIndexOf(decSep) + 1);
+    if (decPart.length <= 2) {
+      // koma/titik terakhir = desimal; sisanya buang sebagai pemisah ribuan
+      const intPart = s.slice(0, s.lastIndexOf(decSep)).replace(/[.,]/g, '');
+      const val = Number(`${intPart || '0'}.${decPart}`);
+      return Number.isFinite(val) ? val : NaN;
+    }
+  }
+  const val = Number(s.replace(/[.,]/g, ''));
+  return Number.isFinite(val) ? val : NaN;
+};
+
+/** Ringkasan pembayaran utk kartu UI di halaman detail (berbasis tranche). */
+const buildPaymentSummary = (run) => {
+  const okRows = (run.runDetail || []).filter((d) => d.status === 'OK');
+  const paidRows = okRows.filter((d) => d.paymentStatus === 'PAID');
+  const paidThp = okRows.reduce((acc, d) =>
+    acc + (d.payments || []).reduce((a, p) => a + Number(p.amount), 0), 0);
+  const totalThp = okRows.reduce((acc, d) => acc + Number(d.thpAmount), 0);
+  return {
+    status: run.paymentStatus,
+    markedAt: run.paymentMarkedAt,
+    markedBy: run.paymentMarkedBy,
+    note: run.paymentNote,
+    okCount: okRows.length,
+    paidCount: paidRows.length,
+    paidThp,
+    totalThp,
+    remaining: Math.max(0, totalThp - paidThp),
+    progress: totalThp > 0 ? Math.min(100, Math.round((paidThp / totalThp) * 100)) : 0,
+    canMark: ['APPROVED', 'LOCKED'].includes(run.status),
+  };
+};
+
+/** Tandai seluruh run lunas / batal (POST form dari halaman detail). */
+const markRunPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const paid = req.body.paid !== '0';
+    const note = req.body.note && String(req.body.note).trim() !== '' ? String(req.body.note).trim() : null;
+    const result = await paymentStatusLib.markRunPaid(Number(id), req.user.fullName, note, paid);
+    req.flash('success', paid
+      ? `Run #${id} ditandai LUNAS (${result.paidCount} karyawan)`
+      : `Status pembayaran run #${id} dibatalkan (UNPAID)`);
+  } catch (err) {
+    logger.error(`payrollRun markRunPayment: ${err.message}`);
+    req.flash('error', err.message);
+  }
+  res.redirect(`/payroll-run/${req.params.id}`);
+};
+
+/** Tandai/batalkan pembayaran sebagian karyawan (POST per baris dari detail). */
+const markDetailPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const usersIds = [].concat(req.body.usersId || []).map(Number);
+    const paid = req.body.paid !== '0';
+    const note = req.body.note && String(req.body.note).trim() !== '' ? String(req.body.note).trim() : null;
+    const result = await paymentStatusLib.markEmployeesPaid(Number(id), usersIds, req.user.fullName, note, paid);
+    req.flash('success', paid
+      ? `${result.changed} karyawan ditandai lunas (status run: ${result.runPaymentStatus})`
+      : `${result.changed} karyawan dikembalikan UNPAID (status run: ${result.runPaymentStatus})`);
+  } catch (err) {
+    logger.error(`payrollRun markDetailPayment: ${err.message}`);
+    req.flash('error', err.message);
+  }
+  res.redirect(`/payroll-run/${req.params.id}`);
+};
+
+/**
+ * Catat satu tranche (cicilan/termin) untuk satu karyawan
+ * (POST form dari halaman detail).
+ */
+const addTranchePayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const usersId = Number(req.body.usersId);
+    const amount = parseAmount(req.body.amount);
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error('Nominal cicilan tidak valid');
+    const method = req.body.method && String(req.body.method).trim() !== '' ? String(req.body.method).trim() : null;
+    const note = req.body.note && String(req.body.note).trim() !== '' ? String(req.body.note).trim() : null;
+    const paidAt = req.body.paidAt && String(req.body.paidAt).trim() !== '' ? String(req.body.paidAt).trim() : null;
+
+    const result = await paymentStatusLib.addPaymentTranche(Number(id), usersId, {
+      amount, method, note, paidAt, actor: req.user.fullName,
+    });
+    req.flash('success', `Cicilan Rp ${generalHelper.formatNumberWithCommas(result.tranche.amount)} dicatat untuk ${result.tranche.fullName}`
+      + ` (terbayar Rp ${generalHelper.formatNumberWithCommas(result.paidTotal)}, sisa Rp ${generalHelper.formatNumberWithCommas(result.remaining)}, status run: ${result.runStatus})`);
+  } catch (err) {
+    logger.error(`payrollRun addTranchePayment: ${err.message}`);
+    req.flash('error', err.message);
+  }
+  res.redirect(`/payroll-run/${req.params.id}`);
+};
+
+/** Batalkan satu tranche (POST dari riwayat cicilan per baris). */
+const cancelTranchePayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const trancheId = Number(req.body.trancheId);
+    const result = await paymentStatusLib.cancelPaymentTranche(Number(id), trancheId, req.user.fullName);
+    req.flash('success', `Cicilan dibatalkan (terbayar Rp ${generalHelper.formatNumberWithCommas(result.paidTotal)}`
+      + `, sisa Rp ${generalHelper.formatNumberWithCommas(result.remaining)}, status run: ${result.runStatus})`);
+  } catch (err) {
+    logger.error(`payrollRun cancelTranchePayment: ${err.message}`);
+    req.flash('error', err.message);
+  }
+  res.redirect(`/payroll-run/${req.params.id}`);
+};
+
+/** Download CSV SPT Masa PPh 21 (A1 = pegawai tetap, A2 = bukan pegawai) —
  * hanya run APPROVED/LOCKED. Query: ?form=A1|A2.
  */
 const downloadSptMasa = async (req, res) => {
@@ -197,4 +329,4 @@ const sendPayslipsEmail = async (req, res) => {
   res.redirect('back');
 };
 
-module.exports = { showIndex, showDetail, createRun, doTransition, downloadPaymentFile, downloadSptMasa, sendPayslipsEmail };
+module.exports = { showIndex, showDetail, createRun, doTransition, downloadPaymentFile, downloadSptMasa, sendPayslipsEmail, markRunPayment, markDetailPayment, addTranchePayment, cancelTranchePayment, parseAmount };

@@ -45,6 +45,7 @@
                       <th>Run</th>
                       <th>Periode</th>
                       <th>Status</th>
+                      <th>Pembayaran</th>
                       <th>Karyawan</th>
                       <th>Dibuat</th>
                       <th class="text-end"></th>
@@ -59,6 +60,10 @@
                             <% var badge = { DRAFT: 'bg-secondary', SUBMITTED: 'bg-warning', APPROVED: 'bg-info', LOCKED: 'bg-success' }[run.status]; %>
                             <span class="badge <%= badge %>"><%= run.status %></span>
                           </td>
+                          <td>
+                            <% var payBadge = { UNPAID: 'bg-lime', PARTIAL: 'bg-yellow', PAID: 'bg-green' }[run.paymentStatus]; %>
+                            <span class="badge <%= payBadge %>" title="Status pembayaran gaji"><%= run.paymentStatus %></span>
+                          </td>
                           <td><%= run._count ? run._count.runDetail : 0 %></td>
                           <td><%= moment(run.createdAt).format('DD MMM YYYY') %> — <%= run.createdBy %></td>
                           <td class="text-end">
@@ -67,7 +72,7 @@
                         </tr>
                       <% }); %>
                       <% if (listOfRuns.data.length === 0) { %>
-                        <tr><td colspan="6" class="text-center text-muted py-4">Belum ada payroll run.</td></tr>
+                        <tr><td colspan="7" class="text-center text-muted py-4">Belum ada payroll run.</td></tr>
                       <% } %>
                     </tbody>
                   </table>
