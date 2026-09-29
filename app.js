@@ -112,6 +112,7 @@ app.use(function(req, res, next) {
   next();
 });
 
+// Rate limiter harus dipasang SEBELUM routes agar efektif
 app.use(limiter);
 
 app.use('/', indexRouter);

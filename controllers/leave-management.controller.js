@@ -353,7 +353,7 @@ const processApprovedRequestAnnualLeaveByHR = async (req, res) => {
         })
 
         if (Number(getAnnualLeaveBalance.annualLeaveBalance) >= Number(days)) {
-            console.log('appr1')
+            logger.debug('appr1')
             const getDataEmployee = await prisma.users.findFirst({
                 where: {
                     id: Number(employee_id),
@@ -409,7 +409,7 @@ const processApprovedRequestAnnualLeaveByHR = async (req, res) => {
 
             let isDataExist = false;
             let isExistTimeAttendance = false;
-            console.log(daysOfAnnualLeave);
+            logger.debug(daysOfAnnualLeave);
             for (let index = 0; index < daysOfAnnualLeave; index++) {
                 workDate = moment(startDuration, "DD-MM-YYYY").add(index, 'days');
                 let dayOfWorkDate = moment.utc(workDate).format('dddd');
@@ -452,7 +452,7 @@ const processApprovedRequestAnnualLeaveByHR = async (req, res) => {
             }
 
             for (let index = 0; index < daysOfAnnualLeave; index++) {
-                console.log('appr time attnd')
+                logger.debug('appr time attnd')
 
                 workDate = moment(startDuration, "DD-MM-YYYY").add(index, 'days');
                 let checkIn = moment.utc(workDate).format('YYYY-MM-DD') + ' 00:00:01';
@@ -719,7 +719,7 @@ const approvedRequestSickLeaveByHR = async (req, res) => {
 
 const processApprovedRequestSickLeaveByHR = async (req, res) => {
     const { uuid, is_approved, comments, days, employee_id, work_date } = req.body;
-    console.log(work_date);
+    logger.debug(work_date);
 
     let approved_date = moment.utc().format('DD-MM-yyyy');
     let approvedDate = approved_date.split("-")[2] + '-' + approved_date.split("-")[1] + '-' + approved_date.split("-")[0];
@@ -1141,7 +1141,7 @@ const processApprovedRequestSickLeave2BySupervisor = async (req, res) => {
             }
             
             if (Boolean(isExistTimeAttendance)) {
-                console.log('sukses')
+                logger.debug('sukses')
                 req.flash('uuid', uuid);
                 req.flash('error', 'Tanggal ' + moment.utc(workDate).format('DD-MM-YYYY') + ' sudah punya data absensi (kemungkinan ada cuti lain yang sudah disetujui pada tanggal tersebut). Tolak pengajuan ini bila periode-nya tumpang tindih, atau konsultasikan ke HR.');
                 res.redirect('back');
@@ -1179,7 +1179,7 @@ const processApprovedRequestSickLeave2BySupervisor = async (req, res) => {
             res.redirect('back');
         }
     } catch (err) {
-        console.log(err.message);
+        logger.error(err.message);
         req.flash('error', err.message);
         res.redirect('back');
     }
@@ -1329,7 +1329,7 @@ const processApprovedRequestSickLeave2ByHR = async (req, res) => {
             }
             
             if (Boolean(isExistTimeAttendance)) {
-                console.log('sukses')
+                logger.debug('sukses')
                 req.flash('uuid', uuid);
                 req.flash('error', 'Tanggal ' + moment.utc(workDate).format('DD-MM-YYYY') + ' sudah punya data absensi (kemungkinan ada cuti lain yang sudah disetujui pada tanggal tersebut). Tolak pengajuan ini bila periode-nya tumpang tindih, atau konsultasikan ke HR.');
                 res.redirect('back');
@@ -1438,7 +1438,7 @@ const processApprovedRequestSickLeave2ByHR = async (req, res) => {
             res.redirect('back');
         }
     } catch (err) {
-        console.log(err.message);
+        logger.error(err.message);
         req.flash('error', err.message);
         res.redirect('back');
     }

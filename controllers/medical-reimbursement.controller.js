@@ -1,4 +1,5 @@
 const prisma = require('../libs/prisma');
+const logger = require('../libs/logger');
 
 const { listRolesPermission } = require('../helper/roles-permission');
 const moment = require('moment');
@@ -13,7 +14,7 @@ const listOfMedicalReimbursement = async (req, res) => {
 
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search) {
         where = { AND: [
                     {
@@ -290,7 +291,7 @@ const processRequestMedicalReimbursement = async (req, res) => {
             req.flash('success', 'Request medical reimbursement successfully')
             res.redirect('/medical-reimbursement-request');
         } catch (error) {
-            console.log(error.message);
+            logger.error(error.message);
             req.flash('error', error.message);
             res.redirect('back');
         }
@@ -433,7 +434,7 @@ const listingApproveMedicalReimbursementBySupervisor = async (req, res) => {
 
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search) {
         where = { AND: [
                 {
@@ -598,7 +599,7 @@ const listingApproveMedicalReimbursementByHR = async (req, res) => {
 
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search) {
         where = { AND: [
                 {
@@ -1035,7 +1036,7 @@ const showMedicalReimbursementHistory = async (req, res) => {
         if (getDataEmployee) {
             const query = req.query;
             let search = query.search;
-            where = {};
+            let where = {};
             if (query.search) {
                 where = { AND: [
                             { createdAt : {
@@ -1089,7 +1090,7 @@ const showMedicalReimbursementHistory = async (req, res) => {
             res.render('pages/medical-reimbursement/history', param);
         }            
     } catch (error) {
-        console.log(error.message);
+        logger.error(error.message);
     }
 }
 
@@ -1119,7 +1120,7 @@ const showRequestMedicalReimbursementHistory = async (req, res) => {
         if (getDataEmployee) {
             const query = req.query;
             let search = query.search;
-            where = {};
+            let where = {};
             if (query.search) {
                 where = { AND: [
                             { createdAt : {
@@ -1173,7 +1174,7 @@ const showRequestMedicalReimbursementHistory = async (req, res) => {
             res.render('pages/medical-reimbursement/history2', param);
         }            
     } catch (error) {
-        console.log(error.message);
+        logger.error(error.message);
     }
 }
 
@@ -1277,7 +1278,7 @@ const getBalanceOfMedicalReibursementByCategoryId = async (req, res) => {
             data: medicalReimbursementRemaing
         });    
    } catch (error) {
-        console.log(error.message)
+        logger.error(error.message)
         res.status(500).send({
             status: true,
             statusCode: 500,

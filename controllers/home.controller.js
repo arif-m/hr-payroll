@@ -16,7 +16,7 @@ var logger = require('../libs/logger'),
 const getLogin = (req, res) => {
     try {
         logger.debug("get login page", "success");
-        message = "";
+        const message = "";
         res.render('pages/login', {
             message: message,
             error: false
@@ -56,41 +56,37 @@ const postForgotPassword = async (req, res) => {
         const email = req.body.email;
 
         const getUsers = await prisma.users.findFirst({
-            where: {
-                email: email,
-            },
-            select: {
-                email: true,
-            }
-        })
-        if ( !getUsers ) {
-            console.log('not found');
-            req.flash('error', 'No account with that email address exists.');
-            res.redirect('back')
+            where: { email },
+            select: { email: true },
+        });
+
+        // Anti-enumeration: pesan selalu sama terlepas email ditemukan atau tidak.
+        // Jika tidak ditemukan, return lebih awal tanpa mengirim email.
+        if (!getUsers) {
+            req.flash('success', 'Jika email terdaftar, link reset telah dikirim ke alamat email Anda.');
+            return res.redirect('back');
         }
 
         let nowDate = new Date();
-        const passwordResetToken = crypto.randomBytes(40).toString('hex'); //randtoken.generate(20);
+        const passwordResetToken = crypto.randomBytes(40).toString('hex');
         let passwordResetAt = moment(nowDate).add(moment.duration(1, 'hours'));
 
-        const updateDataUsers = await prisma.users.update({
-            where: {
-                email: email,
-            },
+        await prisma.users.update({
+            where: { email },
             data: {
                 passwordResetToken,
                 passwordResetAt: moment.utc(passwordResetAt).toDate(),
             }
-        })
+        });
         const sendingEmail = await sendEmail(passwordResetToken, email);
-        console.log('Email sent : ' + sendingEmail.response);
+        logger.info('Email sent : ' + sendingEmail.response);
 
-        req.flash('success', 'The reset password link has been sent to your email address.');
+        req.flash('success', 'Jika email terdaftar, link reset telah dikirim ke alamat email Anda.');
         res.redirect('back');
     } catch (e) {
-        logger.error(e);      
-        req.flash('error', 'Code : ' + e.code);
-        res.redirect('back')
+        logger.error(e);
+        req.flash('error', 'Terjadi kesalahan, silakan coba lagi.');
+        res.redirect('back');
     }
 }
 
@@ -130,38 +126,52 @@ const postResetPassword = async (req, res) => {
     try {
         const { password, password_confirmation } = req.body;
         const uuid = req.body.uuid;
-        const salt = bcrypt.genSaltSync(10);//or your salt constant
-        const hashPassword = bcrypt.hashSync(password, salt);
-          
-        if (password != password_confirmation) {
-            req.flash('error', 'The password & confirmation are not the same.');
-            res.redirect('back');
-        } else {
-            const updateDataUsers = await prisma.users.update({
-                where: {
-                    uuid: uuid,
-                },
-                data: {
-                    passwordResetToken : null,
-                    passwordResetAt: null,
-                    password: hashPassword,
-                    salt: salt,
-                }
-            })
 
-            if (updateDataUsers) {
-                req.flash('success', 'The password reset sucessfully.');
-                res.redirect('/');    
-            } else {
-                req.flash('error', 'The password reset failed.');
-                res.redirect('/');    
-            }
-    
+        if (password !== password_confirmation) {
+            req.flash('error', 'The password & confirmation are not the same.');
+            return res.redirect('back');
         }
+
+        // SECURITY: verifikasi token & expiry ulang di POST handler
+        // (GET handler sudah cek, tapi token bisa saja expired di antara GET & POST).
+        // Token di-bind ke NILAINYA (bukan sekadar not null) agar uuid saja
+        // tidak cukup untuk reset — mencegah penyalahgunaan tanpa token dari email.
+        const userWithValidToken = await prisma.users.findFirst({
+            where: {
+                uuid,
+                passwordResetAt: { gt: new Date() },
+                passwordResetToken: String(req.body.token || ''),
+            },
+            select: { id: true },
+        });
+
+        if (!userWithValidToken) {
+            req.flash('error', 'Link reset password sudah kedaluwarsa atau tidak valid. Silakan minta link baru.');
+            return res.redirect('/forgot-password');
+        }
+
+        const salt = bcrypt.genSaltSync(10);
+        const hashPassword = bcrypt.hashSync(password, salt);
+
+        await prisma.users.update({
+            where: { uuid },
+            data: {
+                passwordResetToken: null,
+                passwordResetAt: null,
+                password: hashPassword,
+                salt,
+            }
+        });
+
+        req.flash('success', 'The password reset successfully.');
+        res.redirect('/');
     } catch (e) {
-        logger.error(e)     
+        logger.error(e);
+        req.flash('error', 'Terjadi kesalahan, silakan coba lagi.');
+        res.redirect('back');
     }
 }
+
 
 const getAbout = (req, res) => {
     res.render('pages/about');
@@ -277,7 +287,7 @@ const getHome = async (req, res) => {
         getRoles = await listRolesPermission(userInfo.roleUuid);
         res.render('pages/index', { user: userInfo, getRoles: getRoles, moment: moment, pageTitle: 'Dashboard', acronymFullName: acronymFullName, employeeData: getEmployeeData, listOfRequestLeave: listOfRequestLeave, listOfRequestOtherLeave });    
     } catch (e) {
-        console.log(e);
+        logger.error(e);
         logger.error(e)
     }
 }

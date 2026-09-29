@@ -1,4 +1,5 @@
 const prisma = require('../libs/prisma');
+const logger = require('../libs/logger');
 
 const moment = require('moment');
 const { listRolesPermission } = require('../helper/roles-permission');
@@ -7,7 +8,7 @@ const generalHelper = require('../helper/general');
 const showBpjsTenagaKerjaTemplate = async (req, res) => {
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search){
         where = { templateName : {
                     contains: search                    
@@ -157,7 +158,7 @@ const insertBpjsTenagaKerjaComponents = async (req, res) => {
         }
     })
 
-    console.log(getDataBpjsTkComponent);
+    logger.debug(getDataBpjsTkComponent);
 
     const insertDataSalaryTemplateDetails = await prisma.templateBpjsTenagaKerjaDetails.create({
         data: {

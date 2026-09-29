@@ -9,7 +9,7 @@ const logger = require('../libs/logger');
 const showSetupEmployeeSalary = async (req, res) => {
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search){
         where = { fullName : {
                     contains: search                    
@@ -350,7 +350,7 @@ const insertComponentSetupEmployeeSalary = async (req, res) => {
         //res.flash('success', '')
         res.redirect('back');
     } catch (error) {
-        console.log(error.message);
+        logger.error(error.message);
         req.flash('error', error.message);
         res.redirect('back');
     }
@@ -429,7 +429,7 @@ const updateComponentSetupEmployeeSalary = async (req, res) => {
 
         req.flash('success', 'Update data successfully !!');
     } catch (error) {
-        console.log(`updateComponentSetupEmployeeSalary: ${error.message}`);
+        logger.error(`updateComponentSetupEmployeeSalary: ${error.message}`);
         req.flash('error', error.message);
     }
     res.redirect('/setup-employee-salary');

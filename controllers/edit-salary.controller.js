@@ -7,7 +7,7 @@ const { formatNumberWithoutDelimiter } = require('../helper/general');
 const showIndex = async (req, res) => {
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search){
         where = { 
             OR: [ 

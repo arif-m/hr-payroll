@@ -16,6 +16,7 @@ const { getTotalDayOfCalendar } = require('../helper/get-total-calendar');
 const path = require('path');
 
 const fs = require('fs');
+const crypto = require('crypto');
 const { listOfHolidaysCalendar } = require('../helper/calendar');
 
 const showDataEmployeeJson = async (req, res) => {
@@ -44,7 +45,7 @@ const showDataEmployeeJson = async (req, res) => {
                 },
             }
         })
-        console.log(getDataEmployee.length);
+        logger.debug(getDataEmployee.length);
         if(getDataEmployee.length > 0) {
             res.status(200).send({
                 status: true,
@@ -61,7 +62,7 @@ const showDataEmployeeJson = async (req, res) => {
             });
         }
     } catch (err) {
-        console.log(err.message);
+        logger.error(err.message);
         res.status(404).send({
             status: false,
             statusCode: 404,
@@ -102,7 +103,7 @@ const showDataEmployeeJsonbyStatus = async (req, res) => {
             });
         }
     } catch (err) {
-        console.log(err.message);
+        logger.error(err.message);
         res.status(404).send({
             status: false,
             statusCode: 404,
@@ -350,7 +351,10 @@ const createEmployee = async (req, res) => {
     
     let roleId = Number(role);
     const salt = bcrypt.genSaltSync(10);//or your salt constant
-    const hashPassword = bcrypt.hashSync('1234', salt);
+    // SECURITY: password awal tidak lagi hardcoded — dari env, atau acak.
+    const initialPassword = process.env.DEFAULT_NEW_EMPLOYEE_PASSWORD
+        || crypto.randomBytes(8).toString('hex');
+    const hashPassword = bcrypt.hashSync(initialPassword, salt);
 
     const insertEmployee = await prisma.users.create({
         data: {
@@ -394,8 +398,9 @@ const updateEmployee = async (req, res) => {
     const updatedBy = req.user.fullName;
 
     let roleId = Number(role);
-    joinDate = join_date_edit.split("-")[2] + '-' + join_date_edit.split("-")[1] + '-' + join_date_edit.split("-")[0];
-    dob = dob_edit.split("-")[2] + '-' + dob_edit.split("-")[1] + '-' + dob_edit.split("-")[0];
+    // let lokal (sebelumnya implicit global — race condition antar-request)
+    const joinDate = join_date_edit.split("-")[2] + '-' + join_date_edit.split("-")[1] + '-' + join_date_edit.split("-")[0];
+    const dob = dob_edit.split("-")[2] + '-' + dob_edit.split("-")[1] + '-' + dob_edit.split("-")[0];
 
     const medicalReimbursementRemaining = Number(medical_reimbursement) - Number(medical_reimbursement2);
 
@@ -621,7 +626,7 @@ const updateProfileImage = async (req, res) => {
             req.flash('error', 'Update data failed !!!');
             res.redirect('back');
         } catch (error) {
-            console.log(error.message);
+            logger.error(error.message);
             req.flash('error', error.message);
             res.redirect('back');
         }
@@ -632,7 +637,7 @@ const updateProfileImage = async (req, res) => {
 const showPromoteEmployee = async (req, res) => {
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (search) {
         where = { 
             AND: [ 
@@ -841,7 +846,7 @@ const processPromoteEmployee = async (req, res) => {
 const showSetupAnnualLeaveEmployee = async (req, res) => {
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (search) {
         where = { 
             AND: [ 
@@ -1009,7 +1014,7 @@ const myAnnualLeave = async (req, res) => {
 
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search){
         where = { leaveDescription : {
                     contains: search                    
@@ -1024,12 +1029,15 @@ const myAnnualLeave = async (req, res) => {
                         contains: search,
                     },
                 }, 
-                { leaveTypeDescription: 'Annual Leave' }
+                { leaveTypeDescription: 'Annual Leave' },
+                // SECURITY: hanya cuti milik user yang login (cegah data leak)
+                { employeeId: req.user.id }
             ]
         }        
     } else {
         where = {
-            leaveTypeDescription: 'Annual Leave' 
+            leaveTypeDescription: 'Annual Leave',
+            employeeId: req.user.id,
         }
     }
 
@@ -1081,7 +1089,7 @@ const mySickLeave = async (req, res) => {
 
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search){
         where = { leaveDescription : {
                     contains: search                    
@@ -1096,12 +1104,15 @@ const mySickLeave = async (req, res) => {
                         contains: search,
                     },
                 }, 
-                { leaveType: 2 }
+                { leaveType: 2 },
+                // SECURITY: hanya cuti milik user yang login (cegah data leak)
+                { employeeId: req.user.id }
             ]
         }        
     } else {
         where = {
-            leaveType: 2
+            leaveType: 2,
+            employeeId: req.user.id,
         }
     }
 
@@ -1308,7 +1319,7 @@ const processRequestAnnualLeave = async (req, res) => {
         req.flash('success', 'Request annual leave successfully')
         res.redirect('back');
     } catch (error) {
-        console.log(error.message);
+        logger.error(error.message);
         req.flash('error', error.message);
         res.redirect('back');
     }
@@ -1451,7 +1462,7 @@ const processRequestSickLeave = async (req, res) => {
         req.flash('success', 'Request sick leave successfully')
         res.redirect('back');
     } catch (error) {
-        console.log(error.message);
+        logger.error(error.message);
         req.flash('error', error.message);
         req.flash('leave_description', leave_description);
         req.flash('start_duration', start_duration);
@@ -1721,13 +1732,13 @@ const processRequestSickLeave2 = async (req, res) => {
                 req.flash('error', 'Insert data failed !!!');
                 res.redirect('back');
             } catch (error) {
-                console.log(error.message);
+                logger.error(error.message);
                 req.flash('error', error.message);
                 res.redirect('back');
             }
         })
     } catch (err) {
-        console.log(err.message);
+        logger.error(err.message);
         req.flash('error', error.message);
         req.flash('leave_description', leave_description);
         req.flash('start_duration', start_duration);
@@ -1844,7 +1855,7 @@ const processRequestUnpaidLeave = async (req, res) => {
         req.flash('success', 'Request unpaid leave successfully')
         res.redirect('back');
     } catch (error) {
-        console.log(error.message);
+        logger.error(error.message);
         req.flash('error', error.message)
         req.flash('leave_description', leave_description);
         req.flash('start_duration', start_duration);

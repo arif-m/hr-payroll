@@ -8,7 +8,7 @@ const { listRolesPermission } = require('../helper/roles-permission');
 const showIndex = async (req, res) => {
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search){
         where = { description : {
                     contains: search                    

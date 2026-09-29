@@ -10,7 +10,7 @@ const moment = require('moment');
 const listOfSalaryComponent = async (req, res) => {
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search){
         where = { componentName : {
                     contains: search                    
@@ -117,7 +117,7 @@ const createSalaryComponent = async (req, res) => {
         if (e instanceof Prisma.PrismaClientKnownRequestError) {
             // The .code property can be accessed in a type-safe manner
             if (e.code === 'P2002') {
-              console.log(
+              logger.error(
                 'There is a unique constraint violation !!!'
               )
             }
@@ -152,7 +152,7 @@ const updateSalaryComponent = async (req, res) => {
             res.redirect('back');
         }
     } catch (e) {
-        console.log(e);
+        logger.error(e);
     }
 }
 
@@ -168,9 +168,9 @@ const deleteSalaryComponent = async (req, res) => {
                 id: true
             }
         })
-        console.log(salaryTemplateDetail)
+        logger.debug(salaryTemplateDetail)
         if (salaryTemplateDetail) {
-            console.log(' tdk boleh delete');
+            logger.debug(' tdk boleh delete');
             req.flash('errorDelete', 'You cannot delete this data because already used by Salary Template !!!');
             res.redirect('back');    
         }
@@ -185,7 +185,7 @@ const deleteSalaryComponent = async (req, res) => {
             res.redirect('back');
         }            
     } catch (e) {
-        console.log(e)
+        logger.error(e)
         req.flash('error', 'Error delete data !!!');
         res.redirect('back');        
     }

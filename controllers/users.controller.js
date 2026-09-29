@@ -1,12 +1,4 @@
-var logger = require('../libs/logger'),
-    csrf = require('../libs/csrf'),
-    csrfProtection = csrf({
-      cookie: true
-    }),
-    uuid = require('uuid');
-
-const { v4: uuidv4 } = require('uuid');
-var crypto = require('crypto');
+const logger = require('../libs/logger');
 var bcrypt = require('bcrypt');
 
 const prisma = require('../libs/prisma');
@@ -79,30 +71,30 @@ const changePassword = async (req, res) => {
 }
 
 const processChangePassword = async (req, res) => {
-  const uuid = req.body.uuid;
+  // SECURITY: selalu gunakan uuid dari session — jangan dari body (cegah IDOR)
+  const uuid = req.user.uuid;
   const password = req.body.password;
   const password_confirmation = req.body.password_confirmation;
 
-  if(password_confirmation != password) {
+  if (password_confirmation !== password) {
     req.flash('error_confirmation', 'Password confirmation is not the same with password !!!');
-    res.redirect('back');
+    return res.redirect('back');
   }
-  
-  const salt = bcrypt.genSaltSync(10);//or your salt constant
-  const hashPassword = bcrypt.hashSync(password, salt);
 
-  const updatePassword = await prisma.users.update({
-    where: {
-      uuid: uuid,
-    },
-    data: {
-      password : hashPassword,
-      salt: salt,
-    }
-  })
+  try {
+    const salt = bcrypt.genSaltSync(10);
+    const hashPassword = bcrypt.hashSync(password, salt);
 
-  if (updatePassword){
+    await prisma.users.update({
+      where: { uuid },
+      data: { password: hashPassword, salt },
+    });
+
     req.flash('success', 'Change password successfully...');
+    res.redirect('back');
+  } catch (err) {
+    logger.error(`processChangePassword: ${err.message}`);
+    req.flash('error', 'Gagal mengganti password.');
     res.redirect('back');
   }
 }

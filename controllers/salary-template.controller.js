@@ -9,7 +9,7 @@ const { validationResult } = require('express-validator');
 const showSalaryTemplate = async (req, res) => {
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search){
         where = { templateName : {
                     contains: search                    
@@ -142,7 +142,7 @@ const insertSalaryTemplateHeader = async (req, res) => {
             res.redirect('back');
         }       
     } catch (e) {
-        console.log(e);
+        logger.error(e);
         logger.error(e, 'Error creating salary template')
 
         /*
@@ -207,7 +207,7 @@ const updateSalaryTemplateHeader = async (req, res) => {
             res.redirect('back');
         }
     } catch (e) {
-        console.log(e);
+        logger.error(e);
         logger.error(e, 'Error update salary template')
     }
 }

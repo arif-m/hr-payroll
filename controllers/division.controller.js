@@ -11,7 +11,7 @@ const { listRolesPermission } = require('../helper/roles-permission');
 const listDivision = async (req, res) => {
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search){
         where = { divisionName : {
                     contains: search                    

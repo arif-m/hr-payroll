@@ -10,7 +10,7 @@ const { listOfHolidaysCalendar } = require('../helper/calendar');
 const listOfCalendar = async (req, res) => {
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search){
         where = { eventName : {
                     contains: search                    
@@ -129,7 +129,7 @@ const myCalendar = async (req, res) => {
         const param = { user: userInfo, moment: moment, getRoles, pageTitle: 'Show Calendar', listOfCalendar };    
         res.render('pages/calendar/my-calendar', param);
     } catch (error) {
-        console.log(error);
+        logger.error(error);
         res.redirect('back');
     }
 }
@@ -153,7 +153,7 @@ const showHolidaysCalendar = async (req, res) => {
             });      
         }            
     } catch (error) {
-        console.log(error);
+        logger.error(error);
         res.status(403).send({
             status: true,
             statusCode: 403,

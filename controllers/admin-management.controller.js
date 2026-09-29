@@ -13,7 +13,7 @@ const roleIdEmployee = 1;
 const listAdminManagement = async (req, res) => {
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (search) {
         where = { AND: [ 
                     {
@@ -128,7 +128,7 @@ const listAdminManagement = async (req, res) => {
 const searchAdminManagement = async (req, res) => {
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (search) {
         where = { AND: [ 
                     {

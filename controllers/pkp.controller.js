@@ -1,4 +1,5 @@
 const prisma = require('../libs/prisma');
+const logger = require('../libs/logger');
 const { listRolesPermission } = require('../helper/roles-permission');
 
 const generalHelper = require('../helper/general');
@@ -6,7 +7,7 @@ const generalHelper = require('../helper/general');
 const listingAllPkp = async (req, res) => {
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search){
         where = { code : {
                     contains: search                    
@@ -66,7 +67,7 @@ const createDataPkp = async(req, res) => {
             res.redirect('back');
         }
     } catch (err) {
-        console.log(err.message);
+        logger.error(err.message);
         req.flash('error', err.message);
         res.redirect('back')
     }
@@ -95,7 +96,7 @@ const updateDataPkp = async (req, res) => {
             res.redirect('back');
         }
     } catch (error) {
-        console.log(err.message);
+        logger.error(err.message);
         req.flash('error', err.message);
         res.redirect('back')
     }

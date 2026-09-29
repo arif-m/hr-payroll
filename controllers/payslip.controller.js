@@ -10,7 +10,7 @@ const showIndex = async (req, res) => {
     const userId = req.user.id;
     const query = req.query;
     let search = query.search;
-    where = {
+    let where = {
         usersId: userId
     };
     if (query.search){
@@ -197,7 +197,7 @@ const generatePayslip = async (req, res) => {
 const showIndexPayslipAdmin = async (req, res) => {
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search){
         where = { 
             OR: [ 
@@ -285,7 +285,7 @@ const showListOfEmployee = async (req, res) => {
     const userId = req.user.id;
     const query = req.query;
     let search = query.search;
-    where = {
+    let where = {
         cutOffPeriodId: Number(getDataCutoffPeriod.id),
     };
     if (query.search){

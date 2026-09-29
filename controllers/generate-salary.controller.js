@@ -10,6 +10,7 @@
  *  - Sudah tidak ada parseInt(amount) — engine bekerja dengan Decimal.
  */
 const prisma = require('../libs/prisma');
+const { Prisma } = require('@prisma/client');
 const { listRolesPermission } = require('../helper/roles-permission');
 const moment = require('moment');
 const logger = require('../libs/logger');
@@ -174,33 +175,33 @@ const showGenerate = async (req, res) => {
     select: { usersId: true },
   });
   const idsEmployee = [0, ...listOfEmployeePayslipHeader.map((x) => x.usersId)];
-  const idList = idsEmployee.join(',');
 
   const query = req.query;
   const search = query.search;
   const { page, limit, skip } = pageParams(query);
 
-  // search di-escape ketat; limit/skip adalah hasil parseInt (aman).
-  const searchClause = search
-    ? `AND (fullName LIKE '%${String(search).replace(/['"\\]/g, '')}%' OR address LIKE '%${String(search).replace(/['"\\]/g, '')}%')`
-    : '';
+  // SECURITY: query parameterized — id via Prisma.join, search via Prisma.sql.
+  // Tidak ada lagi interpolasi string mentah ke SQL (cegah SQL injection);
+  // limit/skip adalah hasil parseInt sehingga aman sebagai parameter.
+  const idList = Prisma.join(idsEmployee, ', ');
+  const searchFilter = search
+    ? Prisma.sql`AND (fullName LIKE ${'%' + search + '%'} OR address LIKE ${'%' + search + '%'})`
+    : Prisma.empty;
 
-  const totalCountRows = await prisma.$queryRawUnsafe(
-    `SELECT count(*) AS total FROM users
-     WHERE id NOT IN (${idList}) AND salaryTemplateHeaderId IS NOT NULL ${searchClause}`
-  );
+  const totalCountRows = await prisma.$queryRaw`
+    SELECT count(*) AS total FROM users
+    WHERE id NOT IN (${idList}) AND salaryTemplateHeaderId IS NOT NULL ${searchFilter}`;
   const totalCount = Number(totalCountRows[0].total);
   const totalPage = Math.ceil(totalCount / limit);
   const totalRecordCurrentPage = currentRecordCount(page, totalPage, totalCount, limit);
 
-  const getDataGenerateSalary = await prisma.$queryRawUnsafe(
-    `SELECT uuid, employeeId, fullName, address, divisionName, jobTitleName
-     FROM users
-     JOIN division ON division.id = users.divisionId
-     JOIN jobTitle ON users.jobTitleId = jobTitle.id
-     WHERE users.id NOT IN (${idList}) AND salaryTemplateHeaderId IS NOT NULL ${searchClause}
-     LIMIT ${limit} OFFSET ${skip}`
-  );
+  const getDataGenerateSalary = await prisma.$queryRaw`
+    SELECT uuid, employeeId, fullName, address, divisionName, jobTitleName
+    FROM users
+    JOIN division ON division.id = users.divisionId
+    JOIN jobTitle ON users.jobTitleId = jobTitle.id
+    WHERE users.id NOT IN (${idList}) AND salaryTemplateHeaderId IS NOT NULL ${searchFilter}
+    LIMIT ${limit} OFFSET ${skip}`;
 
   const listOfPayslipHeader = {
     meta: buildMeta(limit, page || 0, totalCount, totalRecordCurrentPage),

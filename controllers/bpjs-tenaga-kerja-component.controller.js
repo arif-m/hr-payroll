@@ -7,7 +7,7 @@ const generalHelper = require('../helper/general');
 const showBpjsTenagaKerjaComponent = async (req, res) => {
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search){
         where = { componentName : {
                     contains: search                    

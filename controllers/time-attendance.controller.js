@@ -1,4 +1,5 @@
 const prisma = require('../libs/prisma');
+const logger = require('../libs/logger');
 const { listRolesPermission } = require('../helper/roles-permission');
 
 const moment = require('moment');
@@ -134,7 +135,7 @@ const timeAttendanceReportByAdmin = async(req, res) => {
         }
         ['used'].forEach(function (k) { hash[key]['YourArrayName'].push({ used : o['used'], instances : o['instances'] }) });
     });
-    console.log(grouped);
+        console.log(grouped);
     return; */
      
     const query = req.query;
@@ -336,7 +337,7 @@ const createDataTimeAttendance = async(req, res) => {
             }
         }    
     } catch (err) {
-        console.log(err.message);
+        logger.error(err.message);
         req.flash('error', err.message);
         res.redirect('back');
     }    

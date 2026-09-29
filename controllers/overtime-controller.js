@@ -1,4 +1,5 @@
 const prisma = require('../libs/prisma');
+const logger = require('../libs/logger');
 const { listRolesPermission } = require('../helper/roles-permission');
 const moment = require('moment');
 const generalHelper = require('../helper/general');
@@ -9,7 +10,7 @@ const listOfOvertime = async (req, res) => {
     const getRoles = await listRolesPermission(userInfo.roleUuid);
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search) {
         where = { OR: [
                     {
@@ -296,8 +297,8 @@ const storeDataOvertime = async (req, res) => {
         req.flash('success', 'Request overtime successfully')
         res.redirect('/request-overtime');
     } catch (error) {
-        console.log('error... ')
-        console.log(error.message);
+        logger.error('error... ')
+        logger.error(error.message);
         req.flash('error', error.message);
         res.redirect('back');
     }
@@ -308,7 +309,7 @@ const approveRequestOvertimeByHead = async (req, res) => {
     const getRoles = await listRolesPermission(userInfo.roleUuid);
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search) {
         where = { OR: [
                     {
@@ -427,8 +428,8 @@ const processApproveRequestOvertimeByHead = async (req, res) => {
         req.flash('success', 'Approve request overtime by head successfully')
         res.redirect('/approve-request-overtime-by-head/listing');
     } catch (error) {
-        console.log('error... ')
-        console.log(error.message);
+        logger.error('error... ')
+        logger.error(error.message);
         req.flash('error', error.message);
         res.redirect('back');
     }
@@ -439,7 +440,7 @@ const approveRequestOvertimeByHR = async (req, res) => {
     const getRoles = await listRolesPermission(userInfo.roleUuid);
     const query = req.query;
     let search = query.search;
-    where = {};
+    let where = {};
     if (query.search) {
         where = { AND: [ 
                     {
@@ -725,8 +726,8 @@ const processApproveRequestOvertimeByHR = async (req, res) => {
         req.flash('success', 'Approve request overtime by HR successfully')
         res.redirect('/approve-request-overtime-by-hr/listing');
     } catch (error) {
-        console.log('error... ')
-        console.log(error.message);
+        logger.error('error... ')
+        logger.error(error.message);
         req.flash('error', error.message);
         res.redirect('back');
     }   
