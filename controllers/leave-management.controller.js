@@ -342,9 +342,30 @@ const processApprovedRequestAnnualLeaveByHR = async (req, res) => {
     const approvedBy = req.user.fullName;
 
     if (is_approved == 1) {
+        // Hardening: employeeId & days diambil dari row request di DB (by uuid),
+        // bukan dari body — guard saldo, absensi, dan pemotongan saldo mengikuti
+        // data request yang disetujui.
+        const getDataRequestAnnualLeave = await prisma.requestLeave.findFirst({
+            where: {
+                uuid: uuid,
+            },
+            select: {
+                employeeId: true,
+                days: true,
+                startDuration: true,
+                endDuration: true,
+            }
+        })
+        if (!getDataRequestAnnualLeave) {
+            req.flash('error', 'Data request leave tidak ditemukan !!');
+            res.redirect('back');
+            return;
+        }
+        const dbEmployeeId = Number(getDataRequestAnnualLeave.employeeId);
+        const dbDays = Number(getDataRequestAnnualLeave.days);
         const getAnnualLeaveBalance = await prisma.users.findFirst({
             where: {
-                id: Number(employee_id),
+                id: dbEmployeeId,
             },
             select: {
                 annualLeave: true,
@@ -352,11 +373,11 @@ const processApprovedRequestAnnualLeaveByHR = async (req, res) => {
             }
         })
 
-        if (Number(getAnnualLeaveBalance.annualLeaveBalance) >= Number(days)) {
+        if (Number(getAnnualLeaveBalance.annualLeaveBalance) >= dbDays) {
             logger.debug('appr1')
             const getDataEmployee = await prisma.users.findFirst({
                 where: {
-                    id: Number(employee_id),
+                    id: dbEmployeeId,
                 },
                 select: {
                     id: true,
@@ -383,15 +404,6 @@ const processApprovedRequestAnnualLeaveByHR = async (req, res) => {
                 }
             })
         
-            const getDataRequestAnnualLeave = await prisma.requestLeave.findFirst({
-                where: {
-                    uuid: uuid,
-                },
-                select: {
-                    startDuration: true,
-                    endDuration: true,
-                }
-            })
             let startDuration = moment(getDataRequestAnnualLeave.startDuration);
             let endDuration = moment(getDataRequestAnnualLeave.endDuration);
             let daysOfAnnualLeave = moment.duration(endDuration.diff(startDuration)).asDays() + 1;
@@ -413,7 +425,7 @@ const processApprovedRequestAnnualLeaveByHR = async (req, res) => {
             for (let index = 0; index < daysOfAnnualLeave; index++) {
                 workDate = moment(startDuration, "DD-MM-YYYY").add(index, 'days');
                 let dayOfWorkDate = moment.utc(workDate).format('dddd');
-                isDataExist = await isExistTimeAttendanceEmployee(Number(employee_id), workDate);
+                isDataExist = await isExistTimeAttendanceEmployee(dbEmployeeId, workDate);
                 if (workDays == 5) {
                     if (dayOfWorkDate == 'Saturday' || dayOfWorkDate == 'Sunday') {
                     } else {
@@ -472,7 +484,7 @@ const processApprovedRequestAnnualLeaveByHR = async (req, res) => {
                         if (getCalendar == null) {
                             const inserData = await prisma.timeAttendance.create({
                                 data: {
-                                    employeeId: Number(employee_id),
+                                    employeeId: dbEmployeeId,
                                     workDate: moment.utc(workDate).toDate(),
                                     status: 'N', //annual leave
                                     reason: 'Annual Leave',
@@ -502,7 +514,7 @@ const processApprovedRequestAnnualLeaveByHR = async (req, res) => {
                         if (getCalendar == null) {
                             const inserData = await prisma.timeAttendance.create({
                                 data: {
-                                    employeeId: Number(employee_id),
+                                    employeeId: dbEmployeeId,
                                     workDate: moment.utc(workDate).toDate(),
                                     status: 'N', //annual leave
                                     reason: 'Annual Leave',
@@ -524,7 +536,7 @@ const processApprovedRequestAnnualLeaveByHR = async (req, res) => {
                 }
             }        
 
-            const updateUserAnnualLeaveBalance = await prisma.$executeRaw`UPDATE users SET annualLeave = annualLeave + ${Number(days)}, annualLeaveBalance = annualLeaveBalance - ${Number(days)} WHERE id= ${employee_id};`
+            const updateUserAnnualLeaveBalance = await prisma.$executeRaw`UPDATE users SET annualLeave = annualLeave + ${dbDays}, annualLeaveBalance = annualLeaveBalance - ${dbDays} WHERE id= ${dbEmployeeId};`
             const updateRequestAnnualLeave = await prisma.requestLeave.update({
                 where: {
                     uuid: uuid,
@@ -726,9 +738,29 @@ const processApprovedRequestSickLeaveByHR = async (req, res) => {
     const approvedBy = req.user.fullName;
 
     if (is_approved == 1){
+        // Hardening: employeeId, days, dan tanggal mulai diambil dari row request
+        // di DB (by uuid), bukan dari body — absensi & pemotongan saldo mengikuti
+        // data request yang disetujui.
+        const getDataRequestSickLeave = await prisma.requestLeave.findFirst({
+            where: {
+                uuid: uuid,
+            },
+            select: {
+                employeeId: true,
+                days: true,
+                startDuration: true,
+            }
+        })
+        if (!getDataRequestSickLeave) {
+            req.flash('error', 'Data request leave tidak ditemukan !!');
+            res.redirect('back');
+            return;
+        }
+        const dbEmployeeId = Number(getDataRequestSickLeave.employeeId);
+        const dbDays = Number(getDataRequestSickLeave.days);
         const getSickLeaveBalance = await prisma.users.findFirst({
             where: {
-                id: Number(employee_id),
+                id: dbEmployeeId,
             },
             select: {
                 sickLeave: true,
@@ -736,10 +768,10 @@ const processApprovedRequestSickLeaveByHR = async (req, res) => {
             }
         })
 
-        if (Number(getSickLeaveBalance.sickLeaveBalance) >= Number(days)) {
+        if (Number(getSickLeaveBalance.sickLeaveBalance) >= dbDays) {
             const getDataEmployee = await prisma.users.findFirst({
                 where: {
-                    id: Number(employee_id),
+                    id: dbEmployeeId,
                 },
                 select: {
                     id: true,
@@ -766,21 +798,21 @@ const processApprovedRequestSickLeaveByHR = async (req, res) => {
                 }
             })
 
-            let workDate = work_date.split("-")[2] + '-' + work_date.split("-")[1] + '-' + work_date.split("-")[0];
+            let workDate = moment.utc(getDataRequestSickLeave.startDuration).format('YYYY-MM-DD');
             let checkIn = moment.utc(workDate).format('YYYY-MM-DD') + ' 00:00:01';
             let checkOut = moment.utc(workDate).format('YYYY-MM-DD') + ' 00:00:01';
 
-            let isDataExist = await isExistTimeAttendanceEmployee(Number(employee_id), workDate);            
+            let isDataExist = await isExistTimeAttendanceEmployee(dbEmployeeId, workDate);            
             if (isDataExist == true) {
                 req.flash('uuid', uuid);
-                req.flash('error', 'Tanggal mulai ' + work_date + ' sudah punya data absensi (kemungkinan ada cuti lain yang sudah disetujui). Tolak pengajuan ini bila tumpang tindih, atau konsultasikan ke HR.');
+                req.flash('error', 'Tanggal mulai ' + workDate + ' sudah punya data absensi (kemungkinan ada cuti lain yang sudah disetujui). Tolak pengajuan ini bila tumpang tindih, atau konsultasikan ke HR.');
                 res.redirect('back');
                 return 'already exist';
             }
 
             const inserDataTimeAttendance = await prisma.timeAttendance.create({
                 data: {
-                    employeeId: Number(employee_id),
+                    employeeId: dbEmployeeId,
                     workDate: moment.utc(workDate).toDate(),
                     status: 'S', //sick leave
                     reason: 'Sick Leave',
@@ -798,7 +830,7 @@ const processApprovedRequestSickLeaveByHR = async (req, res) => {
                 }
             })
 
-            const updateUserSickLeaveBalance = await prisma.$executeRaw`UPDATE users SET sickLeave = sickLeave + ${Number(days)}, sickLeaveBalance = sickLeaveBalance - ${Number(days)} WHERE id= ${employee_id};`
+            const updateUserSickLeaveBalance = await prisma.$executeRaw`UPDATE users SET sickLeave = sickLeave + ${dbDays}, sickLeaveBalance = sickLeaveBalance - ${dbDays} WHERE id= ${dbEmployeeId};`
             const updateRequestSickLeave = await prisma.requestLeave.update({
                 where: {
                     uuid: uuid,
