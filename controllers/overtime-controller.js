@@ -188,6 +188,20 @@ const storeDataOvertime = async (req, res) => {
     }
 
     try {
+        // Validasi waktu: end time harus lebih besar dari start time di setiap detail,
+        // ditolak SEBELUM header/detail ditulis ke DB (pesan via flash oleh catch).
+        const toMinutes = (t) => {
+            const [h, m] = String(t).split(':').map(Number);
+            return h * 60 + m;
+        };
+        const starts = [].concat(req.body.start);
+        const ends = [].concat(req.body.end);
+        for (let i = 0; i < starts.length; i++) {
+            if (toMinutes(ends[i]) <= toMinutes(starts[i])) {
+                throw new Error('End Time harus lebih besar dari Start Time (baris ' + (i + 1) + ')');
+            }
+        }
+
         const createdBy = req.user.fullName;
         const updatedBy = req.user.fullName;
     
