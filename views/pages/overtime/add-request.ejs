@@ -22,7 +22,7 @@
                 <div class="card-header">
                   <h3 class="card-title">Data</h3>
                 </div>                  
-                <form action="/request-overtime/store" method="POST" autocomplete="off" enctype="multipart/form-data">
+                <form id="form-add-overtime" action="/request-overtime/store" method="POST" autocomplete="off" enctype="multipart/form-data">
                   <div class="card-body">
                     <div class="row">                
                       <input type="hidden" class="form-control" name="id" id="id" value="<%= employeeData.id %>">
@@ -362,21 +362,16 @@
             element.setAttribute('value', '');
             element.setAttribute('required', 'TRUE');
             if (columnIndex == 2) {
-              element.setAttribute('type', 'text');
+              element.setAttribute('type', 'time');
               element.setAttribute('class', 'form-control start');
-              element.setAttribute('name', 'start');           
+              element.setAttribute('name', 'start');
               element.setAttribute('id', 'start' + rowIndex);
-              element.setAttribute('data-mask', '00:00');           
-              element.setAttribute('data-mask-visible', 'true');  
-              element.setAttribute('placeholder', '00:00');                              
-              //element.setAttribute('style', 'text-align: right');            
             } else if (columnIndex == 3) {
-              element.setAttribute('type', 'text');
+              element.setAttribute('type', 'time');
               element.setAttribute('class', 'form-control end');
-              element.setAttribute('name', 'end');           
+              element.setAttribute('name', 'end');
               element.setAttribute('id', 'end' + rowIndex);
-              element.setAttribute('placeholder', '00:00');                              
-            } 
+            }
             td.appendChild(element);
           }
         }
@@ -384,6 +379,33 @@
       
       
       rowIndex++;
+    }
+
+    // Validasi sebelum submit: end time harus lebih besar dari start time di setiap baris.
+    let validateRows = () => {
+      let empTab = document.getElementById('empTable');
+      let firstInvalid = null;
+      for (let r = 1; r < empTab.rows.length; r++) {
+        let startVal = document.getElementById('start' + r);
+        let endVal = document.getElementById('end' + r);
+        if (!startVal || !endVal) continue;
+        if (endVal.value <= startVal.value) {
+          if (!firstInvalid) firstInvalid = endVal;
+        }
+      }
+      return firstInvalid;
+    };
+
+    let formOvertime = document.getElementById('form-add-overtime');
+    if (formOvertime) {
+      formOvertime.addEventListener('submit', function (event) {
+        let invalidEnd = validateRows();
+        if (invalidEnd) {
+          event.preventDefault();
+          alert('End Time harus lebih besar dari Start Time pada setiap baris.');
+          invalidEnd.focus();
+        }
+      });
     }
 
     // delete TABLE row function.

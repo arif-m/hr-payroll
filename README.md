@@ -297,6 +297,10 @@ jenjang SPV hanya menampilkan request bawahan langsung
 kompatibel handler legacy: Approve `is_approved=1`, **Reject
 `is_approved=2`**, leave mengirim `work_date` (tanggal mulai), medreimb
 mengirim `approved_date` + `total_approved` (FA).
+Keputusan dari inbox dikonfirmasi lewat **modal komentar** (maxlength 300;
+wajib saat Reject, opsional saat Approve) — kolom `comments` diisi dari modal,
+bukan lagi hardcode, sehingga alasan keputusan tersimpan ke kolom
+`commentsBySupervisor`/`commentsByHR` seperti approval legacy.
 
 Payroll Management dikelompokkan menjadi 4 sub-menu: **My Payroll**,
 **Payroll Transactions**, **Payroll Attendance**, dan **Payroll Master &

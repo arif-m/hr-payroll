@@ -73,7 +73,7 @@
                                 <td><%= row.period %></td>
                                 <td><%= row.amount %></td>
                                 <td class="text-end">
-                                  <form method="POST" action="<%= block.postAction %>" class="d-inline" autocomplete="off" onsubmit="return confirm(this.getAttribute('data-confirm'))" data-confirm="<%= 'APPROVE (' + block.stage + ') ' + row.employeeName + ' — ' + row.title + ' | ' + row.period %>">
+                                  <form method="POST" action="<%= block.postAction %>" class="d-inline" autocomplete="off">
                                     
                                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <input type="hidden" name="uuid" value="<%= row.uuid %>">
@@ -87,9 +87,9 @@
                                       <input type="hidden" name="approved_date" value="<%= row.approvedDate %>">
                                       <input type="hidden" name="total_approved" value="<%= row.totalApproved %>">
                                     <% } %>
-                                    <button class="btn btn-success btn-sm" type="submit">Approve</button>
+                                    <button class="btn btn-success btn-sm" type="submit" data-decision="1">Approve</button>
                                   </form>
-                                  <form method="POST" action="<%= block.postAction %>" class="d-inline ms-1" autocomplete="off" onsubmit="return confirm(this.getAttribute('data-confirm'))" data-confirm="<%= 'TOLAK (' + block.stage + ') ' + row.employeeName + ' — ' + row.title + ' | ' + row.period %>">
+                                  <form method="POST" action="<%= block.postAction %>" class="d-inline ms-1" autocomplete="off">
                                     
                                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <input type="hidden" name="uuid" value="<%= row.uuid %>">
@@ -103,7 +103,7 @@
                                       <input type="hidden" name="approved_date" value="<%= row.approvedDate %>">
                                       <input type="hidden" name="total_approved" value="<%= row.totalApproved %>">
                                     <% } %>
-                                    <button class="btn btn-outline-danger btn-sm" type="submit">Reject</button>
+                                    <button class="btn btn-outline-danger btn-sm" type="submit" data-decision="2">Reject</button>
                                   </form>
                                 </td>
                               </tr>
@@ -142,5 +142,79 @@
   <!-- Tabler Core -->
   <script src="/assets/tabler/js/tabler.min.js"></script>
   <script src="/assets/tabler/js/demo.min.js"></script>
+  <div class="modal modal-blur fade" id="modal-decision" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-status bg-warning" id="decision-status"></div>
+        <div class="modal-body text-center py-4">
+          <h3 id="decision-title">Konfirmasi Keputusan</h3>
+          <div class="text-muted" id="decision-context"></div>
+          <div class="text-start mt-3">
+            <label class="form-label" for="decision-comments">Comments <span id="decision-required" class="text-danger">*</span></label>
+            <textarea class="form-control" name="decision-comments" id="decision-comments" rows="3" maxlength="300" placeholder="Comments (maks. 300 karakter)"></textarea>
+            <!--<div class="form-help">Wajib diisi saat menolak (Reject). Maksimal 300 karakter, sama seperti kolom comments di halaman approval.</div>-->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-primary" id="decision-submit">Konfirmasi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var modalEl = document.getElementById('modal-decision');
+      if (!modalEl || typeof bootstrap === 'undefined') return;
+      var modal = new bootstrap.Modal(modalEl);
+      var statusEl = document.getElementById('decision-status');
+      var titleEl = document.getElementById('decision-title');
+      var contextEl = document.getElementById('decision-context');
+      var requiredEl = document.getElementById('decision-required');
+      var commentsEl = document.getElementById('decision-comments');
+      var submitEl = document.getElementById('decision-submit');
+      var pendingForm = null;
+      var pendingDecision = null;
+
+      function openFor(form, decision) {
+        pendingForm = form;
+        pendingDecision = decision;
+        contextEl.textContent = form ? (form.getAttribute('data-confirm') || '') : '';
+        commentsEl.value = '';
+        commentsEl.classList.remove('is-invalid');
+        requiredEl.style.display = decision === 2 ? '' : 'none';
+        statusEl.className = 'modal-status bg-' + (decision === 1 ? 'success' : 'danger');
+        titleEl.textContent = decision === 1 ? 'Approve' : 'Reject';
+        submitEl.className = 'btn ' + (decision === 1 ? 'btn-success' : 'btn-danger');
+        submitEl.textContent = decision === 1 ? 'Approve' : 'Reject';
+        modal.show();
+      }
+
+      Array.prototype.forEach.call(document.querySelectorAll('button[data-decision]'), function (btn) {
+        btn.addEventListener('click', function (event) {
+          event.preventDefault();
+          openFor(btn.closest('form'), Number(btn.getAttribute('data-decision')));
+        });
+      });
+
+      commentsEl.addEventListener('input', function () {
+        commentsEl.classList.remove('is-invalid');
+      });
+
+      submitEl.addEventListener('click', function () {
+        if (!pendingForm) return;
+        var value = commentsEl.value.trim();
+        if (pendingDecision === 2 && value === '') {
+          commentsEl.classList.add('is-invalid');
+          commentsEl.focus();
+          return;
+        }
+        var commentsField = pendingForm.querySelector('input[name="comments"]');
+        if (commentsField) commentsField.value = value;
+        pendingForm.submit();
+      });
+    })();
+  </script>
 </body>
 </html>
